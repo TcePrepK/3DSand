@@ -20,10 +20,14 @@ const int maxDist = 500;
 #include /shaders/rayUtils.glsl
 
 void main(void) {
-    vec3 rayDir = normalize(topLeftCorner + xIncrement * gl_FragCoord.x + yIncrement * gl_FragCoord.y);
+    vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + ((screenHeight - gl_FragCoord.y) * yIncrement));
 
     Ray ray = Ray(cameraPos, rayDir, vec3(0));
     ColorDDA(ray);
 
     out_color = vec4(ray.color, 1);
+
+    //    float x = gl_FragCoord.x / screenWidth;
+    //    float y = gl_FragCoord.y / screenHeight;
+    //    out_color = vec4(x, y, 1, 1);
 }

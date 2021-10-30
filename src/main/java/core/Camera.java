@@ -82,8 +82,6 @@ public class Camera {
         if (!viewMatrix.equals(oldViewMatrix)) {
             matrixWatcher.dispatch();
         }
-
-//        System.out.println(position);
     }
 
     public void calculateVariables(final Vector3D playerPos) {
@@ -91,9 +89,9 @@ public class Camera {
         final Vector3D camRightVector = new Vector3D(viewMatrix.m00(), viewMatrix.m10(), viewMatrix.m20());
         final Vector3D camUpVector = new Vector3D(viewMatrix.m01(), viewMatrix.m11(), viewMatrix.m21());
 
-        topLeftCorner = cameraDirection.sub(camRightVector.mult(viewportWidth / 2)).sub(camUpVector.mult(viewportHeight / 2));
+        topLeftCorner = cameraDirection.sub(camRightVector.mult(viewportWidth / 2)).add(camUpVector.mult(viewportHeight / 2));
         xIncrement = camRightVector.mult(viewportWidth).div(DisplayManager.WIDTH);
-        yIncrement = camUpVector.mult(viewportHeight).div(DisplayManager.HEIGHT);
+        yIncrement = camUpVector.mult(-viewportHeight).div(DisplayManager.HEIGHT);
     }
 
     public Vector3D getRay(final float x, final float y) {

@@ -21,7 +21,7 @@ vec2 rand2D() {
     randState.x = fract(sin(dot(randState.xy, vec2(12.9898, 78.233))) * 43758.5453);
     randState.y = fract(sin(dot(randState.xy, vec2(12.9898, 78.233))) * 43758.5453);
 
-    return randState;
+    return randState * 2.0 - 1.0;
 }
 
 vec3 getSkyColor(vec3 dir) {
@@ -33,23 +33,15 @@ vec3 randomizeNormal(vec3 normal) {
     return normalize(vec3(normal.xy + rand2D(), normal.z));
 }
 
-vec3 getNewDirection(vec3 normal) {
+vec3 getNewDirection() {
     vec2 rng = rand2D();
     float v = rng.x;
     float u = rng.y;
 
-    u = u * 2 - 1;
     float r = sqrt(1 - u * u);
     float phi = 2 * 3.1415 * v;
 
-    vec3 newDir = normalize(vec3(cos(phi) * r, sin(phi) * r, u));
-
-    float product = dot(newDir, normal);
-    if (product <= 0) {
-        newDir = normalize(newDir * -1);
-    }
-
-    return newDir;
+    return normalize(vec3(cos(phi) * r, sin(phi) * r, u));
 }
 
 void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, out float dist, out int idx) {
@@ -131,8 +123,6 @@ void DDA(in out Ray ray, out vec3 hitPoint, out vec3 hitNormal, out bool reflect
         vec3 cubeColor = vec3(0);
         if (hitId == 2) {
             cubeColor = vec3(0.65, 0.4, 0.3);
-
-            //            cubeColor = max(vec3(0.3), dot(hitNormal, vec3(0.358, -0.894, -0.268)));
         } else {
             cubeColor = vec3(1);
         }
@@ -142,6 +132,16 @@ void DDA(in out Ray ray, out vec3 hitPoint, out vec3 hitNormal, out bool reflect
 
         ray.color = mix(skyColor, cubeColor, visibility);
     }
+}
+
+bool LightDDA(Ray ray) {
+    vec3 hitPoint = vec3(0);
+    vec3 hitNormal = vec3(0);
+    bool reflected = false;
+    bool hitLight = false;
+    DDA(ray, hitPoint, hitNormal, reflected, hitLight);
+
+    return hitLight;
 }
 
 void DDA(in out Ray ray, out bool reflected, out bool hitLight) {
@@ -185,14 +185,16 @@ void ColorDDA(in out Ray ray) {
     vec3 offHitPoint = hitPoint + hitNormal / 100;
     vec3 fakeColor = vec3(0);
     for (int i = 0; i < rayAmount; i++) {
-        //        vec3 fakeNormal = randomizeNormal(hitNormal);
-        //        Ray fakeRay = Ray(offHitPoint, reflect(ray.dir, fakeNormal), vec3(0));
-        Ray fakeRay = Ray(offHitPoint, getNewDirection(hitNormal), vec3(0));
+        vec3 fakeDir = getNewDirection();
+        float product = dot(fakeDir, hitNormal);
+        if (product < 0) {
+            fakeDir = normalize(-fakeDir);
+            product *= -1;
+        }
 
-        DDA(fakeRay, reflected, hitLight);
-
-        if (!hitLight) {
-            fakeColor += ray.color * getSkyColor(fakeRay.dir) / rayAmount;
+        Ray fakeRay = Ray(offHitPoint, fakeDir, vec3(0));
+        if (LightDDA(fakeRay)) {
+            fakeColor += ray.color * getSkyColor(fakeDir) / rayAmount * product;
         }
     }
 
