@@ -1,0 +1,191 @@
+package core;
+
+import elements.Element;
+import toolbox.Point3D;
+
+import java.awt.*;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static core.GlobalVariables.*;
+
+public class World {
+    private final HashMap<String, Chunk> chunksById = new HashMap<>();
+    private final List<Chunk> chunkList = new ArrayList<>();
+    private final List<Chunk> chunkUpdateList = new ArrayList<>();
+
+    private ByteBuffer worldBuffer;
+    private Point3D bufferScale;
+
+    public void update() {
+        for (int i = 0; i < chunkUpdateList.size(); i++) {
+            boolean updatedThisChunk = false;
+
+            final Chunk chunk = chunkUpdateList.get(i);
+            for (int x = chunk.getMinX(); x < chunk.getMaxX(); x++) {
+                for (int y = chunk.getMinY(); y < chunk.getMaxY(); y++) {
+                    for (int z = chunk.getMinZ(); z < chunk.getMaxZ(); z++) {
+                        final Element e = chunk.getElement(x, y, z);
+
+                        if (e == null) {
+                            continue;
+                        }
+
+                        final boolean updatedThisElement = e.update(new Point3D(x, y, z));
+                        if (updatedThisElement) {
+                            updatedThisChunk = true;
+                        }
+                    }
+                }
+            }
+
+            if (!updatedThisChunk) {
+                chunkUpdateList.remove(chunk);
+                i--;
+            }
+
+            chunk.updateRect(updatedThisChunk);
+        }
+    }
+
+    public void updateBuffer() {
+        final int chunkViewDistance = 4;
+        final Point3D cameraPos = camera.getPosition().floor().toPoint3D();
+//        final Point startingChunk = World.getChunkPosition(cameraPos.x, cameraPos.z);
+        final Point startingChunk = new Point(0, 0);
+
+        final int chunkIdGridSize = mapChunkSize * mapChunkSize * mapChunkSize;
+        final int totalLength = 4 * chunkViewDistance * chunkViewDistance * chunkIdGridSize;
+        final byte[] byteList = new byte[totalLength];
+
+        bufferScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
+
+//        int totalPos = 0;
+//        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
+//            for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
+//                final Point offChunk = new Point(startingChunk.x + i, startingChunk.y + j);
+//
+//                final Chunk chunk = getChunkWithPoint(offChunk);
+//                if (chunk != null) {
+//                    System.arraycopy(chunk.getIdGrid(), 0, byteList, totalPos, chunkIdGridSize);
+//                }
+//
+//                totalPos += chunkIdGridSize;
+//            }
+//        }
+
+        for (int i = 0; i < chunkViewDistance * 2; i++) {
+            for (int j = 0; j < chunkViewDistance * 2; j++) {
+                final Point offChunk = new Point(startingChunk.x + i - chunkViewDistance, startingChunk.y + j - chunkViewDistance);
+
+                final Chunk chunk = getChunkWithPoint(offChunk);
+                if (chunk == null) {
+                    continue;
+                }
+
+                final byte[] grid = chunk.getIdGrid();
+                for (int x = 0; x < chunk.getWidth(); x++) {
+                    for (int wY = 0; wY < chunk.getHeight(); wY++) {
+                        final int y = wY;
+//                        final int y = chunk.getHeight() - wY - 1;
+                        for (int z = 0; z < chunk.getDepth(); z++) {
+                            final int index = (x + (i * mapChunkSize)) + (y * bufferScale.x) + (z * bufferScale.x * bufferScale.y + (j * mapChunkSize * bufferScale.x * bufferScale.y));
+                            byteList[index] = grid[x + wY * mapChunkSize + z * mapChunkSize * mapChunkSize];
+                        }
+                    }
+                }
+            }
+        }
+
+        worldBuffer = ByteBuffer.allocateDirect(totalLength);
+        worldBuffer.put(byteList);
+        worldBuffer.flip();
+    }
+
+    public static boolean outBounds(final int x, final int y, final int z) {
+        return (y < 0 || y >= mapChunkSize);
+    }
+
+    public static Point getChunkPosition(final int x, final int z) {
+        final float w = mapChunkSize;
+        return new Point((int) Math.floor(x / w), (int) Math.floor(z / w));
+    }
+
+    public Chunk getChunkWithId(final String id) {
+        return chunksById.get(id);
+    }
+
+    public Chunk getChunkWithPoint(final Point chunkPos) {
+        final String id = chunkPos.x + "/" + chunkPos.y;
+        return chunksById.get(id);
+    }
+
+    public Chunk getChunk(final int x, final int z) {
+        final Point chunkPos = World.getChunkPosition(x, z);
+        final String id = chunkPos.x + "/" + chunkPos.y;
+        return getChunkWithId(id);
+    }
+
+    public Chunk getChunkOrCreate(final int x, final int z) {
+        final float w = mapChunkSize;
+        final Point chunkPos = World.getChunkPosition(x, z);
+        final String id = chunkPos.x + "/" + chunkPos.y;
+        if (chunksById.containsKey(id)) {
+            return getChunk(x, z);
+        }
+
+        final Chunk chunk = new Chunk(chunkPos.x * (int) w, chunkPos.y * (int) w, id);
+        chunksById.put(id, chunk);
+        chunkList.add(chunk);
+
+        return chunk;
+    }
+
+    public static Chunk getChunkAtTile(final int x, final int y, final int z, final boolean createIfNull) {
+        if (World.outBounds(x, y, z)) {
+            return null;
+        }
+
+        if (!createIfNull) {
+            return world.getChunk(x, z);
+        }
+
+        return world.getChunkOrCreate(x, z);
+    }
+
+    public static Chunk getChunkAtTile(final Point3D p, final boolean createIfNull) {
+        return World.getChunkAtTile(p.x, p.y, p.z, createIfNull);
+    }
+
+    public static Element getElement(final int x, final int y, final int z) {
+        if (World.outBounds(x, y, z)) {
+            return null;
+        }
+
+        final Chunk chunk = World.getChunkAtTile(x, y, z, false);
+
+        return chunk != null ? chunk.getElement(x, y, z) : null;
+    }
+
+    public static Element getElement(final Point3D p) {
+        return World.getElement(p.x, p.y, p.z);
+    }
+
+    public List<Chunk> getChunkList() {
+        return chunkList;
+    }
+
+    public List<Chunk> getChunkUpdateList() {
+        return chunkUpdateList;
+    }
+
+    public ByteBuffer getWorldBuffer() {
+        return worldBuffer;
+    }
+
+    public Point3D getBufferScale() {
+        return bufferScale;
+    }
+}
