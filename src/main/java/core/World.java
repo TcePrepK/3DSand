@@ -86,14 +86,11 @@ public class World {
                 }
 
                 final byte[] grid = chunk.getIdGrid();
-                for (int x = 0; x < chunk.getWidth(); x++) {
-                    for (int wY = 0; wY < chunk.getHeight(); wY++) {
-                        final int y = wY;
-//                        final int y = chunk.getHeight() - wY - 1;
-                        for (int z = 0; z < chunk.getDepth(); z++) {
-                            final int index = (x + (i * mapChunkSize)) + (y * bufferScale.x) + (z * bufferScale.x * bufferScale.y + (j * mapChunkSize * bufferScale.x * bufferScale.y));
-                            byteList[index] = grid[x + wY * mapChunkSize + z * mapChunkSize * mapChunkSize];
-                        }
+                for (int y = 0; y < chunk.getHeight(); y++) {
+                    for (int z = 0; z < chunk.getDepth(); z++) {
+                        final int gridIdx = y * mapChunkSize + z * mapChunkSize * mapChunkSize;
+                        final int listIdx = (i * mapChunkSize) + (y * bufferScale.x) + (z * bufferScale.x * bufferScale.y + (j * mapChunkSize * bufferScale.x * bufferScale.y));
+                        System.arraycopy(grid, gridIdx, byteList, listIdx, chunk.getWidth());
                     }
                 }
             }

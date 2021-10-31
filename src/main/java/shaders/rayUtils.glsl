@@ -8,6 +8,10 @@ vec3 at(Ray ray, float time) {
     return ray.pos + ray.dir * time;
 }
 
+bool inBounds(vec2 texturePos) {
+    return (texturePos.x >= 0 && texturePos.y >= 0 && texturePos.x < 1 && texturePos.y < 1);
+}
+
 bool inBounds(vec3 texturePos) {
     return (texturePos.x >= 0 && texturePos.y >= 0 && texturePos.z >= 0 && texturePos.x < 1 && texturePos.y < 1 && texturePos.z < 1);
 }
@@ -60,7 +64,16 @@ void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, ou
     }
 }
 
-void DDA(in out Ray ray, out vec3 hitPoint, out vec3 hitNormal, out bool reflected, out bool hitLight) {
+int DDAIdGetter(ivec3 gridCoords) {
+    vec3 texturePos = vec3(gridCoords.x + textureScale.x / 2, gridCoords.y, gridCoords.z + textureScale.z / 2) / textureScale;
+    if (inBounds(texturePos)) {
+        return int(texture(worldTexture, texturePos).r * 256);
+    } else {
+        return 0;
+    }
+}
+
+void DDA(in out Ray ray, out vec3 hitPoint, out vec3 hitNormal, out bool hitLight) {
     bvec3 dirSign = greaterThanEqual(ray.dir, vec3(0));
 
     ivec3 stepDir = mix(ivec3(-1), ivec3(1), dirSign);
@@ -79,22 +92,17 @@ void DDA(in out Ray ray, out vec3 hitPoint, out vec3 hitNormal, out bool reflect
     bool colorize = true;
     int hitId = 0;
 
-    reflected = false;
     hitLight = false;
     hitNormal = vec3(0);
     while (dist < maxDist) {
         if (inBounds(gridCoords.y)) {
-            vec3 offGridCoords = vec3(gridCoords.x + textureScale.x / 2, gridCoords.y, gridCoords.z + textureScale.z / 2);
-            vec3 texturePos = offGridCoords / textureScale;
-            if (inBounds(texturePos)) {
-                hitId = int(texture(worldTexture, texturePos).r * 256);
-                if (hitId != 0) {
-                    if (hitId == 1) {
-                        hitLight = true;
-                    }
-
-                    break;
+            hitId = DDAIdGetter(gridCoords);
+            if (hitId != 0) {
+                if (hitId == 1) {
+                    hitLight = true;
                 }
+
+                break;
             }
         }
 
@@ -137,26 +145,24 @@ void DDA(in out Ray ray, out vec3 hitPoint, out vec3 hitNormal, out bool reflect
 bool LightDDA(Ray ray) {
     vec3 hitPoint = vec3(0);
     vec3 hitNormal = vec3(0);
-    bool reflected = false;
     bool hitLight = false;
-    DDA(ray, hitPoint, hitNormal, reflected, hitLight);
+    DDA(ray, hitPoint, hitNormal, hitLight);
 
     return hitLight;
 }
 
-void DDA(in out Ray ray, out bool reflected, out bool hitLight) {
+void DDA(in out Ray ray, out bool hitLight) {
     vec3 hitPoint = vec3(0);
     vec3 hitNormal = vec3(0);
-    DDA(ray, hitPoint, hitNormal, reflected, hitLight);
+    DDA(ray, hitPoint, hitNormal, hitLight);
 }
 
 void ColorDDA(in out Ray ray) {
     vec3 hitPoint = vec3(0);
     vec3 hitNormal = vec3(0);
-    bool reflected = false;
     bool hitLight = false;
 
-    DDA(ray, hitPoint, hitNormal, reflected, hitLight);
+    DDA(ray, hitPoint, hitNormal, hitLight);
     if (hitLight) {
         return;
     }
@@ -194,7 +200,7 @@ void ColorDDA(in out Ray ray) {
 
         Ray fakeRay = Ray(offHitPoint, fakeDir, vec3(0));
         if (LightDDA(fakeRay)) {
-            fakeColor += ray.color * getSkyColor(fakeDir) / rayAmount * product;
+            fakeColor += ray.color * getSkyColor(fakeDir) / rayAmount;
         }
     }
 
