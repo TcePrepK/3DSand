@@ -20,7 +20,7 @@ bool inBounds(float height) {
     return (height < chunkScale.y || height >= 0);
 }
 
-vec2 randState = gl_FragCoord.xy;
+vec2 randState = gl_FragCoord.xy * rVector2D;
 vec2 rand2D() {
     randState.x = fract(sin(dot(randState.xy, vec2(12.9898, 78.233))) * 43758.5453);
     randState.y = fract(sin(dot(randState.xy, vec2(12.9898, 78.233))) * 43758.5453);
@@ -187,7 +187,7 @@ void ColorDDA(in out Ray ray) {
     //        }
     //    }
 
-    int rayAmount = 4;
+    int rayAmount = 1;
     vec3 offHitPoint = hitPoint + hitNormal / 100;
     vec3 fakeColor = vec3(0);
     for (int i = 0; i < rayAmount; i++) {

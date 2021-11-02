@@ -4,42 +4,31 @@ uniform mat4 mvpMatrix;
 uniform vec3 topLeftCorner;
 uniform vec3 xIncrement;
 uniform vec3 yIncrement;
-uniform int screenWidth;
-uniform int screenHeight;
+uniform vec2 resolution;
 uniform vec3 cameraPos;
+uniform vec2 rVector2D;
+uniform vec2 colorWeights;
 
 uniform vec3 textureScale;
 uniform vec3 chunkScale;
 
-uniform sampler3D worldTexture;
 uniform sampler2D oldDisplay;
-
-out vec4 out_color;
+uniform sampler3D worldTexture;
 
 const int maxDist = 500;
 
 #include /shaders/rayUtils.glsl
 
 void main(void) {
-    vec2 texturePos = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
-    if (inBounds(texturePos)) {
-        texelFetch(oldDisplay, ivec2(gl_FragCoord.xy), 0);
-        // texture(oldDisplay, texturePos);
-        out_color = vec4(1, 0, 0, 1);
-        return;
-    }
-    // texture(oldDisplay, pos);
-    //    if (oldColor != vec4(0)) {
-    //        out_color = oldColor;
-    //        return;
-    //    }
+    vec2 texturePos = gl_FragCoord.xy / resolution;
+    vec4 oldColor = texture(oldDisplay, texturePos);
 
     vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
 
     Ray ray = Ray(cameraPos, rayDir, vec3(0));
     ColorDDA(ray);
 
-    out_color = vec4(ray.color, 1);
+    gl_FragColor = oldColor * colorWeights.x + vec4(ray.color, 1) * colorWeights.y;
 
     //    float x = gl_FragCoord.x / screenWidth;
     //    float y = gl_FragCoord.y / screenHeight;

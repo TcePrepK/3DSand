@@ -4,8 +4,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 import toolbox.Color;
 import toolbox.Vector3D;
 
@@ -18,6 +16,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.lwjgl.opengl.GL40.*;
+
 public abstract class ShaderProgram {
     private final int programID;
     private final int stopID = 0;
@@ -28,68 +28,68 @@ public abstract class ShaderProgram {
     private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
     public ShaderProgram(final String vertexFile, final String fragmentFile) {
-        vertexShaderID = ShaderProgram.loadShader(vertexFile, GL20.GL_VERTEX_SHADER);
-        fragmentShaderID = ShaderProgram.loadShader(fragmentFile, GL20.GL_FRAGMENT_SHADER);
-        programID = GL20.glCreateProgram();
-        GL20.glAttachShader(programID, vertexShaderID);
-        GL20.glAttachShader(programID, fragmentShaderID);
+        vertexShaderID = ShaderProgram.loadShader(vertexFile, GL_VERTEX_SHADER);
+        fragmentShaderID = ShaderProgram.loadShader(fragmentFile, GL_FRAGMENT_SHADER);
+        programID = glCreateProgram();
+        glAttachShader(programID, vertexShaderID);
+        glAttachShader(programID, fragmentShaderID);
         bindAttributes();
-        GL20.glLinkProgram(programID);
-        GL20.glValidateProgram(programID);
+        glLinkProgram(programID);
+        glValidateProgram(programID);
         getAllUniformLocations();
     }
 
     protected abstract void getAllUniformLocations();
 
     protected int getUniformLocation(final String uniformName) {
-        return GL20.glGetUniformLocation(programID, uniformName);
+        return glGetUniformLocation(programID, uniformName);
     }
 
     public void start() {
-        GL20.glUseProgram(programID);
+        glUseProgram(programID);
     }
 
     public void stop() {
-        GL20.glUseProgram(stopID);
+        glUseProgram(stopID);
     }
 
     public void cleanUp() {
         stop();
-        GL20.glDetachShader(programID, vertexShaderID);
-        GL20.glDetachShader(programID, fragmentShaderID);
-        GL20.glDeleteShader(vertexShaderID);
-        GL20.glDeleteShader(fragmentShaderID);
-        GL20.glDeleteProgram(programID);
+        glDetachShader(programID, vertexShaderID);
+        glDetachShader(programID, fragmentShaderID);
+        glDeleteShader(vertexShaderID);
+        glDeleteShader(fragmentShaderID);
+        glDeleteProgram(programID);
     }
 
     protected abstract void bindAttributes();
 
     protected void bindAttribute(final int attribute, final String variableName) {
-        GL20.glBindAttribLocation(programID, attribute, variableName);
+        glBindAttribLocation(programID, attribute, variableName);
     }
 
     protected static void loadFloat(final int location, final float value) {
-        GL20.glUniform1f(location, value);
+        glUniform1f(location, value);
     }
 
     protected static void loadInt(final int location, final int value) {
-        GL20.glUniform1i(location, value);
+        glUniform1i(location, value);
     }
 
     protected static void load2DVector(final int location, final Vector2f vector) {
-        GL20.glUniform2f(location, vector.x(), vector.y());
+        glUniform2f(location, vector.x(), vector.y());
     }
 
     protected static void load3DVector(final int location, final Vector3D vector) {
-        GL20.glUniform3f(location, vector.x, vector.y, vector.z);
+        glUniform3f(location, vector.x, vector.y, vector.z);
     }
 
     protected static void load4DVector(final int location, final Vector4f vector) {
-        GL20.glUniform4f(location, vector.x(), vector.y(), vector.z(), vector.w());
+        glUniform4f(location, vector.x(), vector.y(), vector.z(), vector.w());
     }
 
     protected static void load4DVector(final int location, final Color vector) {
-        GL20.glUniform4f(location, vector.getR(), vector.getG(), vector.getB(), vector.getA());
+        glUniform4f(location, vector.getR(), vector.getG(), vector.getB(), vector.getA());
     }
 
     static void loadBoolean(final int location, final boolean value) {
@@ -97,13 +97,13 @@ public abstract class ShaderProgram {
         if (value) {
             toLoad = 1;
         }
-        GL20.glUniform1f(location, toLoad);
+        glUniform1f(location, toLoad);
     }
 
     protected static void loadMatrix(final int location, final Matrix4f matrix) {
         matrix.get(ShaderProgram.matrixBuffer);
         ShaderProgram.matrixBuffer.flip();
-        GL20.glUniformMatrix4fv(location, false, ShaderProgram.matrixBuffer);
+        glUniformMatrix4fv(location, false, ShaderProgram.matrixBuffer);
     }
 
     private static void shaderReader(final StringBuilder shaderSource, final String file, final List<String> includeList) {
@@ -143,11 +143,11 @@ public abstract class ShaderProgram {
         final StringBuilder shaderSource = new StringBuilder();
         ShaderProgram.shaderReader(shaderSource, file, new ArrayList<>());
 
-        final int shaderID = GL20.glCreateShader(type);
-        GL20.glShaderSource(shaderID, shaderSource);
-        GL20.glCompileShader(shaderID);
-        if (GL20.glGetShaderi(shaderID, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
-            System.out.println(GL20.glGetShaderInfoLog(shaderID, 500));
+        final int shaderID = glCreateShader(type);
+        glShaderSource(shaderID, shaderSource);
+        glCompileShader(shaderID);
+        if (glGetShaderi(shaderID, GL_COMPILE_STATUS) == GL_FALSE) {
+            System.out.println(glGetShaderInfoLog(shaderID, 500));
             System.err.println("Could not compile shader!");
             System.exit(-1);
         }

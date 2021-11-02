@@ -18,6 +18,7 @@ public class DisplayRenderer {
     private final int displayBufferId;
 
     private boolean loadCameraVariables = false;
+    private int framesWithoutUpdate = 0;
 
     public DisplayRenderer() {
         final float[] positions = {-1, 1, -1, -1, 1, 1, 1, -1};
@@ -29,8 +30,9 @@ public class DisplayRenderer {
         renderShader.stop();
 
         displayBufferId = DisplayRenderer.createDisplayBuffer();
-        oldTextureId = DisplayRenderer.createDisplayTexture();
         DisplayRenderer.unbindFrameBuffer();
+
+        oldTextureId = DisplayRenderer.create2DTexture();
     }
 
     public void render() {
@@ -41,7 +43,13 @@ public class DisplayRenderer {
         if (loadCameraVariables) {
             renderShader.loadCameraVariables();
             loadCameraVariables = false;
+
+            oldTextureId = DisplayRenderer.create2DTexture();
+            framesWithoutUpdate = 0;
         }
+
+        renderShader.loadRandomVector();
+        renderShader.loadColorWeights(framesWithoutUpdate++);
 
         // Bind texture buffer
         bindFrameBuffer();
@@ -51,9 +59,9 @@ public class DisplayRenderer {
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_3D, create3DTexture());
-        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, oldTextureId);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_3D, create3DTexture());
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -86,7 +94,6 @@ public class DisplayRenderer {
 
     public void bindFrameBuffer() {
         glBindFramebuffer(GL_FRAMEBUFFER, displayBufferId);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
         glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
     }
 
@@ -123,19 +130,24 @@ public class DisplayRenderer {
         return frameBuffer;
     }
 
-    public static int createDisplayTexture() {
+    public static int create2DTexture() {
         final int texture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, texture);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, DisplayManager.WIDTH, DisplayManager.HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DisplayManager.WIDTH, DisplayManager.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        return texture;
+    }
+
+    public static int createDisplayTexture() {
+        final int texture = DisplayRenderer.create2DTexture();
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
 
         return texture;
