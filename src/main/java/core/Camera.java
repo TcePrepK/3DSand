@@ -109,6 +109,11 @@ public class Camera {
 
     private void updateZoom() {
         final float deltaZoom = desiredZoomLevel - zoomLevel;
+        if (Math.abs(deltaZoom) < 0.5) {
+            zoomLevel = desiredZoomLevel;
+            return;
+        }
+
         zoomLevel += deltaZoom * DisplayManager.getFrameTimeSeconds() * 10;
 
         if ((deltaZoom > 0 && zoomLevel > desiredZoomLevel) || (deltaZoom < 0 && zoomLevel < desiredZoomLevel)) {

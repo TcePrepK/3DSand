@@ -13,9 +13,10 @@ public class DisplayRenderer {
     private final RawModel quad;
     private final RendererShader renderShader = new RendererShader();
     private final DisplayShader displayShader = new DisplayShader();
-    private int textureId;
-    private int oldTextureId;
+    private int worldTextureId;
     private final int displayBufferId;
+    private int oldColorAttachmentId;
+    private int oldDepthAttachmentId;
 
     private boolean loadCameraVariables = false;
     private int framesWithoutUpdate = 0;
@@ -32,7 +33,8 @@ public class DisplayRenderer {
         displayBufferId = DisplayRenderer.createDisplayBuffer();
         DisplayRenderer.unbindFrameBuffer();
 
-        oldTextureId = DisplayRenderer.create2DTexture();
+        oldColorAttachmentId = DisplayRenderer.create2DTexture();
+        oldDepthAttachmentId = DisplayRenderer.create2DTexture();
     }
 
     public void render() {
@@ -44,7 +46,8 @@ public class DisplayRenderer {
             renderShader.loadCameraVariables();
             loadCameraVariables = false;
 
-            oldTextureId = DisplayRenderer.create2DTexture();
+            oldColorAttachmentId = DisplayRenderer.create2DTexture();
+            oldDepthAttachmentId = DisplayRenderer.create2DTexture();
             framesWithoutUpdate = 0;
         }
 
@@ -55,13 +58,16 @@ public class DisplayRenderer {
         bindFrameBuffer();
 
         // Create new texture
-        final int textureId = DisplayRenderer.createDisplayTexture();
+        final int colorAttachment = DisplayRenderer.createColorAttachment();
+        final int depthAttachment = DisplayRenderer.createDepthAttachment();
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, oldTextureId);
-        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_3D, create3DTexture());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, oldColorAttachmentId);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, oldDepthAttachmentId);
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -76,7 +82,7 @@ public class DisplayRenderer {
 
         // Render texture to screen
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        glBindTexture(GL_TEXTURE_2D, colorAttachment);
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -84,8 +90,10 @@ public class DisplayRenderer {
 
         displayShader.stop();
 
-        glDeleteTextures(oldTextureId);
-        oldTextureId = textureId;
+        glDeleteTextures(oldColorAttachmentId);
+        glDeleteTextures(oldDepthAttachmentId);
+        oldColorAttachmentId = colorAttachment;
+        oldDepthAttachmentId = depthAttachment;
     }
 
     public void loadCameraVariablesNextFrame() {
@@ -103,7 +111,7 @@ public class DisplayRenderer {
     }
 
     public int create3DTexture() {
-        glDeleteTextures(textureId);
+        glDeleteTextures(worldTextureId);
 
         final int texture = glGenTextures();
         glBindTexture(GL_TEXTURE_3D, texture);
@@ -119,14 +127,15 @@ public class DisplayRenderer {
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, scale.x, scale.y, scale.z, 0, GL_RED, GL_UNSIGNED_BYTE, world.getWorldBuffer());
         glBindTexture(GL_TEXTURE_3D, 0);
 
-        textureId = texture;
+        worldTextureId = texture;
         return texture;
     }
 
     private static int createDisplayBuffer() {
         final int frameBuffer = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        final int[] attachments = new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        glDrawBuffers(attachments);
         return frameBuffer;
     }
 
@@ -146,17 +155,25 @@ public class DisplayRenderer {
         return texture;
     }
 
-    public static int createDisplayTexture() {
+    public static int createColorAttachment() {
         final int texture = DisplayRenderer.create2DTexture();
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
 
         return texture;
     }
 
+    public static int createDepthAttachment() {
+        final int texture = DisplayRenderer.create2DTexture();
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, texture, 0);
+
+        return texture;
+    }
+
     public void cleanUp() {
         renderShader.cleanUp();
-        glDeleteTextures(textureId);
-        glDeleteTextures(oldTextureId);
+        glDeleteTextures(worldTextureId);
+        glDeleteTextures(oldColorAttachmentId);
+        glDeleteTextures(oldDepthAttachmentId);
         glDeleteBuffers(displayBufferId);
     }
 }

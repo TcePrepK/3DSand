@@ -57,7 +57,7 @@ public class Main {
             DisplayManager.updateDisplay();
 
 //            System.out.println("Update took: " + (u2 - u1) / 100 + "sec and FPS is: " + DisplayManager.getFPS());
-            System.out.println("FPS: " + DisplayManager.getFPS());
+//            System.out.println("FPS: " + DisplayManager.getFPS());
         }
 
         renderer.cleanUp();

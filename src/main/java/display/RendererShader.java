@@ -18,9 +18,10 @@ public class RendererShader extends ShaderProgram {
     private int cameraPos;
     private int textureScale;
     private int chunkScale;
-    private int worldTexture;
-    private int rVector2D;
+    private int randVector2D;
     private int colorWeights;
+    private int oldColorAttachment;
+    private int oldDepthAttachment;
 
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
@@ -41,16 +42,20 @@ public class RendererShader extends ShaderProgram {
         cameraPos = super.getUniformLocation("cameraPos");
         textureScale = super.getUniformLocation("textureScale");
         chunkScale = super.getUniformLocation("chunkScale");
-        worldTexture = super.getUniformLocation("worldTexture");
-        rVector2D = super.getUniformLocation("rVector2D");
+        randVector2D = super.getUniformLocation("randVector2D");
         colorWeights = super.getUniformLocation("colorWeights");
+
+        oldColorAttachment = super.getUniformLocation("oldColorAttachment");
+        oldDepthAttachment = super.getUniformLocation("oldDepthAttachment");
     }
 
     public void loadVariables() {
         ShaderProgram.load2DVector(resolution, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
         ShaderProgram.loadMatrix(viewMatrix, camera.getViewMatrix());
         ShaderProgram.load3DVector(chunkScale, new Vector3D(mapChunkSize));
-        ShaderProgram.loadInt(worldTexture, 1);
+
+        ShaderProgram.loadInt(oldColorAttachment, 1);
+        ShaderProgram.loadInt(oldDepthAttachment, 2);
     }
 
     public void loadCameraVariables() {
@@ -62,7 +67,7 @@ public class RendererShader extends ShaderProgram {
     }
 
     public void loadRandomVector() {
-        ShaderProgram.load2DVector(rVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
+        ShaderProgram.load2DVector(randVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
     }
 
     public void loadColorWeights(final float frameCount) {
