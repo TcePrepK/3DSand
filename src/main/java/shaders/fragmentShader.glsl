@@ -27,7 +27,8 @@ void main(void) {
     vec2 pixelPosition = gl_FragCoord.xy / resolution;
     vec4 oldColor = texture(oldColorAttachment, pixelPosition);
 
-    vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
+    vec2 offset = rand2D() / 2;
+    vec3 rayDir = normalize(topLeftCorner + ((gl_FragCoord.x + offset.x) * xIncrement) + ((gl_FragCoord.y + offset.y) * yIncrement));
 
     Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
     ColorDDA(ray);

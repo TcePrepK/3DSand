@@ -297,7 +297,7 @@ HitRecord primaryDDA(in out Ray ray) {
 
     vec3 position = vec3(0);
     vec3 normal = vec3(0);
-    float distance = texture(oldDepthAttachment, pixelPosition).r * maxDist;
+    float distance = texture(oldDepthAttachment, pixelPosition).r * maxDist * 0;
     bool light = false;
     int id = 0;
 
