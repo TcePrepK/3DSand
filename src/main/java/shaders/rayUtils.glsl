@@ -2,6 +2,7 @@ struct Ray {
     vec3 pos;
     vec3 dir;
     vec3 color;
+    bool lightRay;
 };
 
 struct HitRecord {
@@ -11,6 +12,18 @@ struct HitRecord {
     bool light;
     int id;
 };
+
+int base3(int num) {
+    float ret = 0;
+    int factor = 1;
+    while (num > 0) {
+        ret += num % 3 * factor;
+        num /= 3;
+        factor *= 10;
+    }
+
+    return int(ret);
+}
 
 vec3 at(Ray ray, float time) {
     return ray.pos + ray.dir * time;
@@ -73,12 +86,142 @@ void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, ou
 }
 
 int DDAIdGetter(ivec3 gridCoords) {
-    vec3 texturePos = vec3(gridCoords.x + textureScale.x / 2, gridCoords.y, gridCoords.z + textureScale.z / 2) / textureScale;
-    if (inBounds(texturePos)) {
-        return int(texture(worldTexture, texturePos).r * 256);
-    } else {
+    //    vec3 texturePos = vec3(gridCoords.x + textureScale.x / 2, gridCoords.y, gridCoords.z + textureScale.z / 2) / textureScale;
+    //    if (inBounds(texturePos)) {
+    //        return int(texture(worldTexture, texturePos).r * 256);
+    //    } else {
+    //        return 0;
+    //    }
+
+    //    if (gridCoords.y != 0) {
+    //        return 0;
+    //    }
+
+
+    // Classic Mandel Bulb
+
+    //    vec3 pos = gridCoords / textureScale;
+    //    if (pos.x < -2 || pos.x > 2 || pos.y < -2 || pos.y > 2 || pos.z < -2 || pos.z > 2) {
+    //        return 0;
+    //    }
+    //
+    //    int iter = 0;
+    //    int maxIter = 8;
+    //    vec3 Z = vec3(pos);
+    //    vec3 C = vec3(Z);
+    //    int n = 8;
+    //    while (iter < maxIter) {
+    //        float cr = length(Z);
+    //        float a1 = atan(Z.y, Z.x);
+    //        float a2 = atan(Z.z, length(Z.xy));
+    //
+    //        float r = pow(cr, n);
+    //        a1 = a1 * n;
+    //        a2 = a2 * n;
+    //
+    //        Z.x = r * cos(a2) * cos(a1);
+    //        Z.y = r * cos(a2) * sin(a1);
+    //        Z.z = r * sin(a2);
+    //        Z += C;
+    //
+    //        if (cr >= 2) {
+    //            return 0;
+    //        }
+    //
+    //        iter++;
+    //    }
+
+    // Strange Mandel Bulb
+
+    //    vec3 pos = gridCoords / textureScale;
+    //    if (pos.x < -2 || pos.x > 2 || pos.y < -2 || pos.y > 2 || pos.z < -2 || pos.z > 2) {
+    //        return 0;
+    //    }
+    //
+    //    int iter = 0;
+    //    int maxIter = 8;
+    //    vec4 Z = vec4(pos, 1);
+    //    vec4 C = vec4(Z);
+    //    while (iter < maxIter) {
+    //        float zx = pow(Z.x, 2) - pow(Z.y, 2) - pow(Z.z, 2) - pow(Z.w, 2);
+    //        float zy = 2 * Z.x * Z.y;
+    //        float zz = 2 * Z.x * Z.z;
+    //        float zw = 2 * Z.x * Z.w;
+    //
+    //        Z = vec4(zx, zy, zz, zw) + C;
+    //
+    //        if (length(Z) >= 2) {
+    //            return 0;
+    //        }
+    //
+    //        iter++;
+    //    }
+
+    // Bulb that goes through time
+
+    //    vec3 pos = gridCoords / textureScale;
+    //    if (pos.x < -2 || pos.x > 2 || pos.y < -2 || pos.y > 2 || pos.z < -2 || pos.z > 2) {
+    //        return 0;
+    //    }
+    //
+    //    int iter = 0;
+    //    int maxIter = 8;
+    //    vec4 Z = vec4(pos, wFactor);
+    //    vec4 C = vec4(0.7, Z.y, 0, 0);
+    //    int n = 8;
+    //    while (iter < maxIter) {
+    //        float d = length(Z);
+    //        float phi = atan(Z.y, Z.x);
+    //        float theta = atan(Z.z, length(Z.xy));
+    //        float rho = atan(Z.w, length(Z.xyz));
+    //
+    //        d = pow(d, n);
+    //        theta *= n;
+    //        phi *= n;
+    //        rho *= n;
+    //
+    //        float o = d * cos(rho);
+    //        float r = o * cos(theta);
+    //
+    //        Z.x = cos(phi) * r;
+    //        Z.y = sin(phi) * r;
+    //        Z.z = o * sin(theta);
+    //        Z.w = d * sin(rho);
+    //        Z += C;
+    //
+    //        if (d >= 2) {
+    //            return 0;
+    //        }
+    //
+    //        iter++;
+    //    }
+
+    // Sponge
+
+    vec3 grid = gridCoords + textureScale / 2;
+    vec3 pos = grid / textureScale;
+    if (pos.x < 0 || pos.x >= 1 || pos.y < 0 || pos.y >= 1 || pos.z < 0 || pos.z >= 1) {
         return 0;
     }
+
+    int maxIter = 4;
+    int iter = 0;
+    ivec3 voxel = ivec3(floor(pos * 3 - 1));
+    while (iter < maxIter) {
+        ivec3 absVoxel = abs(voxel);
+        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
+            return 0;
+        }
+
+        float oldPower = pow(3, iter + 1);
+        ivec3 oldLocation = ivec3(floor(pos * oldPower) - int((oldPower - 1) / 2));
+        iter++;
+
+        float power = pow(3, iter + 1);
+        voxel = ivec3(floor(pos * power) - int((power - 1) / 2)) - ivec3(oldLocation * 3);
+    }
+
+    return 2;
 }
 
 void DDA(in out Ray ray, in out HitRecord record) {
@@ -108,6 +251,9 @@ void DDA(in out Ray ray, in out HitRecord record) {
 
                 break;
             }
+        } else if (ray.lightRay) {
+            hitId = 0;
+            break;
         }
 
         DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
@@ -225,25 +371,25 @@ void ColorDDA(in out Ray ray) {
     }
 
     HitRecord lightRecord = HitRecord(vec3(0), vec3(0), 0, false, 0);
-    Ray lightRay = Ray(offHitPoint, randDir, vec3(0));
+    Ray lightRay = Ray(offHitPoint, randDir, vec3(0), true);
     if (LightDDA(lightRay, lightRecord)) {
         ray.color *= getSkyColor(randDir);
         return;
     }
 
-    int iter = 0;
-    vec3 bounceDir = ray.dir;
-    HitRecord bounceRecord = HitRecord(lightRecord.normal, lightRecord.position, 0, false, 0);
-    while (++iter <= 20) {
-        bounceDir = reflect(bounceDir, bounceRecord.normal);
-        Ray bounceRay = Ray(bounceRecord.position + bounceRecord.normal / 100, bounceDir, vec3(0));
-
-        if (LightDDA(bounceRay, bounceRecord)) {
-            break;
-        }
-    }
-
-    ray.color *= getSkyColor(bounceDir) / iter;
+    //    int iter = 0;
+    //    vec3 bounceDir = ray.dir;
+    //    HitRecord bounceRecord = HitRecord(lightRecord.normal, lightRecord.position, 0, false, 0);
+    //    while (++iter <= 20) {
+    //        bounceDir = reflect(bounceDir, bounceRecord.normal);
+    //        Ray bounceRay = Ray(bounceRecord.position + bounceRecord.normal / 100, bounceDir, vec3(0));
+    //
+    //        if (LightDDA(bounceRay, bounceRecord)) {
+    //            break;
+    //        }
+    //    }
+    //
+    //    ray.color *= getSkyColor(bounceDir) / iter;
     //
     //    vec3 offPosition = lightRecord.position + lightRecord.normal / 100;
     //    Ray bounceRay = Ray(offPosition, reflect(fakeRay.dir, lightRecord.normal), vec3(0));
@@ -254,27 +400,3 @@ void ColorDDA(in out Ray ray) {
 
     ray.color = fakeColor;
 }
-
-//bool ReflectionDDA(in out Ray ray) {
-//    vec3 hitPoint = vec3(0);
-//    vec3 hitNormal = vec3(0);
-//    bool reflected = false;
-//
-//    DDA(ray, hitPoint, hitNormal, reflected);
-//    if (reflected) {
-//        vec3 tempDir = ray.dir;
-//        int hitNum = 0;
-//        while (reflected && hitNum++ < 5) {
-//            tempDir = reflect(tempDir, hitNormal);
-//            Ray tempRay = Ray(hitPoint + hitNormal / 100, tempDir, vec3(0));
-//
-//            DDA(tempRay, hitPoint, hitNormal, reflected);
-//
-//            ray.color += tempRay.color;
-//        }
-//
-//        ray.color /= hitNum + 1;
-//    }
-//
-//    return true;
-//}

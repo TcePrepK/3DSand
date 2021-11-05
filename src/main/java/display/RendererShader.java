@@ -22,6 +22,7 @@ public class RendererShader extends ShaderProgram {
     private int colorWeights;
     private int oldColorAttachment;
     private int oldDepthAttachment;
+    private int wFactor;
 
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
@@ -44,6 +45,7 @@ public class RendererShader extends ShaderProgram {
         chunkScale = super.getUniformLocation("chunkScale");
         randVector2D = super.getUniformLocation("randVector2D");
         colorWeights = super.getUniformLocation("colorWeights");
+        wFactor = super.getUniformLocation("wFactor");
 
         oldColorAttachment = super.getUniformLocation("oldColorAttachment");
         oldDepthAttachment = super.getUniformLocation("oldDepthAttachment");
@@ -64,6 +66,8 @@ public class RendererShader extends ShaderProgram {
         ShaderProgram.load3DVector(yIncrement, camera.getyIncrement());
         ShaderProgram.load3DVector(cameraPos, camera.getPosition());
         ShaderProgram.load3DVector(textureScale, world.getBufferScale().toVector3D());
+
+        ShaderProgram.loadFloat(wFactor, camera.getwFactor());
     }
 
     public void loadRandomVector() {

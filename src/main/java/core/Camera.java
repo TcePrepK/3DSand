@@ -3,6 +3,7 @@ package core;
 import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import toolbox.Keyboard;
 import toolbox.Mouse;
 import toolbox.Vector3D;
 
@@ -40,11 +41,13 @@ public class Camera {
 
     private final Vector3D position = new Vector3D();
     private float angleAroundPlayer = 72; // 180
-    private float zoomLevel = 100; // 20
+    private float zoomLevel = 200; // 20 // 100
     private float desiredZoomLevel = zoomLevel;
     private float pitch = 32; // 20 // -32
     private float yaw = 108; // 0
     private float roll;
+
+    private float wFactor = 0;
 
     public Camera() {
         createProjectionMatrix();
@@ -78,6 +81,15 @@ public class Camera {
 
         calculateMatrices();
         calculateVariables(playerPos);
+
+        final float off = 0.01f;
+        if (Keyboard.isKeyDown("q")) {
+            wFactor -= off;
+            matrixWatcher.dispatch();
+        } else if (Keyboard.isKeyDown("e")) {
+            wFactor += off;
+            matrixWatcher.dispatch();
+        }
 
         if (!viewMatrix.equals(oldViewMatrix)) {
             matrixWatcher.dispatch();
@@ -277,5 +289,9 @@ public class Camera {
 
     public Vector3D getyIncrement() {
         return yIncrement;
+    }
+
+    public float getwFactor() {
+        return wFactor;
     }
 }

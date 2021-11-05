@@ -48,8 +48,8 @@ public class Main {
             Mouse.update();
 
             final double u1 = DisplayManager.getCurrentTime();
-            world.update();
-            world.updateBuffer();
+//            world.update();
+//            world.updateBuffer();
             final double u2 = DisplayManager.getCurrentTime();
 
             renderer.render();

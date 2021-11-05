@@ -10,10 +10,11 @@ uniform vec2 randVector2D;
 uniform vec2 colorWeights;
 uniform vec3 textureScale;
 uniform vec3 chunkScale;
+uniform float wFactor;
 
-layout (location = 0) uniform sampler3D worldTexture;
-layout (location = 1) uniform sampler2D oldColorAttachment;
-layout (location = 2) uniform sampler2D oldDepthAttachment;
+uniform sampler3D worldTexture;
+uniform sampler2D oldColorAttachment;
+uniform sampler2D oldDepthAttachment;
 
 const int maxDist = 500;
 
@@ -28,7 +29,7 @@ void main(void) {
 
     vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
 
-    Ray ray = Ray(cameraPos, rayDir, vec3(0));
+    Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
     ColorDDA(ray);
 
     outColor = oldColor.rgb * colorWeights.x + ray.color * colorWeights.y;

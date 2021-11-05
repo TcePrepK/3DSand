@@ -17,7 +17,9 @@ public class World {
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
     private ByteBuffer worldBuffer;
-    private Point3D bufferScale;
+    private final int chunkViewDistance = 4;
+    //    private final Point3D bufferScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
+    private final Point3D bufferScale = new Point3D(5 * mapChunkSize);
 
     public void update() {
         for (int i = 0; i < chunkUpdateList.size(); i++) {
@@ -51,7 +53,6 @@ public class World {
     }
 
     public void updateBuffer() {
-        final int chunkViewDistance = 4;
         final Point3D cameraPos = camera.getPosition().floor().toPoint3D();
 //        final Point startingChunk = World.getChunkPosition(cameraPos.x, cameraPos.z);
         final Point startingChunk = new Point(0, 0);
@@ -59,8 +60,6 @@ public class World {
         final int chunkIdGridSize = mapChunkSize * mapChunkSize * mapChunkSize;
         final int totalLength = 4 * chunkViewDistance * chunkViewDistance * chunkIdGridSize;
         final byte[] byteList = new byte[totalLength];
-
-        bufferScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
 
 //        int totalPos = 0;
 //        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
