@@ -2,6 +2,7 @@ package core;
 
 import display.DisplayManager;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import toolbox.Keyboard;
 import toolbox.Mouse;
@@ -14,10 +15,6 @@ public class Camera {
     public static final float FOV = 90;
     public static final float NEAR_PLANE = 1;
     public static final float FAR_PLANE = 1000;
-
-//    public static final int cameraWidth = 200;
-//    public static final int cameraHeight = 200;
-//    public static final int cameraDepth = 200;
 
     private final float MAX_PITCH = 90;
     private final float MIN_PITCH = -90;
@@ -175,12 +172,12 @@ public class Camera {
         viewMatrix.translate(position.mult(-1).toVector3f());
 
         // ProjectionViewMatrix
-        projectionMatrix.mul(viewMatrix);
+        projectionMatrix.mul(viewMatrix, projectionViewMatrix);
     }
 
     public void createProjectionMatrix() {
-        final float aspectRatio = (float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT;
-        final float y_scale = (float) ((1f / Math.tan(Math.toRadians(Camera.FOV / 2f))));
+        final float aspectRatio = (float) DisplayManager.WIDTH / DisplayManager.HEIGHT;
+        final float y_scale = (float) ((1f / Math.tan(Math.toRadians(Camera.FOV / 2f))) * aspectRatio);
         final float x_scale = y_scale / aspectRatio;
         final float frustum_length = Camera.FAR_PLANE - Camera.NEAR_PLANE;
 
@@ -279,16 +276,8 @@ public class Camera {
         return cameraDirection;
     }
 
-    public Vector3D getTopLeftCorner() {
-        return topLeftCorner;
-    }
-
-    public Vector3D getxIncrement() {
-        return xIncrement;
-    }
-
-    public Vector3D getyIncrement() {
-        return yIncrement;
+    public Vector2f getViewportResolution() {
+        return new Vector2f(viewportWidth, viewportHeight);
     }
 
     public float getwFactor() {

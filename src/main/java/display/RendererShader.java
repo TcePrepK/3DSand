@@ -1,6 +1,7 @@
 package display;
 
 import core.ShaderProgram;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import toolbox.Vector3D;
 
@@ -11,18 +12,24 @@ public class RendererShader extends ShaderProgram {
     private static final String FRAGMENT_FILE = "/shaders/fragmentShader.glsl";
 
     private int viewMatrix;
-    private int topLeftCorner;
-    private int xIncrement;
-    private int yIncrement;
-    private int resolution;
-    private int cameraPos;
+    private int oldMVPMatrix;
+    private int oldViewMatrix;
+    private int displayRes;
+    private int viewportRes;
+    private int lookFrom;
+    private int lookTo;
+
     private int textureScale;
     private int chunkScale;
     private int randVector2D;
-    private int colorWeights;
+    private int wFactor;
+    private int resetEverything;
+    private int oldCameraPos;
+
     private int oldColorAttachment;
     private int oldDepthAttachment;
-    private int wFactor;
+    private int oldRayDirAttachment;
+    private int frameCountAttachment;
 
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
@@ -35,46 +42,61 @@ public class RendererShader extends ShaderProgram {
 
     @Override
     protected void getAllUniformLocations() {
-        viewMatrix = super.getUniformLocation("mvpMatrix");
-        topLeftCorner = super.getUniformLocation("topLeftCorner");
-        xIncrement = super.getUniformLocation("xIncrement");
-        yIncrement = super.getUniformLocation("yIncrement");
-        resolution = super.getUniformLocation("resolution");
-        cameraPos = super.getUniformLocation("cameraPos");
+        viewMatrix = super.getUniformLocation("viewMatrix");
+        oldMVPMatrix = super.getUniformLocation("oldMVPMatrix");
+        oldViewMatrix = super.getUniformLocation("oldViewMatrix");
+        displayRes = super.getUniformLocation("displayRes");
+        viewportRes = super.getUniformLocation("viewportRes");
+        lookFrom = super.getUniformLocation("lookFrom");
+        lookTo = super.getUniformLocation("lookTo");
+
         textureScale = super.getUniformLocation("textureScale");
         chunkScale = super.getUniformLocation("chunkScale");
         randVector2D = super.getUniformLocation("randVector2D");
-        colorWeights = super.getUniformLocation("colorWeights");
         wFactor = super.getUniformLocation("wFactor");
+        resetEverything = super.getUniformLocation("resetEverything");
+        oldCameraPos = super.getUniformLocation("oldCameraPos");
 
         oldColorAttachment = super.getUniformLocation("oldColorAttachment");
         oldDepthAttachment = super.getUniformLocation("oldDepthAttachment");
+        oldRayDirAttachment = super.getUniformLocation("oldRayDirAttachment");
+        frameCountAttachment = super.getUniformLocation("frameCountAttachment");
     }
 
     public void loadVariables() {
-        ShaderProgram.load2DVector(resolution, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
-        ShaderProgram.loadMatrix(viewMatrix, camera.getViewMatrix());
+        ShaderProgram.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
+        ShaderProgram.load2DVector(viewportRes, camera.getViewportResolution());
         ShaderProgram.load3DVector(chunkScale, new Vector3D(mapChunkSize));
 
         ShaderProgram.loadInt(oldColorAttachment, 1);
         ShaderProgram.loadInt(oldDepthAttachment, 2);
+        ShaderProgram.loadInt(oldRayDirAttachment, 3);
+        ShaderProgram.loadInt(frameCountAttachment, 4);
     }
 
     public void loadCameraVariables() {
-        ShaderProgram.load3DVector(topLeftCorner, camera.getTopLeftCorner());
-        ShaderProgram.load3DVector(xIncrement, camera.getxIncrement());
-        ShaderProgram.load3DVector(yIncrement, camera.getyIncrement());
-        ShaderProgram.load3DVector(cameraPos, camera.getPosition());
+        ShaderProgram.loadMatrix(viewMatrix, camera.getViewMatrix());
+        ShaderProgram.load3DVector(lookFrom, camera.getPosition());
+        ShaderProgram.load3DVector(lookTo, player.getPosition());
         ShaderProgram.load3DVector(textureScale, world.getBufferScale().toVector3D());
 
         ShaderProgram.loadFloat(wFactor, camera.getwFactor());
+    }
+
+    public void loadOldCameraPos() {
+        ShaderProgram.load3DVector(oldCameraPos, camera.getPosition());
+    }
+
+    public void loadOldMatrices() {
+        ShaderProgram.loadMatrix(oldMVPMatrix, new Matrix4f(camera.getProjectionViewMatrix()));
+        ShaderProgram.loadMatrix(oldViewMatrix, new Matrix4f(camera.getViewMatrix()));
     }
 
     public void loadRandomVector() {
         ShaderProgram.load2DVector(randVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
     }
 
-    public void loadColorWeights(final float frameCount) {
-        ShaderProgram.load2DVector(colorWeights, new Vector2f(frameCount / (frameCount + 1), 1 / (frameCount + 1)));
+    public void setResetEverything(final boolean reset) {
+        ShaderProgram.loadBoolean(resetEverything, reset);
     }
 }

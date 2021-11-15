@@ -164,4 +164,8 @@ public class Player {
         position.y += dy;
         position.z += dz;
     }
+
+    public Vector3D getPosition() {
+        return position;
+    }
 }

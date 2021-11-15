@@ -92,7 +92,7 @@ public abstract class ShaderProgram {
         glUniform4f(location, vector.getR(), vector.getG(), vector.getB(), vector.getA());
     }
 
-    static void loadBoolean(final int location, final boolean value) {
+    protected static void loadBoolean(final int location, final boolean value) {
         float toLoad = 0;
         if (value) {
             toLoad = 1;
@@ -101,9 +101,9 @@ public abstract class ShaderProgram {
     }
 
     protected static void loadMatrix(final int location, final Matrix4f matrix) {
-        matrix.get(ShaderProgram.matrixBuffer);
-        ShaderProgram.matrixBuffer.flip();
-        glUniformMatrix4fv(location, false, ShaderProgram.matrixBuffer);
+        final float[] buffer = new float[16];
+        matrix.get(buffer);
+        glUniformMatrix4fv(location, false, buffer);
     }
 
     private static void shaderReader(final StringBuilder shaderSource, final String file, final List<String> includeList) {

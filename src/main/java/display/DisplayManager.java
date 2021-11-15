@@ -5,6 +5,8 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.*;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class DisplayManager {
@@ -30,6 +32,8 @@ public class DisplayManager {
             throw new IllegalStateException("Window failed");
         }
 
+        final Dimension monitor = Toolkit.getDefaultToolkit().getScreenSize();
+        glfwSetWindowPos(DisplayManager.windowID, (monitor.width - DisplayManager.WIDTH) / 2, (monitor.height - DisplayManager.HEIGHT) / 2);
         glfwMakeContextCurrent(DisplayManager.windowID);
         GL.createCapabilities();
         glfwSwapInterval(1);
