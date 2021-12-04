@@ -14,16 +14,19 @@ struct HitRecord {
     int id;
 };
 
-int base3(int num) {
-    float ret = 0;
-    int factor = 1;
-    while (num > 0) {
-        ret += num % 3 * factor;
-        num /= 3;
-        factor *= 10;
-    }
+float clamp(float v, float min, float max) {
+    if (v < min) return min;
+    if (v > max) return max;
+    return v;
+}
 
-    return int(ret);
+float map(float n, float start1, float stop1, float start2, float stop2) {
+    const float newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+    if (start2 < stop2) {
+        return clamp(newval, start2, stop2);
+    } else {
+        return clamp(newval, stop2, start2);
+    }
 }
 
 vec3 at(vec3 pos, vec3 dir, float time) {
@@ -104,9 +107,9 @@ int DDAIdGetter(ivec3 gridCoords) {
 
 
     // Classic Mandel Bulb
-    //    if (!Mandelbulb_Classic(gridCoords)) {
-    //        return 0;
-    //    }
+    if (!Mandelbulb_Classic(gridCoords)) {
+        return 0;
+    }
 
     // Strange Mandel Bulb
     //    if (!Mandelbulb_Strange(gridCoords)) {
@@ -119,9 +122,9 @@ int DDAIdGetter(ivec3 gridCoords) {
     //    }
 
     // Sponge
-    if (!Menger_Sponge(gridCoords)) {
-        return 0;
-    }
+    //    if (!Menger_Sponge(gridCoords)) {
+    //        return 0;
+    //    }
 
     // Triangle
     //    if (!Triangle(gridCoords)) {
@@ -168,12 +171,14 @@ void DDA(in out Ray ray, in out HitRecord record) {
         DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
     }
 
-    if (idx == 0) {
-        record.normal.x = -stepDir.x;
-    } else if (idx == 1) {
-        record.normal.y = -stepDir.y;
-    } else {
-        record.normal.z = -stepDir.z;
+    if (hitId != 0) {
+        if (idx == 0) {
+            record.normal.x = -stepDir.x;
+        } else if (idx == 1) {
+            record.normal.y = -stepDir.y;
+        } else {
+            record.normal.z = -stepDir.z;
+        }
     }
 
     record.position = at(ray, record.distance);
@@ -212,11 +217,6 @@ HitRecord FinderDDA(in out Ray ray, float distance) {
     return record;
 }
 
-void DepthDDA(in out Ray ray) {
-    HitRecord record = PrimaryDDA(ray);
-    outDepth = record.distance / maxDist;
-}
-
 bool LightDDA(in out Ray ray, in out HitRecord record) {
     DDA(ray, record);
     return record.light;
@@ -224,6 +224,7 @@ bool LightDDA(in out Ray ray, in out HitRecord record) {
 
 HitRecord ColorDDA(in out Ray ray) {
     HitRecord record = PrimaryDDA(ray);
+    outDepth = record.distance / maxDist;
     if (record.light) {
         return record;
     }

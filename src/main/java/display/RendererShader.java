@@ -30,6 +30,7 @@ public class RendererShader extends ShaderProgram {
     private int oldDepthAttachment;
     private int oldRayDirAttachment;
     private int frameCountAttachment;
+    private int oldNormalAttachment;
 
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
@@ -61,6 +62,7 @@ public class RendererShader extends ShaderProgram {
         oldDepthAttachment = super.getUniformLocation("oldDepthAttachment");
         oldRayDirAttachment = super.getUniformLocation("oldRayDirAttachment");
         frameCountAttachment = super.getUniformLocation("frameCountAttachment");
+        oldNormalAttachment = super.getUniformLocation("oldNormalAttachment");
     }
 
     public void loadVariables() {
@@ -72,6 +74,7 @@ public class RendererShader extends ShaderProgram {
         ShaderProgram.loadInt(oldDepthAttachment, 2);
         ShaderProgram.loadInt(oldRayDirAttachment, 3);
         ShaderProgram.loadInt(frameCountAttachment, 4);
+        ShaderProgram.loadInt(oldNormalAttachment, 5);
     }
 
     public void loadCameraVariables() {

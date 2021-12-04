@@ -37,11 +37,11 @@ public class Camera {
     private Vector3D yIncrement;
 
     private final Vector3D position = new Vector3D();
-    private float angleAroundPlayer = 72; // 180
-    private float zoomLevel = 200; // 20 // 100
+    private float angleAroundPlayer = 180;
+    private float zoomLevel = 200; // 2
     private float desiredZoomLevel = zoomLevel;
-    private float pitch = 32; // 20 // -32
-    private float yaw = 108; // 0
+    private float pitch = 0; // 20
+    private float yaw = 0;
     private float roll;
 
     private float wFactor = 0;
@@ -64,10 +64,6 @@ public class Camera {
             calculateAngleAroundPlayer(0.3f);
         } else if (!freePlayMode) {
             calculateAngleAroundPlayer(0.1f);
-        }
-
-        if (Mouse.isButtonDown(1) || !freePlayMode) {
-            calculatePitch();
         }
 
         if (mouseLocked) {
@@ -210,50 +206,13 @@ public class Camera {
         angleAroundPlayer = angleAroundPlayer % 360;
     }
 
-    public static float getNearPlane() {
-        return Camera.NEAR_PLANE;
-    }
-
-    public static float getFarPlane() {
-        return Camera.FAR_PLANE;
-    }
-
-
-    public void setPitch(final float pitch) {
-        this.pitch = pitch;
-    }
-
     void setYaw(final float yaw) {
         this.yaw = yaw;
         clampYaw();
     }
 
-    public void setRoll(final float roll) {
-        this.roll = roll;
-    }
-
-    public void setDesiredZoomLevel(final float desiredZoomLevel) {
-        this.desiredZoomLevel = desiredZoomLevel;
-    }
-
     public Vector3D getPosition() {
         return position;
-    }
-
-    public float getPitch() {
-        return pitch;
-    }
-
-    public float getYaw() {
-        return yaw;
-    }
-
-    public float getRoll() {
-        return roll;
-    }
-
-    public float getZoomLevel() {
-        return zoomLevel;
     }
 
     float getAngleAroundPlayer() {
@@ -270,10 +229,6 @@ public class Camera {
 
     public Matrix4f getProjectionViewMatrix() {
         return projectionViewMatrix;
-    }
-
-    public Vector3D getCameraDirection() {
-        return cameraDirection;
     }
 
     public Vector2f getViewportResolution() {

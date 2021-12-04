@@ -20,6 +20,7 @@ public class DisplayRenderer {
     private int oldDepthAttachmentId;
     private int frameCountAttachmentId;
     private int oldRayDirAttachmentId;
+    private int oldNormalAttachmentId;
 
     private boolean loadCameraVariables = false;
 
@@ -39,6 +40,7 @@ public class DisplayRenderer {
         oldDepthAttachmentId = DisplayRenderer.create2DTexture();
         frameCountAttachmentId = DisplayRenderer.create2DTexture();
         oldRayDirAttachmentId = DisplayRenderer.create2DTexture();
+        oldNormalAttachmentId = DisplayRenderer.create2DTexture();
     }
 
     public void render() {
@@ -67,6 +69,7 @@ public class DisplayRenderer {
         final int depthAttachment = DisplayRenderer.createDepthAttachment();
         final int frameCountAttachment = DisplayRenderer.createFrameCountAttachment();
         final int rayDirAttachment = DisplayRenderer.createRayDirAttachment();
+        final int normalAttachment = DisplayRenderer.createNormalAttachment();
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
@@ -79,6 +82,8 @@ public class DisplayRenderer {
         glBindTexture(GL_TEXTURE_2D, oldRayDirAttachmentId);
         glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D, frameCountAttachmentId);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, oldNormalAttachmentId);
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -108,10 +113,12 @@ public class DisplayRenderer {
         glDeleteTextures(oldDepthAttachmentId);
         glDeleteTextures(frameCountAttachmentId);
         glDeleteTextures(oldRayDirAttachmentId);
+        glDeleteTextures(oldNormalAttachmentId);
         oldColorAttachmentId = colorAttachment;
         oldDepthAttachmentId = depthAttachment;
         oldRayDirAttachmentId = rayDirAttachment;
         frameCountAttachmentId = frameCountAttachment;
+        oldNormalAttachmentId = normalAttachment;
     }
 
     public void loadCameraVariablesNextFrame() {
@@ -152,7 +159,7 @@ public class DisplayRenderer {
     private static int createDisplayBuffer() {
         final int frameBuffer = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-        final int[] attachments = new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        final int[] attachments = new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5};
         glDrawBuffers(attachments);
         return frameBuffer;
     }
@@ -161,8 +168,8 @@ public class DisplayRenderer {
         final int texture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, texture);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -227,6 +234,13 @@ public class DisplayRenderer {
         return texture;
     }
 
+    public static int createNormalAttachment() {
+        final int texture = DisplayRenderer.create2DTexture();
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, texture, 0);
+
+        return texture;
+    }
+
     public void cleanUp() {
         renderShader.cleanUp();
         glDeleteTextures(worldTextureId);
@@ -234,6 +248,7 @@ public class DisplayRenderer {
         glDeleteTextures(oldDepthAttachmentId);
         glDeleteTextures(frameCountAttachmentId);
         glDeleteTextures(oldRayDirAttachmentId);
+        glDeleteTextures(oldNormalAttachmentId);
         glDeleteBuffers(displayBufferId);
     }
 }
