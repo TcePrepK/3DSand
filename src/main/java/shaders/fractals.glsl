@@ -10,11 +10,11 @@ bool Mandelbulb_Classic(ivec3 gridCoords) {
     vec3 C = vec3(Z);
     int n = 8;
     while (iter < maxIter) {
-        float cr = length(Z);
+        const float cr = length(Z);
         float a1 = atan(Z.y, Z.x);
         float a2 = atan(Z.z, length(Z.xy));
 
-        float r = pow(cr, n);
+        const float r = pow(cr, n);
         a1 = a1 * n;
         a2 = a2 * n;
 

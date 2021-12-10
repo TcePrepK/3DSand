@@ -19,7 +19,7 @@ public class World {
     private ByteBuffer worldBuffer;
     private final int chunkViewDistance = 4;
     //    private final Point3D bufferScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
-    private final Point3D bufferScale = new Point3D(5 * mapChunkSize);
+    private final Point3D bufferScale = new Point3D(2 * mapChunkSize);
 
     public void update() {
         for (int i = 0; i < chunkUpdateList.size(); i++) {
