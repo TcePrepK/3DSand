@@ -24,7 +24,7 @@ uniform sampler2D frameCountAttachment;
 uniform sampler2D oldNormalAttachment;
 
 const int maxDist = 500;
-const int maxFrameCount = 100;
+const int maxFrameCount = 255;
 const bool renderingFractal = true;
 
 layout (location = 0) out vec3 outColor;
@@ -36,15 +36,8 @@ layout (location = 4) out vec3 outNormal;
 #include /shaders/fractals.glsl
 #include /shaders/rayUtils.glsl
 
-int reporjectPixel(Ray ray, HitRecord record, int frameCount) {
-    vec4 screenPos = oldMVPMatrix * vec4(record.position, 1);
-    screenPos /= screenPos.w;
-    vec2 screenPixelPos = screenPos.xy * 0.5 + 0.5;
-    screenPixelPos.y = 1 - screenPixelPos.y;
-
-    const vec3 oldRayDir = texture(oldRayDirAttachment, screenPixelPos).rgb;
-    const vec3 oldNormal = texture(oldNormalAttachment, screenPixelPos).rgb;
-
+int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount) {
+    const vec3 oldNormal = texture(oldNormalAttachment, oldScreenPixelPos).rgb;
     if (oldNormal == vec3(0)) {
         return 0;
     }
@@ -55,6 +48,7 @@ int reporjectPixel(Ray ray, HitRecord record, int frameCount) {
         return 0;
     }
 
+    const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
     Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0), false);
     HitRecord oldRecord = FinderDDA(oldRay, 0);
 
@@ -66,10 +60,6 @@ int reporjectPixel(Ray ray, HitRecord record, int frameCount) {
 
     const float distWeight = map(dist, 0, threshold, 1, 0);
     const float weight = normalWeight * distWeight;
-
-    //    if (frameCount * weight > 0 && frameCount * weight < 1) {
-    //        return 0;
-    //    }
 
     return int(frameCount * weight) + 1;
 }
@@ -84,12 +74,23 @@ void main(void) {
     HitRecord record = ColorDDA(ray);
     outNormal = record.normal;
 
-    //    const vec2 offset = rand2D() / outDepth / 200;
-    //    const vec3 additionColor = texture(oldColorAttachment, pixelPosition + offset).rgb;
+    // Reprojection
+    vec4 screenPos = oldMVPMatrix * vec4(record.position, 1);
+    screenPos /= screenPos.w;
+    vec2 oldScreenPixelPos = screenPos.xy * 0.5 + 0.5;
+    oldScreenPixelPos.y = 1 - oldScreenPixelPos.y;
 
-    const vec3 oldColor = texture(oldColorAttachment, pixelPosition).rgb;
+    // Calculate frame count
+    frameCount = calculatePixelFrame(ray, record, oldScreenPixelPos, frameCount);
+    // Calculate frame count
+
+    const vec3 oldColor = texture(oldColorAttachment, oldScreenPixelPos).rgb;
     vec2 colorWeight = vec2(frameCount / (frameCount + 1.0), 1 / (frameCount + 1.0));
+    // Reprojection
 
+    // Calculating outputs
     outColor = (oldColor * colorWeight.x) + (ray.color * colorWeight.y);
-    outFrameCount = reporjectPixel(ray, record, frameCount) / float(maxFrameCount);
+    //    outFrameCount = calculatePixelFrame(ray, record, oldScreenPixelPos, frameCount) / float(maxFrameCount);
+    outFrameCount = frameCount / float(maxFrameCount);
+    // Calculating outputs
 }
