@@ -48,31 +48,40 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
         return 0;
     }
 
+
     const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
     Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0), false);
     HitRecord oldRecord = FinderDDA(oldRay, 0);
 
-    const float threshold = 0.1 * outDepth;
+    //    const float threshold = 0.1 * outDepth;
+    const float threshold = length(vec2(2) / resolution * outDepth * maxDist);
     const float dist = length(oldRecord.position - record.position);
-    if (dist >= threshold) {
-        return 0;
-    }
+    //    if (dist >= threshold) {
+    //        return 0;
+    //    }
+
 
     const float distWeight = map(dist, 0, threshold, 1, 0);
-    const float weight = normalWeight * distWeight;
+    const float weight = distWeight * normalWeight;
+    //    outColor = vec3(distWeight);
 
-    return int(frameCount * weight) + 1;
+    return int(round(frameCount * weight)) + 1;
 }
 
 void main(void) {
-    vec2 pixelPosition = gl_FragCoord.xy / resolution;
+    const vec2 pixelPosition = gl_FragCoord.xy / resolution;
     int frameCount = int(texture(frameCountAttachment, pixelPosition).r * (maxFrameCount + 1.0));
 
-    vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
+    // Primary ray
+    const vec2 offset = rand2D() / 20.0;
+    //    const vec2 offset = vec2(0);
+    const vec2 targetPixel = gl_FragCoord.xy + offset;
+    const vec3 rayDir = normalize(topLeftCorner + (targetPixel.x * xIncrement) + (targetPixel.y * yIncrement));
     Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
     outRayDir = rayDir;
     HitRecord record = ColorDDA(ray);
     outNormal = record.normal;
+    // Primary ray
 
     // Reprojection
     vec4 screenPos = oldMVPMatrix * vec4(record.position, 1);
@@ -85,12 +94,15 @@ void main(void) {
     // Calculate frame count
 
     const vec3 oldColor = texture(oldColorAttachment, oldScreenPixelPos).rgb;
-    vec2 colorWeight = vec2(frameCount / (frameCount + 1.0), 1 / (frameCount + 1.0));
+    const vec2 colorWeight = vec2(frameCount / (frameCount + 1.0), 1 / (frameCount + 1.0));
     // Reprojection
 
     // Calculating outputs
     outColor = (oldColor * colorWeight.x) + (ray.color * colorWeight.y);
-    //    outFrameCount = calculatePixelFrame(ray, record, oldScreenPixelPos, frameCount) / float(maxFrameCount);
     outFrameCount = frameCount / float(maxFrameCount);
     // Calculating outputs
+
+    // Debugging
+    //    outColor = record.hitNormal;
+    // Debugging
 }

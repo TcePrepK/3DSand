@@ -104,7 +104,7 @@ bool Mandelbulb_4D(ivec3 gridCoords) {
 
 bool Menger_Sponge(ivec3 gridCoords) {
     vec3 pos = gridCoords / textureScale + vec3(0.5);
-    if (pos.x < 0 || pos.x >= 1 || pos.y < 0 || pos.y >= 1 || pos.z < 0 || pos.z >= 1) {
+    if (pos.x <= 0 || pos.x >= 1 || pos.y <= 0 || pos.y >= 1 || pos.z <= 0 || pos.z >= 1) {
         return false;
     }
 

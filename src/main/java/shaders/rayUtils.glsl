@@ -107,9 +107,9 @@ int DDAIdGetter(ivec3 gridCoords) {
 
 
     // Classic Mandel Bulb
-    if (!Mandelbulb_Classic(gridCoords)) {
-        return 0;
-    }
+    //    if (!Mandelbulb_Classic(gridCoords)) {
+    //        return 0;
+    //    }
 
     // Strange Mandel Bulb
     //    if (!Mandelbulb_Strange(gridCoords)) {
@@ -122,9 +122,9 @@ int DDAIdGetter(ivec3 gridCoords) {
     //    }
 
     // Sponge
-    //    if (!Menger_Sponge(gridCoords)) {
-    //        return 0;
-    //    }
+    if (!Menger_Sponge(gridCoords)) {
+        return 0;
+    }
 
     // Triangle
     //    if (!Triangle(gridCoords)) {
