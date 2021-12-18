@@ -15,6 +15,7 @@ uniform vec3 chunkScale;
 uniform float wFactor;
 uniform bool resetEverything;
 uniform vec3 oldCameraPos;
+uniform bool renderingFractal;
 
 uniform sampler3D worldTexture;
 uniform sampler2D oldColorAttachment;
@@ -25,7 +26,6 @@ uniform sampler2D oldNormalAttachment;
 
 const int maxDist = 500;
 const int maxFrameCount = 255;
-const bool renderingFractal = true;
 
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out float outDepth;
@@ -56,14 +56,12 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
     //    const float threshold = 0.1 * outDepth;
     const float threshold = length(vec2(2) / resolution * outDepth * maxDist);
     const float dist = length(oldRecord.position - record.position);
-    //    if (dist >= threshold) {
-    //        return 0;
-    //    }
-
+    if (dist >= threshold) {
+        return 0;
+    }
 
     const float distWeight = map(dist, 0, threshold, 1, 0);
     const float weight = distWeight * normalWeight;
-    //    outColor = vec3(distWeight);
 
     return int(round(frameCount * weight)) + 1;
 }

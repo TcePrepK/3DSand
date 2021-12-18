@@ -49,15 +49,14 @@ public class Main {
 
             final double u1 = DisplayManager.getCurrentTime();
 //            world.update();
-//            world.updateBuffer();
+            world.updateBuffer();
             final double u2 = DisplayManager.getCurrentTime();
 
             renderer.render();
 
             DisplayManager.updateDisplay();
 
-//            System.out.println("Update took: " + (u2 - u1) / 100 + "sec and FPS is: " + DisplayManager.getFPS());
-//            System.out.println("FPS: " + DisplayManager.getFPS());
+            System.out.println("Update took: " + (u2 - u1) / 100 + "sec and FPS is: " + DisplayManager.getFPS());
         }
 
         renderer.cleanUp();

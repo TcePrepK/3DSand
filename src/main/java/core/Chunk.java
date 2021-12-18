@@ -17,7 +17,7 @@ public class Chunk {
     private int minXw, maxXw, minYw, maxYw, minZw, maxZw;
 
     private final Element[] grid;
-    private final byte[] idGrid;
+    private final float[] idGrid;
 
     public Chunk(final int x, final int z, final String id) {
         w = h = d = mapChunkSize;
@@ -27,7 +27,7 @@ public class Chunk {
 
         this.id = id;
         grid = new Element[w * h * d];
-        idGrid = new byte[w * h * d];
+        idGrid = new float[w * h * d];
 
         // Generate
         if (noisyWorld) {
@@ -124,8 +124,9 @@ public class Chunk {
             return;
         }
 
-        grid[getIdx(x - this.x, y, z - this.z)] = e;
-        idGrid[getIdx(x - this.x, y, z - this.z)] = e == null ? 0 : (byte) e.getId();
+        final int idx = getIdx(x - this.x, y, z - this.z);
+        grid[idx] = e;
+        idGrid[idx] = e == null ? 0 : (byte) e.getId();
     }
 
     public void setElement(final Point3D pos, final Element e) {
@@ -204,7 +205,7 @@ public class Chunk {
         return grid;
     }
 
-    public byte[] getIdGrid() {
+    public float[] getIdGrid() {
         return idGrid;
     }
 }

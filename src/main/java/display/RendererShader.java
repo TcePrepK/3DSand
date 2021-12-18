@@ -1,5 +1,6 @@
 package display;
 
+import core.GlobalVariables;
 import core.ShaderProgram;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -25,6 +26,7 @@ public class RendererShader extends ShaderProgram {
     private int wFactor;
     private int resetEverything;
     private int oldCameraPos;
+    private int renderingFractal;
 
     private int oldColorAttachment;
     private int oldDepthAttachment;
@@ -57,6 +59,7 @@ public class RendererShader extends ShaderProgram {
         wFactor = super.getUniformLocation("wFactor");
         resetEverything = super.getUniformLocation("resetEverything");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
+        renderingFractal = super.getUniformLocation("renderingFractal");
 
         oldColorAttachment = super.getUniformLocation("oldColorAttachment");
         oldDepthAttachment = super.getUniformLocation("oldDepthAttachment");
@@ -82,6 +85,7 @@ public class RendererShader extends ShaderProgram {
         ShaderProgram.load3DVector(lookFrom, camera.getPosition());
         ShaderProgram.load3DVector(lookTo, player.getPosition());
         ShaderProgram.load3DVector(textureScale, world.getBufferScale().toVector3D());
+        ShaderProgram.loadBoolean(renderingFractal, GlobalVariables.renderingFractal);
 
         ShaderProgram.loadFloat(wFactor, camera.getwFactor());
     }

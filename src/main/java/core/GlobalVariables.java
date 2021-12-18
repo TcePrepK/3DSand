@@ -18,6 +18,7 @@ public class GlobalVariables {
     public static boolean showDirtyRect = true;
     public static boolean renderChunks = true;
     public static boolean noisyWorld = true;
+    public static boolean renderingFractal = true;
 
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();

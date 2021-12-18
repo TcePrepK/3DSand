@@ -94,16 +94,14 @@ void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, ou
 }
 
 int DDAIdGetter(ivec3 gridCoords) {
-    //    vec3 texturePos = vec3(gridCoords.x + textureScale.x / 2, gridCoords.y, gridCoords.z + textureScale.z / 2) / textureScale;
-    //    if (inBounds(texturePos)) {
-    //        return int(texture(worldTexture, texturePos).r * 256);
-    //    } else {
-    //        return 0;
-    //    }
-
-    //    if (gridCoords.y != 0) {
-    //        return 0;
-    //    }
+    if (!renderingFractal) {
+        vec3 texturePos = gridCoords / textureScale + vec3(0.5, 0, 0.5);
+        if (inBounds(texturePos)) {
+            return int(texture(worldTexture, texturePos).r * 256);
+        } else {
+            return 0;
+        }
+    }
 
 
     // Classic Mandel Bulb
@@ -190,7 +188,7 @@ void DDA(in out Ray ray, in out HitRecord record) {
         record.light = true;
     } else {
         vec3 cubeColor = vec3(0);
-        if (hitId == 2) {
+        if (hitId >= 2) {
             cubeColor = vec3(0.65, 0.4, 0.3);
         } else {
             cubeColor = vec3(1);

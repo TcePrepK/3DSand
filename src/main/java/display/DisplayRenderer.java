@@ -1,12 +1,12 @@
 package display;
 
 import models.RawModel;
+import toolbox.Keyboard;
 import toolbox.Point3D;
 
 import java.nio.ByteBuffer;
 
-import static core.GlobalVariables.loader;
-import static core.GlobalVariables.world;
+import static core.GlobalVariables.*;
 import static org.lwjgl.opengl.GL46.*;
 
 public class DisplayRenderer {
@@ -41,6 +41,11 @@ public class DisplayRenderer {
         frameCountAttachmentId = DisplayRenderer.create2DTexture();
         oldRayDirAttachmentId = DisplayRenderer.create2DTexture();
         oldNormalAttachmentId = DisplayRenderer.create2DTexture();
+
+        Keyboard.keyPressed.add(() -> {
+            renderingFractal = !renderingFractal;
+            loadCameraVariables = true;
+        }, "m");
     }
 
     public void render() {

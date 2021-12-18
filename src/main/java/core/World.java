@@ -4,8 +4,8 @@ import elements.Element;
 import toolbox.Point3D;
 
 import java.awt.*;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,10 +16,13 @@ public class World {
     private final List<Chunk> chunkList = new ArrayList<>();
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
-    private ByteBuffer worldBuffer;
-    private final int chunkViewDistance = 4;
-    //    private final Point3D bufferScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
-    private final Point3D bufferScale = new Point3D(5 * mapChunkSize);
+    private final int chunkViewDistance = 2;
+    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
+    private final Point3D fractalScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
+//    private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
+
+    private float[] worldBuffer;
+    private Point3D bufferScale = fractalScale;
 
     public void update() {
         for (int i = 0; i < chunkUpdateList.size(); i++) {
@@ -53,13 +56,19 @@ public class World {
     }
 
     public void updateBuffer() {
+        if (renderingFractal) {
+            bufferScale = fractalScale;
+            return;
+        }
+        bufferScale = worldScale;
+
         final Point3D cameraPos = camera.getPosition().floor().toPoint3D();
 //        final Point startingChunk = World.getChunkPosition(cameraPos.x, cameraPos.z);
         final Point startingChunk = new Point(0, 0);
 
         final int chunkIdGridSize = mapChunkSize * mapChunkSize * mapChunkSize;
         final int totalLength = 4 * chunkViewDistance * chunkViewDistance * chunkIdGridSize;
-        final byte[] byteList = new byte[totalLength];
+        final float[] byteList = new float[totalLength];
 
 //        int totalPos = 0;
 //        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
@@ -75,29 +84,29 @@ public class World {
 //            }
 //        }
 
-        for (int i = 0; i < chunkViewDistance * 2; i++) {
-            for (int j = 0; j < chunkViewDistance * 2; j++) {
-                final Point offChunk = new Point(startingChunk.x + i - chunkViewDistance, startingChunk.y + j - chunkViewDistance);
+//        for (int i = 0; i < chunkViewDistance * 2; i++) {
+//            for (int j = 0; j < chunkViewDistance * 2; j++) {
+//                final Point offChunk = new Point(startingChunk.x + i - chunkViewDistance, startingChunk.y + j - chunkViewDistance);
+//
+//                final Chunk chunk = getChunkWithPoint(offChunk);
+//                if (chunk == null) {
+//                    continue;
+//                }
+//
+//                final float[] grid = chunk.getIdGrid();
+//                for (int y = 0; y < chunk.getHeight(); y++) {
+//                    for (int z = 0; z < chunk.getDepth(); z++) {
+//                        final int gridIdx = y * mapChunkSize + z * mapChunkSize * mapChunkSize;
+//                        final int listIdx = (i * mapChunkSize) + (y * bufferScale.x) + (z * bufferScale.x * bufferScale.y + (j * mapChunkSize * bufferScale.x * bufferScale.y));
+//                        System.arraycopy(grid, gridIdx, byteList, listIdx, chunk.getWidth());
+//                    }
+//                }
+//            }
+//        }
 
-                final Chunk chunk = getChunkWithPoint(offChunk);
-                if (chunk == null) {
-                    continue;
-                }
+        Arrays.fill(byteList, 1);
 
-                final byte[] grid = chunk.getIdGrid();
-                for (int y = 0; y < chunk.getHeight(); y++) {
-                    for (int z = 0; z < chunk.getDepth(); z++) {
-                        final int gridIdx = y * mapChunkSize + z * mapChunkSize * mapChunkSize;
-                        final int listIdx = (i * mapChunkSize) + (y * bufferScale.x) + (z * bufferScale.x * bufferScale.y + (j * mapChunkSize * bufferScale.x * bufferScale.y));
-                        System.arraycopy(grid, gridIdx, byteList, listIdx, chunk.getWidth());
-                    }
-                }
-            }
-        }
-
-        worldBuffer = ByteBuffer.allocateDirect(totalLength);
-        worldBuffer.put(byteList);
-        worldBuffer.flip();
+        worldBuffer = byteList;
     }
 
     public static boolean outBounds(final int x, final int y, final int z) {
@@ -177,7 +186,7 @@ public class World {
         return chunkUpdateList;
     }
 
-    public ByteBuffer getWorldBuffer() {
+    public float[] getWorldBuffer() {
         return worldBuffer;
     }
 
