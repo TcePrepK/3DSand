@@ -86,14 +86,9 @@ public class ElementPlacer {
                 }
 
                 final Point3D tile = new Point3D(x + i, height, z + j);
-                final Chunk offChunk = World.getChunkAtTile(tile, true);
-                if (offChunk == null || offChunk.getElement(tile) != null) {
-                    continue;
-                }
-
                 final Element e = ElementRegistry.getElementByName(currentMat);
-                offChunk.setElement(tile, e);
-                offChunk.awakeGrid(tile);
+
+                World.setElement(tile, e);
             }
         }
     }

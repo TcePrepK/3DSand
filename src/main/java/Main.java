@@ -30,12 +30,12 @@ public class Main {
         // Camera
 
         // First chunks :)
-        final int w = 4;
-        for (float i = -w; i < w; i++) {
-            for (float j = -w; j < w; j++) {
-                world.getChunkOrCreate((int) (i * mapChunkSize), (int) (j * mapChunkSize));
+        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
+            for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
+                world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize);
             }
         }
+//        world.updateBuffer();
 //        world.getChunkOrCreate(0, 0);
         // First chunks :)
 
@@ -48,8 +48,8 @@ public class Main {
             Mouse.update();
 
             final double u1 = DisplayManager.getCurrentTime();
-//            world.update();
-            world.updateBuffer();
+            world.update();
+//            world.updateBuffer();
             final double u2 = DisplayManager.getCurrentTime();
 
             renderer.render();

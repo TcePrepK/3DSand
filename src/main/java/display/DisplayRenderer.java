@@ -42,9 +42,13 @@ public class DisplayRenderer {
         oldRayDirAttachmentId = DisplayRenderer.create2DTexture();
         oldNormalAttachmentId = DisplayRenderer.create2DTexture();
 
+        world.setBufferSize();
+
         Keyboard.keyPressed.add(() -> {
             renderingFractal = !renderingFractal;
             loadCameraVariables = true;
+
+            world.setBufferSize();
         }, "m");
     }
 
@@ -153,8 +157,8 @@ public class DisplayRenderer {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        final Point3D scale = world.getBufferScale();
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, scale.x, scale.y, scale.z, 0, GL_RED, GL_UNSIGNED_BYTE, world.getWorldBuffer());
+        final Point3D scale = world.getWorldScale();
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, scale.x, scale.y, scale.z, 0, GL_RED, GL_FLOAT, world.getWorldBuffer());
         glBindTexture(GL_TEXTURE_3D, 0);
 
         worldTextureId = texture;

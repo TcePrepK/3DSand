@@ -18,7 +18,7 @@ public class GlobalVariables {
     public static boolean showDirtyRect = true;
     public static boolean renderChunks = true;
     public static boolean noisyWorld = true;
-    public static boolean renderingFractal = true;
+    public static boolean renderingFractal = false;
 
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
@@ -32,6 +32,7 @@ public class GlobalVariables {
     public static Player player;
 
     public final static int mapChunkSize = 32;
+    public final static int chunkViewDistance = 3;
 
     public static Loader loader;
     public static DisplayRenderer renderer;

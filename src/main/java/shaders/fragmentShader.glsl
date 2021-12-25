@@ -36,35 +36,8 @@ layout (location = 4) out vec3 outNormal;
 #include /shaders/fractals.glsl
 #include /shaders/rayUtils.glsl
 
-int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount) {
-    const vec3 oldNormal = texture(oldNormalAttachment, oldScreenPixelPos).rgb;
-    if (oldNormal == vec3(0)) {
-        return 0;
-    }
-
-    const float dotNormal = dot(oldNormal, record.normal);
-    const float normalWeight = map(dotNormal, -0.5, 1, 0, 1);
-    if (normalWeight == 0) {
-        return 0;
-    }
-
-
-    const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
-    Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0), false);
-    HitRecord oldRecord = FinderDDA(oldRay, 0);
-
-    //    const float threshold = 0.1 * outDepth;
-    const float threshold = length(vec2(2) / resolution * outDepth * maxDist);
-    const float dist = length(oldRecord.position - record.position);
-    if (dist >= threshold) {
-        return 0;
-    }
-
-    const float distWeight = map(dist, 0, threshold, 1, 0);
-    const float weight = distWeight * normalWeight;
-
-    return int(round(frameCount * weight)) + 1;
-}
+void applyFog(Ray ray, HitRecord record);
+int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount);
 
 void main(void) {
     const vec2 pixelPosition = gl_FragCoord.xy / resolution;
@@ -100,7 +73,51 @@ void main(void) {
     outFrameCount = frameCount / float(maxFrameCount);
     // Calculating outputs
 
+    // Fog
+    //    applyFog(ray, record);
+    // Fog
+
     // Debugging
     //    outColor = record.hitNormal;
     // Debugging
+}
+
+int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount) {
+    const vec3 oldNormal = texture(oldNormalAttachment, oldScreenPixelPos).rgb;
+    if (oldNormal == vec3(0)) {
+        return 0;
+    }
+
+    const float dotNormal = dot(oldNormal, record.normal);
+    const float normalWeight = map(dotNormal, -0.5, 1, 0, 1);
+    if (normalWeight == 0) {
+        return 0;
+    }
+
+
+    const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
+    Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0), false);
+    HitRecord oldRecord = FinderDDA(oldRay, 0);
+
+    //    const float threshold = 0.1 * outDepth;
+    const float threshold = length(vec2(2) / resolution * outDepth * maxDist);
+    const float dist = length(oldRecord.position - record.position);
+    if (dist >= threshold) {
+        return 0;
+    }
+
+    const float distWeight = map(dist, 0, threshold, 1, 0);
+    const float weight = distWeight * normalWeight;
+
+    //    outColor = vec3(weight);
+
+    return int(round(frameCount * weight)) + 1;
+}
+
+void applyFog(Ray ray, HitRecord record) {
+    const float x = record.distance / maxDist;
+    const float visibility = exp(-pow(x * 1.2, 5.0));
+    const vec3 skyColor = getSkyColor(ray.dir);
+
+    outColor = mix(skyColor, outColor, visibility);
 }

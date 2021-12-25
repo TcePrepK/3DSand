@@ -95,7 +95,7 @@ void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, ou
 
 int DDAIdGetter(ivec3 gridCoords) {
     if (!renderingFractal) {
-        vec3 texturePos = gridCoords / textureScale + vec3(0.5, 0, 0.5);
+        vec3 texturePos = gridCoords / textureScale + vec3(0.5, 0.5, 0.5);
         if (inBounds(texturePos)) {
             return int(texture(worldTexture, texturePos).r * 256);
         } else {
@@ -147,15 +147,15 @@ void DDA(in out Ray ray, in out HitRecord record) {
     int idx = 0;
     int hitId = 0;
     while (record.distance < maxDist) {
-        vec3 texturePos = gridCoords / textureScale + vec3(0.5, 0, 0.5);
-        if (!renderingFractal &&
-        ((stepDir.x > 0 && texturePos.x > 1) || (stepDir.x < 0 && texturePos.x < 0) ||
-        (stepDir.y > 0 && texturePos.y > 1) || (stepDir.y < 0 && texturePos.y < 0) ||
-        (stepDir.z > 0 && texturePos.z > 1) || (stepDir.z < 0 && texturePos.z < 0)
-        )) {
-            hitId = 0;
-            break;
-        }
+        //        vec3 texturePos = gridCoords / textureScale + vec3(0.5, 0, 0.5);
+        //        if (!renderingFractal &&
+        //        ((stepDir.x > 0 && texturePos.x > 1) || (stepDir.x < 0 && texturePos.x < 0) ||
+        //        (stepDir.y > 0 && texturePos.y > 1) || (stepDir.y < 0 && texturePos.y < 0) ||
+        //        (stepDir.z > 0 && texturePos.z > 1) || (stepDir.z < 0 && texturePos.z < 0)
+        //        )) {
+        //            hitId = 0;
+        //            break;
+        //        }
 
         hitId = DDAIdGetter(gridCoords);
         if (hitId != 0) {
@@ -182,22 +182,20 @@ void DDA(in out Ray ray, in out HitRecord record) {
     record.position = at(ray, record.distance);
     record.hitVoxel = gridCoords;
 
-    vec3 skyColor = getSkyColor(ray.dir);
+    const vec3 skyColor = getSkyColor(ray.dir);
     if (hitId == 0) {
         ray.color = skyColor;
         record.light = true;
     } else {
         vec3 cubeColor = vec3(0);
         if (hitId >= 2) {
-            cubeColor = vec3(0.65, 0.4, 0.3);
+            //            cubeColor = vec3(0.65, 0.4, 0.3);
+            cubeColor = vec3(0.5, 0.2, 0.5);
         } else {
             cubeColor = vec3(1);
         }
 
-        float x = record.distance / maxDist;
-        float visibility = exp(-pow(x * 1.2, 9.0));
-
-        ray.color = mix(skyColor, cubeColor, visibility);
+        ray.color = cubeColor;
     }
 }
 

@@ -126,7 +126,8 @@ public class Chunk {
 
         final int idx = getIdx(x - this.x, y, z - this.z);
         grid[idx] = e;
-        idGrid[idx] = e == null ? 0 : (byte) e.getId();
+        idGrid[idx] = e == null ? 0 : e.getId();
+        world.setBufferElement(x, y, z, e);
     }
 
     public void setElement(final Point3D pos, final Element e) {

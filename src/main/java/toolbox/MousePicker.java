@@ -2,7 +2,6 @@ package toolbox;
 
 import core.Camera;
 import core.World;
-import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -38,28 +37,8 @@ public class MousePicker {
     }
 
     private Vector3f calculateMouseRay() {
-        final float mouseX = Mouse.x();
-        final float mouseY = DisplayManager.HEIGHT - Mouse.y();
-
-        return camera.getRay(mouseX, mouseY).toVector3f();
-//        final Vector2f normalizedCoords = MousePicker.getNormalizedDeviceCoords(mouseX, mouseY);
-//        final Vector4f clipCoords = new Vector4f(normalizedCoords.x, normalizedCoords.y, -1, 1);
-//        return toWorldCoords(clipCoords);
+        return camera.getRay(Mouse.x(), Mouse.y()).toVector3f();
     }
-
-//    private Vector3f toWorldCoords(final Vector4f clipCoords) {
-//        final Vector4f eyeCoords = projectionMatrix.invert().transform(clipCoords);
-//        final Vector4f rayWorld = viewMatrix.invert().transform(new Vector4f(eyeCoords.x, eyeCoords.y, -1, 0));
-//        final Vector3f mouseRay = new Vector3f(rayWorld.x, rayWorld.y, rayWorld.z);
-//        mouseRay.normalize();
-//        return mouseRay;
-//    }
-
-//    private static Vector2f getNormalizedDeviceCoords(final float mouseX, final float mouseY) {
-//        final float x = (2 * mouseX) / DisplayManager.WIDTH - 1;
-//        final float y = (2 * mouseY) / DisplayManager.HEIGHT - 1;
-//        return new Vector2f(x, y);
-//    }
 
     private Vector3f getPointOnRay(final Vector3f ray, final float distance) {
         final Vector3D camPos = camera.getPosition();

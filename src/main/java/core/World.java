@@ -5,7 +5,6 @@ import toolbox.Point3D;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,13 +15,11 @@ public class World {
     private final List<Chunk> chunkList = new ArrayList<>();
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
-    private final int chunkViewDistance = 2;
     private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
-    private final Point3D fractalScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
-//    private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
+    private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
 
-    private float[] worldBuffer;
-    private Point3D bufferScale = fractalScale;
+    public final float[] worldBuffer = new float[worldScale.x * worldScale.y * worldScale.z];
+    private Point3D bufferScale = new Point3D();
 
     public void update() {
         for (int i = 0; i < chunkUpdateList.size(); i++) {
@@ -55,19 +52,37 @@ public class World {
         }
     }
 
-    public void updateBuffer() {
+    public void setBufferSize() {
         if (renderingFractal) {
             bufferScale = fractalScale;
+        } else {
+            bufferScale = worldScale;
+        }
+    }
+
+    public int getBufferIDX(final int x, final int y, final int z) {
+        return x + (y * worldScale.x) + (z * worldScale.x * worldScale.y);
+    }
+
+    public void setBufferElement(final int x, final int y, final int z, final Element e) {
+        final int oX = x + worldScale.x / 2;
+        final int oY = y;
+        final int oZ = z + worldScale.z / 2;
+
+        if (oX < 0 || oY < 0 || oZ < 0 || oX >= worldScale.x || oY >= worldScale.y || oZ >= worldScale.z) {
+//            System.out.println("Error! Tried to place element to: " + new Point3D(oX, oY, oZ));
             return;
         }
-        bufferScale = worldScale;
 
+        worldBuffer[getBufferIDX(oX, oY, oZ)] = e == null ? 0 : e.getId();
+    }
+
+    public void updateBuffer() {
         final Point3D cameraPos = camera.getPosition().floor().toPoint3D();
 //        final Point startingChunk = World.getChunkPosition(cameraPos.x, cameraPos.z);
         final Point startingChunk = new Point(0, 0);
 
-        final int chunkIdGridSize = mapChunkSize * mapChunkSize * mapChunkSize;
-        final int totalLength = 4 * chunkViewDistance * chunkViewDistance * chunkIdGridSize;
+        final int totalLength = worldScale.x * worldScale.y * worldScale.z;
         final float[] byteList = new float[totalLength];
 
 //        int totalPos = 0;
@@ -97,16 +112,14 @@ public class World {
 //                for (int y = 0; y < chunk.getHeight(); y++) {
 //                    for (int z = 0; z < chunk.getDepth(); z++) {
 //                        final int gridIdx = y * mapChunkSize + z * mapChunkSize * mapChunkSize;
-//                        final int listIdx = (i * mapChunkSize) + (y * bufferScale.x) + (z * bufferScale.x * bufferScale.y + (j * mapChunkSize * bufferScale.x * bufferScale.y));
+//                        final int listIdx = (i * mapChunkSize) + (y * worldScale.x) + (z * worldScale.x * worldScale.y + (j * mapChunkSize * worldScale.x * worldScale.y));
 //                        System.arraycopy(grid, gridIdx, byteList, listIdx, chunk.getWidth());
 //                    }
 //                }
 //            }
 //        }
-
-        Arrays.fill(byteList, 1);
-
-        worldBuffer = byteList;
+//
+//        worldBuffer = byteList;
     }
 
     public static boolean outBounds(final int x, final int y, final int z) {
@@ -178,6 +191,20 @@ public class World {
         return World.getElement(p.x, p.y, p.z);
     }
 
+    public static void setElement(final int x, final int y, final int z, final Element e) {
+        final Chunk offChunk = World.getChunkAtTile(x, y, z, true);
+        if (offChunk == null || offChunk.getElement(x, y, z) != null) {
+            return;
+        }
+
+        offChunk.setElement(x, y, z, e);
+        offChunk.awakeGrid(x, y, z);
+    }
+
+    public static void setElement(final Point3D p, final Element e) {
+        World.setElement(p.x, p.y, p.z, e);
+    }
+
     public List<Chunk> getChunkList() {
         return chunkList;
     }
@@ -188,6 +215,14 @@ public class World {
 
     public float[] getWorldBuffer() {
         return worldBuffer;
+    }
+
+    public Point3D getWorldScale() {
+        return worldScale;
+    }
+
+    public Point3D getFractalScale() {
+        return fractalScale;
     }
 
     public Point3D getBufferScale() {
