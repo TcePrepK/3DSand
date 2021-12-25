@@ -33,8 +33,8 @@ layout (location = 2) out vec3 outRayDir;
 layout (location = 3) out float outFrameCount;
 layout (location = 4) out vec3 outNormal;
 
-#include /shaders/fractals.glsl
-#include /shaders/rayUtils.glsl
+#include /shaders/mainFractals.glsl
+#include /shaders/mainRayUtils.glsl
 
 void applyFog(Ray ray, HitRecord record);
 int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount);

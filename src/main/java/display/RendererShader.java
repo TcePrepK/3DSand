@@ -9,8 +9,8 @@ import toolbox.Vector3D;
 import static core.GlobalVariables.*;
 
 public class RendererShader extends ShaderProgram {
-    private static final String VERTEX_FILE = "/shaders/vertexShader.glsl";
-    private static final String FRAGMENT_FILE = "/shaders/fragmentShader.glsl";
+    private static final String VERTEX_FILE = "/shaders/mainVertexShader.glsl";
+    private static final String FRAGMENT_FILE = "/shaders/mainFragmentShader.glsl";
 
     private int viewMatrix;
     private int oldMVPMatrix;
