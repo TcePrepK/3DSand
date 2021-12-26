@@ -15,7 +15,8 @@ public class World {
     private final List<Chunk> chunkList = new ArrayList<>();
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
-    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
+    //    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
+    private final Point3D worldScale = new Point3D(4 * mapChunkSize);
     private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
 
     public final float[] worldBuffer = new float[worldScale.x * worldScale.y * worldScale.z];
@@ -65,6 +66,10 @@ public class World {
     }
 
     public void setBufferElement(final int x, final int y, final int z, final Element e) {
+        if (!registerWorldToBuffer) {
+            return;
+        }
+
         final int oX = x + worldScale.x / 2;
         final int oY = y;
         final int oZ = z + worldScale.z / 2;

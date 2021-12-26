@@ -1,6 +1,6 @@
 package core;
 
-import display.DisplayRenderer;
+import display.MasterRenderer;
 import elements.ElementPlacer;
 import elements.ElementRegistry;
 import renderEngine.Loader;
@@ -18,7 +18,9 @@ public class GlobalVariables {
     public static boolean showDirtyRect = true;
     public static boolean renderChunks = true;
     public static boolean noisyWorld = true;
+
     public static boolean renderingFractal = false;
+    public static boolean registerWorldToBuffer = false;
 
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
@@ -35,5 +37,5 @@ public class GlobalVariables {
     public final static int chunkViewDistance = 3;
 
     public static Loader loader;
-    public static DisplayRenderer renderer;
+    public static MasterRenderer renderer;
 }

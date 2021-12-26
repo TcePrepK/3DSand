@@ -1,6 +1,6 @@
 import core.Player;
 import display.DisplayManager;
-import display.DisplayRenderer;
+import display.MasterRenderer;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.Loader;
 import toolbox.Keyboard;
@@ -14,7 +14,7 @@ public class Main {
         DisplayManager.createDisplay();
 
         loader = new Loader();
-        renderer = new DisplayRenderer();
+        renderer = new MasterRenderer();
 
         // Inits
         elementRegistery.init();

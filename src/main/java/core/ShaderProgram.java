@@ -3,20 +3,18 @@ package core;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import org.lwjgl.BufferUtils;
 import toolbox.Color;
 import toolbox.Vector3D;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.lwjgl.opengl.GL40.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public abstract class ShaderProgram {
     private final int programID;
@@ -24,15 +22,30 @@ public abstract class ShaderProgram {
 
     private final int vertexShaderID;
     private final int fragmentShaderID;
-
-    private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+    private final int computeShaderID;
 
     public ShaderProgram(final String vertexFile, final String fragmentFile) {
         vertexShaderID = ShaderProgram.loadShader(vertexFile, GL_VERTEX_SHADER);
         fragmentShaderID = ShaderProgram.loadShader(fragmentFile, GL_FRAGMENT_SHADER);
+        computeShaderID = 0;
+
         programID = glCreateProgram();
         glAttachShader(programID, vertexShaderID);
         glAttachShader(programID, fragmentShaderID);
+        bindAttributes();
+        glLinkProgram(programID);
+        glValidateProgram(programID);
+        getAllUniformLocations();
+    }
+
+    public ShaderProgram(final String computeFile) {
+        vertexShaderID = 0;
+        fragmentShaderID = 0;
+        computeShaderID = ShaderProgram.loadShader(computeFile, GL_COMPUTE_SHADER);
+
+        programID = glCreateProgram();
+        glCreateShader(computeShaderID);
+        glAttachShader(programID, computeShaderID);
         bindAttributes();
         glLinkProgram(programID);
         glValidateProgram(programID);
@@ -57,8 +70,10 @@ public abstract class ShaderProgram {
         stop();
         glDetachShader(programID, vertexShaderID);
         glDetachShader(programID, fragmentShaderID);
+        glDetachShader(programID, computeShaderID);
         glDeleteShader(vertexShaderID);
         glDeleteShader(fragmentShaderID);
+        glDeleteShader(computeShaderID);
         glDeleteProgram(programID);
     }
 
