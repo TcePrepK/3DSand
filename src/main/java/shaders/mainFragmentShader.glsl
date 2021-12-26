@@ -15,7 +15,9 @@ uniform vec3 chunkScale;
 uniform float wFactor;
 uniform bool resetEverything;
 uniform vec3 oldCameraPos;
+
 uniform bool renderingFractal;
+uniform bool isPathTracing;
 
 uniform sampler3D worldTexture;
 uniform sampler2D oldColorAttachment;
@@ -39,20 +41,18 @@ layout (location = 4) out vec3 outNormal;
 void applyFog(Ray ray, HitRecord record);
 int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount);
 
-void main(void) {
+void pathTracing() {
     const vec2 pixelPosition = gl_FragCoord.xy / resolution;
     int frameCount = int(texture(frameCountAttachment, pixelPosition).r * (maxFrameCount + 1.0));
 
-    // Primary ray
     const vec2 offset = rand2D() / 20.0;
-    //    const vec2 offset = vec2(0);
     const vec2 targetPixel = gl_FragCoord.xy + offset;
     const vec3 rayDir = normalize(topLeftCorner + (targetPixel.x * xIncrement) + (targetPixel.y * yIncrement));
+
     Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
     outRayDir = rayDir;
     HitRecord record = ColorDDA(ray);
     outNormal = record.normal;
-    // Primary ray
 
     // Reprojection
     vec4 screenPos = oldMVPMatrix * vec4(record.position, 1);
@@ -76,10 +76,27 @@ void main(void) {
     // Fog
     //    applyFog(ray, record);
     // Fog
+}
 
-    // Debugging
-    //    outColor = record.hitNormal;
-    // Debugging
+void primaryTracing() {
+    const vec2 pixelPosition = gl_FragCoord.xy / resolution;
+    const vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
+
+    Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
+    ColorDDA(ray);
+    outColor = ray.color;
+
+    // Fog
+    //    applyFog(ray, record);
+    // Fog
+}
+
+void main(void) {
+    if (isPathTracing) {
+        pathTracing();
+    } else {
+        primaryTracing();
+    }
 }
 
 int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount) {

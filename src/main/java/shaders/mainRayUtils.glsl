@@ -190,7 +190,8 @@ void DDA(in out Ray ray, in out HitRecord record) {
         vec3 cubeColor = vec3(0);
         if (hitId >= 2) {
             //            cubeColor = vec3(0.65, 0.4, 0.3);
-            cubeColor = vec3(0.5, 0.2, 0.5);
+            //            cubeColor = vec3(0.5, 0.2, 0.5);
+            cubeColor = abs(gridCoords / textureScale) * 2;
         } else {
             cubeColor = vec3(1);
         }
@@ -222,6 +223,10 @@ HitRecord ColorDDA(in out Ray ray) {
     HitRecord record = PrimaryDDA(ray);
     outDepth = record.distance / maxDist;
     if (record.light) {
+        return record;
+    }
+
+    if (!isPathTracing) {
         return record;
     }
 
