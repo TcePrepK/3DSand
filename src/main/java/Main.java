@@ -1,8 +1,9 @@
+import core.DisplayManager;
+import core.ImGuiManager;
+import core.Loader;
 import core.Player;
-import display.DisplayManager;
 import display.MasterRenderer;
 import org.lwjgl.glfw.GLFW;
-import renderEngine.Loader;
 import toolbox.Keyboard;
 import toolbox.Mouse;
 import toolbox.MousePicker;
@@ -13,6 +14,7 @@ public class Main {
     public static void main(final String[] args) {
         DisplayManager.createDisplay();
 
+        imGuiManager = new ImGuiManager();
         loader = new Loader();
         renderer = new MasterRenderer();
 
@@ -25,7 +27,6 @@ public class Main {
 
         // Camera
         player = new Player(camera);
-
         mousePicker = new MousePicker(camera);
         // Camera
 
@@ -48,11 +49,12 @@ public class Main {
             Mouse.update();
 
             final double u1 = DisplayManager.getCurrentTime();
-            world.update();
+//            world.update();
 //            world.updateBuffer();
             final double u2 = DisplayManager.getCurrentTime();
 
             renderer.render();
+            imGuiManager.update();
 
             DisplayManager.updateDisplay();
 
@@ -61,6 +63,7 @@ public class Main {
 
         renderer.cleanUp();
         loader.cleanUp();
+        imGuiManager.cleanUp();
         DisplayManager.closeDisplay();
     }
 }

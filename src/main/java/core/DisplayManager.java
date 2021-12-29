@@ -1,5 +1,6 @@
-package display;
+package core;
 
+import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
@@ -62,7 +63,9 @@ public class DisplayManager {
     }
 
     public static void closeDisplay() {
+        Callbacks.glfwFreeCallbacks(DisplayManager.windowID);
         glfwDestroyWindow(DisplayManager.windowID);
+        glfwTerminate();
     }
 
     public static long getCurrentTime() {

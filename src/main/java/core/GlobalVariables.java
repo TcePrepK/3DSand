@@ -3,7 +3,6 @@ package core;
 import display.MasterRenderer;
 import elements.ElementPlacer;
 import elements.ElementRegistry;
-import renderEngine.Loader;
 import toolbox.MousePicker;
 import toolbox.Noise;
 
@@ -36,6 +35,7 @@ public class GlobalVariables {
     public final static int mapChunkSize = 32;
     public final static int chunkViewDistance = 3;
 
+    public static ImGuiManager imGuiManager;
     public static Loader loader;
     public static MasterRenderer renderer;
 }

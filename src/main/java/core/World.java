@@ -16,7 +16,7 @@ public class World {
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
     //    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
-    private final Point3D worldScale = new Point3D(4 * mapChunkSize);
+    private final Point3D worldScale = new Point3D(5 * mapChunkSize);
     private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
 
     public final float[] worldBuffer = new float[worldScale.x * worldScale.y * worldScale.z];

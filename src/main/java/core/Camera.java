@@ -1,6 +1,5 @@
 package core;
 
-import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -57,7 +56,7 @@ public class Camera {
         });
     }
 
-    public void update(final Vector3D playerPos) {
+    public void update() {
         updateZoom();
 
         if ((Mouse.isButtonDown(1) && freePlayMode)) {
@@ -70,21 +69,12 @@ public class Camera {
             // Mouse.setCursorPosition(DisplayManager.WIDTH / 2, DisplayManager.HEIGHT / 2);
         }
 
-        final Matrix4f oldViewMatrix = new Matrix4f(viewMatrix);
-
-        calculateMatrices();
-        calculateVariables(playerPos);
-
         final float off = 0.01f;
-        if (Keyboard.isKeyDown("q")) {
+        if (Keyboard.isKeyDown("Q")) {
             wFactor -= off;
             matrixWatcher.dispatch();
-        } else if (Keyboard.isKeyDown("e")) {
+        } else if (Keyboard.isKeyDown("E")) {
             wFactor += off;
-            matrixWatcher.dispatch();
-        }
-
-        if (!viewMatrix.equals(oldViewMatrix)) {
             matrixWatcher.dispatch();
         }
     }
@@ -161,6 +151,8 @@ public class Camera {
     }
 
     public void calculateMatrices() {
+        final Matrix4f oldViewMatrix = new Matrix4f(viewMatrix);
+
         // ViewMatrix
         viewMatrix.identity();
         viewMatrix.rotate((float) Math.toRadians(pitch), new Vector3f(1, 0, 0));
@@ -169,6 +161,10 @@ public class Camera {
 
         // ProjectionViewMatrix
         projectionMatrix.mul(viewMatrix, projectionViewMatrix);
+
+        if (!viewMatrix.equals(oldViewMatrix)) {
+            matrixWatcher.dispatch();
+        }
     }
 
     public void createProjectionMatrix() {

@@ -1,7 +1,7 @@
 package toolbox;
 
+import core.DisplayManager;
 import core.Signal;
-import display.DisplayManager;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -15,17 +15,27 @@ public class Keyboard {
 
     public static final Signal keyPressed = new Signal();
 
+    public static final String LSHIFT = "42";
+    public static final String SPACE = "57";
+
     public static void init() {
         GLFW.glfwSetKeyCallback(DisplayManager.getWindow(), (window, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                 GLFW.glfwSetWindowShouldClose(window, true);
             }
 
-            if (action == GLFW.GLFW_PRESS) {
-                Keyboard.pressedList.add(GLFW.glfwGetKeyName(key, scancode));
-            } else if (action == GLFW.GLFW_RELEASE) {
-                Keyboard.pressedList.remove(GLFW.glfwGetKeyName(key, scancode));
+            String keyName = GLFW.glfwGetKeyName(key, scancode);
+            if (keyName == null) {
+                keyName = Integer.toString(scancode);
             }
+
+            if (action == GLFW.GLFW_PRESS) {
+                Keyboard.pressedList.add(keyName);
+            } else if (action == GLFW.GLFW_RELEASE) {
+                Keyboard.pressedList.remove(keyName);
+            }
+
+//            System.out.println(scancode);
 
             Keyboard.keyPressed.test();
         });

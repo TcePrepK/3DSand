@@ -1,15 +1,14 @@
 package display;
 
+import core.TextureManager;
 import models.RawModel;
 import simulation.SimulationShader;
 import toolbox.Keyboard;
 import toolbox.Point3D;
 
-import java.nio.ByteBuffer;
-
+import static core.DisplayManager.HEIGHT;
+import static core.DisplayManager.WIDTH;
 import static core.GlobalVariables.*;
-import static display.DisplayManager.HEIGHT;
-import static display.DisplayManager.WIDTH;
 import static org.lwjgl.opengl.GL46.*;
 
 public class MasterRenderer {
@@ -20,6 +19,7 @@ public class MasterRenderer {
     private final SimulationShader simulationShader = new SimulationShader();
 
     private int worldTextureId;
+    private int simulationTextureId;
     private final int displayBufferId;
 
     private int oldColorAttachmentId;
@@ -27,8 +27,6 @@ public class MasterRenderer {
     private int frameCountAttachmentId;
     private int oldRayDirAttachmentId;
     private int oldNormalAttachmentId;
-
-    private int tex_input;
 
     private boolean loadCameraVariables = false;
 
@@ -44,11 +42,11 @@ public class MasterRenderer {
         displayBufferId = MasterRenderer.createDisplayBuffer();
         MasterRenderer.unbindFrameBuffer();
 
-        oldColorAttachmentId = MasterRenderer.create2DTexture();
-        oldDepthAttachmentId = MasterRenderer.create2DTexture();
-        frameCountAttachmentId = MasterRenderer.create2DTexture();
-        oldRayDirAttachmentId = MasterRenderer.create2DTexture();
-        oldNormalAttachmentId = MasterRenderer.create2DTexture();
+        oldColorAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
+        oldDepthAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
+        frameCountAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
+        oldRayDirAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
+        oldNormalAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
 
         world.setBufferSize();
 
@@ -60,16 +58,13 @@ public class MasterRenderer {
         }, "m");
 
         // Temporary
-        tex_input = glGenTextures();
-
         final int w = world.getWorldScale().x;
         final int h = world.getWorldScale().y;
         final int d = world.getWorldScale().z;
 
         final float[] pixels = new float[w * h * d * 4];
         for (int i = 0; i < w * h * d; i++) {
-            if (rand.nextFloat() < 0.4) {
-//                pixels[i] = 1;
+            if (rand.nextFloat() < 0.01) {
                 pixels[i * 4] = 1;
                 pixels[i * 4 + 1] = 1;
                 pixels[i * 4 + 2] = 1;
@@ -77,22 +72,41 @@ public class MasterRenderer {
             }
         }
 
-        tex_input = create3DTexture(world.getWorldScale(), pixels);
+//        for (int x = w / 2 - 1; x < w / 2 + 1; x++) {
+//            for (int y = 0; y < h / 2; y++) {
+//                for (int z = d / 2 - 1; z < d / 2 + 1; z++) {
+//                    if (rand.nextFloat() < 0.1) {
+//                        final int idx = 4 * (x + (y * w) + (z * w * h));
+//                        pixels[idx] = 1;
+//                    }
+//                }
+//            }
+//        }
+
+        final Point3D scale = world.getWorldScale();
+        simulationTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_RGBA32F, GL_RGBA, GL_FLOAT, pixels);
     }
 
     public void render() {
-        simulationShader.start();
+        // Simulation
+        if (currentFrame % 2 == 0 && Keyboard.isKeyDown("Q")) {
+            simulationShader.start();
 
-        final Point3D scale = world.getWorldScale();
-        final int tex_output = create3DTexture(scale, null);
-        glBindImageTexture(0, tex_input, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, tex_output, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+            final Point3D scale = world.getWorldScale();
+            final int nextSimulationTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_RGBA32F, GL_RGBA);
+            final int lockWorldBuffer = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_R32UI, GL_RED, GL_UNSIGNED_BYTE);
 
-        glDispatchCompute(scale.x, scale.y, scale.z);
+            glBindImageTexture(0, simulationTextureId, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(1, nextSimulationTextureId, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+            glBindImageTexture(2, lockWorldBuffer, 0, true, 0, GL_READ_WRITE, GL_RED);
+            glDispatchCompute(scale.x, scale.y, scale.z);
 
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+            simulationShader.stop();
 
-        simulationShader.stop();
+            glDeleteTextures(simulationTextureId);
+            simulationTextureId = nextSimulationTextureId;
+        }
+        // Simulation
 
         // Start renderer
         renderShader.start();
@@ -124,7 +138,7 @@ public class MasterRenderer {
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
 //        glBindTexture(GL_TEXTURE_3D, create3DTexture(world.getWorldScale(), world.getWorldBuffer()));
-        glBindTexture(GL_TEXTURE_3D, tex_output);
+        glBindTexture(GL_TEXTURE_3D, simulationTextureId);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, oldColorAttachmentId);
         glActiveTexture(GL_TEXTURE2);
@@ -166,10 +180,6 @@ public class MasterRenderer {
         glDeleteTextures(oldRayDirAttachmentId);
         glDeleteTextures(oldNormalAttachmentId);
 
-//        glDeleteTextures(tex_output);
-        glDeleteTextures(tex_input);
-        tex_input = tex_output;
-
         oldColorAttachmentId = colorAttachment;
         oldDepthAttachmentId = depthAttachment;
         oldRayDirAttachmentId = rayDirAttachment;
@@ -191,25 +201,25 @@ public class MasterRenderer {
         glViewport(0, 0, WIDTH, HEIGHT);
     }
 
-    public int create3DTexture(final Point3D scale, final float[] buffer) {
-//        glDeleteTextures(worldTextureId);
-
-        final int texture = glGenTextures();
-        glBindTexture(GL_TEXTURE_3D, texture);
-
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_LINEAR);
-
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, scale.x, scale.y, scale.z, 0, GL_RGBA, GL_FLOAT, buffer);
-        glBindTexture(GL_TEXTURE_3D, 0);
-
-        worldTextureId = texture;
-        return texture;
-    }
+//    private int create3DTexture(final Point3D scale, final float[] buffer) {
+////        glDeleteTextures(worldTextureId);
+//
+//        final int texture = glGenTextures();
+//        glBindTexture(GL_TEXTURE_3D, texture);
+//
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_LINEAR);
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_LINEAR);
+//
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//
+//        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, scale.x, scale.y, scale.z, 0, GL_RGBA, GL_FLOAT, buffer);
+//        glBindTexture(GL_TEXTURE_3D, 0);
+//
+//        worldTextureId = texture;
+//        return texture;
+//    }
 
     private static int createDisplayBuffer() {
         final int frameBuffer = glGenFramebuffers();
@@ -219,78 +229,36 @@ public class MasterRenderer {
         return frameBuffer;
     }
 
-    public static int create2DTexture() {
-        final int texture = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, (ByteBuffer) null);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return texture;
-    }
-
-//    public static int createRGB2DTexture() {
-////        final int texture = DisplayRenderer.create2DTexture();
-//
-//        final int texture = glGenTextures();
-//        glBindTexture(GL_TEXTURE_2D, texture);
-//
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
-//
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DisplayManager.WIDTH, DisplayManager.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
-//        glBindTexture(GL_TEXTURE_2D, 0);
-//
-//        return texture;
-//    }
-
-//    public static int createR2DTexture() {
-//        final int texture = DisplayRenderer.create2DTexture();
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_R, DisplayManager.WIDTH, DisplayManager.HEIGHT, 0, GL_R, GL_UNSIGNED_BYTE, (ByteBuffer) null);
-//        glBindTexture(GL_TEXTURE_2D, 0);
-//
-//        return texture;
-//    }
-
     public static int createColorAttachment() {
-        final int texture = MasterRenderer.create2DTexture();
+        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
 
         return texture;
     }
 
     public static int createDepthAttachment() {
-        final int texture = MasterRenderer.create2DTexture();
+        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, texture, 0);
 
         return texture;
     }
 
     public static int createRayDirAttachment() {
-        final int texture = MasterRenderer.create2DTexture();
+        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, texture, 0);
 
         return texture;
     }
 
     public static int createFrameCountAttachment() {
-        final int texture = MasterRenderer.create2DTexture();
+        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, texture, 0);
 
         return texture;
     }
 
     public static int createNormalAttachment() {
-        final int texture = MasterRenderer.create2DTexture();
+        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, texture, 0);
 
         return texture;

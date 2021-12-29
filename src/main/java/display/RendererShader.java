@@ -1,5 +1,6 @@
 package display;
 
+import core.DisplayManager;
 import core.GlobalVariables;
 import core.ShaderProgram;
 import org.joml.Matrix4f;

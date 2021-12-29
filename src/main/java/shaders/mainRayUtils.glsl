@@ -38,11 +38,11 @@ vec3 at(Ray ray, float time) {
 }
 
 bool inBounds(vec2 texturePos) {
-    return (texturePos.x >= 0 && texturePos.y >= 0 && texturePos.x < 1 && texturePos.y < 1);
+    return (texturePos.x > 0 && texturePos.y > 0 && texturePos.x < 1 && texturePos.y < 1);
 }
 
 bool inBounds(vec3 texturePos) {
-    return (texturePos.x >= 0 && texturePos.y >= 0 && texturePos.z >= 0 && texturePos.x < 1 && texturePos.y < 1 && texturePos.z < 1);
+    return (texturePos.x > 0 && texturePos.y > 0 && texturePos.z > 0 && texturePos.x < 1 && texturePos.y < 1 && texturePos.z < 1);
 }
 
 bool inBounds(float height) {
@@ -97,7 +97,7 @@ int DDAIdGetter(ivec3 gridCoords) {
     if (!renderingFractal) {
         vec3 texturePos = gridCoords / textureScale + vec3(0.5, 0.5, 0.5);
         if (inBounds(texturePos)) {
-            return int(texture(worldTexture, texturePos).r * 256);
+            return int(texture(worldTexture, texturePos).r);
         } else {
             return 0;
         }
@@ -191,10 +191,11 @@ void DDA(in out Ray ray, in out HitRecord record) {
         if (hitId >= 2) {
             //            cubeColor = vec3(0.65, 0.4, 0.3);
             //            cubeColor = vec3(0.5, 0.2, 0.5);
-            cubeColor = abs(gridCoords / textureScale) * 2;
         } else {
             cubeColor = vec3(1);
         }
+
+        cubeColor = abs(gridCoords / textureScale) * 2;
 
         ray.color = cubeColor;
     }

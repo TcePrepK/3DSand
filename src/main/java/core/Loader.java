@@ -1,6 +1,5 @@
-package renderEngine;
+package core;
 
-import core.GlobalVariables;
 import models.RawModel;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;

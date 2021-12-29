@@ -1,6 +1,5 @@
 package core;
 
-import display.DisplayManager;
 import models.ColoredModel;
 import models.MeshModel;
 import org.joml.Vector2f;
@@ -66,7 +65,7 @@ public class Player {
             // camera.getPosition().y += 0.005f;
         }
 
-        desiredMovement.y += gravity * dt;
+//        desiredMovement.y += gravity * dt;
         increasePosition(0, desiredMovement.y * dt, 0);
 
         if (!GlobalVariables.creativeMode) {
@@ -87,8 +86,11 @@ public class Player {
             }
         }
 
+        camera.update();
         calculateCameraPosition();
-        camera.update(position);
+
+        camera.calculateMatrices();
+        camera.calculateVariables(position);
 
         // model.setPosition(position.toVector3f());
         // model.movePosition(0, HEIGHT / 2 + 0.5f, 0);
@@ -128,18 +130,26 @@ public class Player {
         desiredMovement.x = 0;
         desiredMovement.z = 0;
 
-//        if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
-//            desiredMovement.z = -Player.RUN_SPEED;
-//        } else if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
-//            desiredMovement.z = Player.RUN_SPEED;
-//        }
-//
-//        if (Keyboard.isKeyDown(Keyboard.KEY_A)) {
-//            desiredMovement.x = -Player.RUN_SPEED;
-//        } else if (Keyboard.isKeyDown(Keyboard.KEY_D)) {
-//            desiredMovement.x = Player.RUN_SPEED;
-//        }
-//
+        if (Keyboard.isKeyDown("W")) {
+            desiredMovement.z = -Player.RUN_SPEED;
+        } else if (Keyboard.isKeyDown("S")) {
+            desiredMovement.z = Player.RUN_SPEED;
+        }
+
+        if (Keyboard.isKeyDown("A")) {
+            desiredMovement.x = -Player.RUN_SPEED;
+        } else if (Keyboard.isKeyDown("D")) {
+            desiredMovement.x = Player.RUN_SPEED;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.SPACE)) {
+            desiredMovement.y += 1;
+        } else if (Keyboard.isKeyDown(Keyboard.LSHIFT)) {
+            desiredMovement.y -= 1;
+        } else {
+            desiredMovement.y = 0;
+        }
+
 //        if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
 //            jump();
 //        } else if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && GlobalVariables.creativeMode) {
