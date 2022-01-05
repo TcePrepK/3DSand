@@ -20,7 +20,7 @@ public class ImGuiManager {
         ImGui.begin("Cool Window");
 
         // Code
-        ImGui.text(String.valueOf(DisplayManager.getFPS()));
+        ImGui.text("FPS: " + String.valueOf(DisplayManager.getFPS()));
         // Code
 
         ImGui.end();

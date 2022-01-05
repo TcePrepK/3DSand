@@ -57,8 +57,6 @@ public class Main {
             imGuiManager.update();
 
             DisplayManager.updateDisplay();
-
-            System.out.println("Update took: " + (u2 - u1) / 100 + "sec and FPS is: " + DisplayManager.getFPS());
         }
 
         renderer.cleanUp();
