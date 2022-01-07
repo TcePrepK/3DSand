@@ -27,6 +27,7 @@ public class MasterRenderer {
     private int frameCountAttachmentId;
     private int oldRayDirAttachmentId;
     private int oldNormalAttachmentId;
+    private int oldLightAttachmentId;
 
     private boolean loadCameraVariables = false;
 
@@ -52,6 +53,7 @@ public class MasterRenderer {
         frameCountAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
         oldRayDirAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
         oldNormalAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        oldLightAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
 
         world.setBufferSize();
 
@@ -145,6 +147,7 @@ public class MasterRenderer {
         final int rayDirAttachment = MasterRenderer.createAttachment(2);
         final int frameCountAttachment = MasterRenderer.createAttachment(3);
         final int normalAttachment = MasterRenderer.createAttachment(4);
+        final int lightAttachment = MasterRenderer.createAttachment(5);
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
@@ -160,6 +163,8 @@ public class MasterRenderer {
         glBindTexture(GL_TEXTURE_2D, frameCountAttachmentId);
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, oldNormalAttachmentId);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, oldLightAttachmentId);
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -190,12 +195,14 @@ public class MasterRenderer {
         glDeleteTextures(frameCountAttachmentId);
         glDeleteTextures(oldRayDirAttachmentId);
         glDeleteTextures(oldNormalAttachmentId);
+        glDeleteTextures(oldLightAttachmentId);
 
         oldColorAttachmentId = colorAttachment;
         oldDepthAttachmentId = depthAttachment;
         oldRayDirAttachmentId = rayDirAttachment;
         frameCountAttachmentId = frameCountAttachment;
         oldNormalAttachmentId = normalAttachment;
+        oldLightAttachmentId = lightAttachment;
     }
 
     public void loadCameraVariablesNextFrame() {

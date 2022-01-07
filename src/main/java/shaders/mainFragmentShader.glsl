@@ -24,9 +24,9 @@ layout (binding = 2) uniform sampler2D oldDepthAttachment;
 layout (binding = 3) uniform sampler2D oldRayDirAttachment;
 layout (binding = 4) uniform sampler2D frameCountAttachment;
 layout (binding = 5) uniform sampler2D oldNormalAttachment;
-//layout (location = 6) uniform sampler2D oldLightAttachment;
+layout (location = 6) uniform sampler2D oldLightAttachment;
 
-const int maxDist = 500;
+const int maxDistance = 500;
 const int maxFrameCount = 255;
 const bool isPathTracing = true;
 
@@ -35,7 +35,7 @@ layout (location = 1) out float outDepth;
 layout (location = 2) out vec3 outRayDir;
 layout (location = 3) out float outFrameCount;
 layout (location = 4) out vec3 outNormal;
-//layout (location = 5) out vec3 outLight;
+layout (location = 5) out float outLight;
 
 #include /shaders/mainFractals.glsl
 #include /shaders/mainRayUtils.glsl
@@ -113,13 +113,12 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
         return 0;
     }
 
-
     const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
     Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0), false);
-    HitRecord oldRecord = FinderDDA(oldRay, 0);
+    HitRecord oldRecord = FinderDDA(oldRay, texture(oldDepthAttachment, oldScreenPixelPos).r * maxDistance);
 
     //    const float threshold = 0.1 * outDepth;
-    const float threshold = length(vec2(2) / resolution * outDepth * maxDist);
+    const float threshold = length(vec2(2) / resolution * outDepth * maxDistance);
     const float dist = length(oldRecord.position - record.position);
     if (dist >= threshold) {
         return 0;
@@ -134,7 +133,7 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
 }
 
 void applyFog(Ray ray, HitRecord record) {
-    const float x = record.distance / maxDist;
+    const float x = record.distance / maxDistance;
     const float visibility = exp(-pow(x * 1.2, 5.0));
     const vec3 skyColor = getSkyColor(ray.dir);
 
