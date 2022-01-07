@@ -5,6 +5,9 @@ layout(rgba32f, binding = 0) uniform image3D inputWorld;
 layout(rgba32f, binding = 1) uniform image3D outputWorld;
 layout(r32ui, binding = 2) uniform uimage3D worldLockBuffer;
 
+uniform vec3 textureScale;
+uniform float maxIter;
+
 struct Rule {
     float inputs[27];
     float outputs[27];
@@ -23,6 +26,30 @@ layout(std430, binding = 0) readonly buffer RuleData {
 layout(std430, binding = 1) readonly buffer OffsetData {
     RuleOffset voxelRuleOffsets[];
 };
+
+bool fractalTest(ivec3 gridCoords) {
+    vec3 pos = gridCoords / textureScale;
+    if (pos.x <= 0 || pos.x >= 1 || pos.y <= 0 || pos.y >= 1 || pos.z <= 0 || pos.z >= 1) {
+        return false;
+    }
+
+    int iter = 0;
+    ivec3 voxel = ivec3(floor(pos * 3 - 1));
+    while (iter <= maxIter) {
+        ivec3 absVoxel = abs(voxel);
+        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
+            return false;
+        }
+
+        iter ++;
+
+        float power = pow(3, iter);
+        vec3 location = floor(pos * power);
+        voxel = ivec3(mod(location, 3) - 1);
+    }
+
+    return true;
+}
 
 bool isLocked(ivec3 pixel) {
     return imageAtomicCompSwap(worldLockBuffer, pixel, 0, 1) == 1 ? true : false;
@@ -48,29 +75,32 @@ void skipVoxel() {
 
 void main() {
     const ivec3 pixel = ivec3(gl_GlobalInvocationID);
-    if (isLocked(pixel)) {
-        return;
+    if (fractalTest(pixel)) {
+        setVoxelID(pixel, 2);
     }
-
-    const int voxelID = getVoxelID(pixel);
-    if (voxelID == 0) {
-        return;
-    }
-
-    const ivec3 downPixel = pixel - ivec3(0, 1, 0);
-    if (isLocked(downPixel)) {
-        skipVoxel();
-        return;
-    }
-
-    const int downVoxelID = getVoxelID(downPixel);
-    if (downVoxelID != 0) {
-        skipVoxel();
-        return;
-    }
-
-    setVoxelID(pixel, downVoxelID);
-    setVoxelID(downPixel, voxelID);
+    //    if (isLocked(pixel)) {
+    //        return;
+    //    }
+    //
+    //    const int voxelID = getVoxelID(pixel);
+    //    if (voxelID == 0) {
+    //        return;
+    //    }
+    //
+    //    const ivec3 downPixel = pixel - ivec3(0, 1, 0);
+    //    if (isLocked(downPixel)) {
+    //        skipVoxel();
+    //        return;
+    //    }
+    //
+    //    const int downVoxelID = getVoxelID(downPixel);
+    //    if (downVoxelID != 0) {
+    //        skipVoxel();
+    //        return;
+    //    }
+    //
+    //    setVoxelID(pixel, downVoxelID);
+    //    setVoxelID(downPixel, voxelID);
 
     //    RuleOffset ruleOffset = OffsetData.voxelRuleOffsets[voxelID];
     //    for (int i = 0; i < ruleOffset.count; i++) {

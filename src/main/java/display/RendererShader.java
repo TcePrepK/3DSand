@@ -29,12 +29,6 @@ public class RendererShader extends ShaderProgram {
     private int oldCameraPos;
     private int renderingFractal;
 
-    private int oldColorAttachment;
-    private int oldDepthAttachment;
-    private int oldRayDirAttachment;
-    private int frameCountAttachment;
-    private int oldNormalAttachment;
-
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
     }
@@ -61,24 +55,12 @@ public class RendererShader extends ShaderProgram {
         resetEverything = super.getUniformLocation("resetEverything");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
         renderingFractal = super.getUniformLocation("renderingFractal");
-
-        oldColorAttachment = super.getUniformLocation("oldColorAttachment");
-        oldDepthAttachment = super.getUniformLocation("oldDepthAttachment");
-        oldRayDirAttachment = super.getUniformLocation("oldRayDirAttachment");
-        frameCountAttachment = super.getUniformLocation("frameCountAttachment");
-        oldNormalAttachment = super.getUniformLocation("oldNormalAttachment");
     }
 
     public void loadVariables() {
         ShaderProgram.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
         ShaderProgram.load2DVector(viewportRes, camera.getViewportResolution());
         ShaderProgram.load3DVector(chunkScale, new Vector3D(mapChunkSize));
-
-        ShaderProgram.loadInt(oldColorAttachment, 1);
-        ShaderProgram.loadInt(oldDepthAttachment, 2);
-        ShaderProgram.loadInt(oldRayDirAttachment, 3);
-        ShaderProgram.loadInt(frameCountAttachment, 4);
-        ShaderProgram.loadInt(oldNormalAttachment, 5);
     }
 
     public void loadCameraVariables() {

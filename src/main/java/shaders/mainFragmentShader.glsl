@@ -17,23 +17,25 @@ uniform bool resetEverything;
 uniform vec3 oldCameraPos;
 
 uniform bool renderingFractal;
-uniform bool isPathTracing;
 
-uniform sampler3D worldTexture;
-uniform sampler2D oldColorAttachment;
-uniform sampler2D oldDepthAttachment;
-uniform sampler2D oldRayDirAttachment;
-uniform sampler2D frameCountAttachment;
-uniform sampler2D oldNormalAttachment;
+layout (binding = 0) uniform sampler3D worldTexture;
+layout (binding = 1) uniform sampler2D oldColorAttachment;
+layout (binding = 2) uniform sampler2D oldDepthAttachment;
+layout (binding = 3) uniform sampler2D oldRayDirAttachment;
+layout (binding = 4) uniform sampler2D frameCountAttachment;
+layout (binding = 5) uniform sampler2D oldNormalAttachment;
+//layout (location = 6) uniform sampler2D oldLightAttachment;
 
 const int maxDist = 500;
 const int maxFrameCount = 255;
+const bool isPathTracing = true;
 
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out float outDepth;
 layout (location = 2) out vec3 outRayDir;
 layout (location = 3) out float outFrameCount;
 layout (location = 4) out vec3 outNormal;
+//layout (location = 5) out vec3 outLight;
 
 #include /shaders/mainFractals.glsl
 #include /shaders/mainRayUtils.glsl
