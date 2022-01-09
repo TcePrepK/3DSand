@@ -51,6 +51,10 @@ public class Point3D {
         return new Point3D(x / v, y / v, z / v);
     }
 
+    public Point3D abs() {
+        return new Point3D(Math.abs(x), Math.abs(y), Math.abs(z));
+    }
+
     @Override
     public String toString() {
         return "(X:" + x + " Y:" + y + " Z:" + z + ")";

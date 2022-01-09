@@ -97,7 +97,7 @@ int DDAIdGetter(ivec3 gridCoords) {
     if (!renderingFractal) {
         vec3 texturePos = gridCoords / textureScale + vec3(0.5);
         if (inBounds(texturePos)) {
-            return int(texture(worldTexture, texturePos).r);
+            return int(texture(worldTexture, texturePos).r * 255);
         } else {
             return 0;
         }
@@ -188,14 +188,13 @@ void DDA(in out Ray ray, in out HitRecord record) {
         record.light = true;
     } else {
         vec3 cubeColor = vec3(0);
-        if (hitId >= 2) {
+        if (hitId == 2) {
             //            cubeColor = vec3(0.65, 0.4, 0.3);
-            //            cubeColor = vec3(0.5, 0.2, 0.5);
+            cubeColor = vec3(0.5, 0.2, 0.5);
         } else {
-            cubeColor = vec3(1);
+            //            cubeColor = vec3(1);
+            cubeColor = abs(gridCoords / textureScale) * 2;
         }
-
-        cubeColor = abs(gridCoords / textureScale) * 2;
 
         ray.color = cubeColor;
     }

@@ -48,6 +48,14 @@ public class Vector3D {
         return new Vector3D(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
     }
 
+    public Vector3D floor() {
+        return new Vector3D((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+    }
+
+    public Vector3D mod(final int v) {
+        return new Vector3D(x % v, y % v, z % v);
+    }
+
     public Vector3D add(final Vector3D v) {
         return new Vector3D(x + v.x, y + v.y, z + v.z);
     }
@@ -94,9 +102,8 @@ public class Vector3D {
         return new Vector3D(x / v, y / v, z / v);
     }
 
-
-    public Vector3D floor() {
-        return new Vector3D((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+    public Vector3D div(final Vector3D v) {
+        return new Vector3D(x / v.x, y / v.y, z / v.z);
     }
 
     @Override

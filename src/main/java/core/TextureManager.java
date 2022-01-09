@@ -48,12 +48,29 @@ public class TextureManager {
         return texture;
     }
 
+//    public static int create3DTexture(final int width, final int height, final int depth, final int internalFormat, final int format, final int dataType, final ByteBuffer pixels) {
+//        final int texture = glGenTextures();
+//        glBindTexture(GL_TEXTURE_3D, texture);
+//
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+//
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//
+//        glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, dataType, pixels);
+//        glBindTexture(GL_TEXTURE_3D, 0);
+//
+//        return texture;
+//    }
+
     public static int create3DTexture(final int width, final int height, final int depth, final int internalFormat, final int format, final int dataType) {
-        return TextureManager.create3DTexture(width, height, depth, internalFormat, format, dataType, null);
+        return TextureManager.create3DTexture(width, height, depth, internalFormat, format, dataType, (float[]) null);
     }
 
     public static int create3DTexture(final int width, final int height, final int depth, final int internalFormat, final int format) {
-        return TextureManager.create3DTexture(width, height, depth, internalFormat, format, GL_FLOAT, null);
+        return TextureManager.create3DTexture(width, height, depth, internalFormat, format, GL_FLOAT, (float[]) null);
     }
     // 3D
 }

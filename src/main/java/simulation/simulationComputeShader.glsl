@@ -1,8 +1,8 @@
 #version 450 core
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-layout(rgba32f, binding = 0) uniform image3D inputWorld;
-layout(rgba32f, binding = 1) uniform image3D outputWorld;
+layout(binding = 0) uniform image3D inputWorld;
+layout(binding = 1) uniform image3D outputWorld;
 layout(r32ui, binding = 2) uniform uimage3D worldLockBuffer;
 
 uniform vec3 textureScale;
@@ -27,30 +27,6 @@ layout(std430, binding = 1) readonly buffer OffsetData {
     RuleOffset voxelRuleOffsets[];
 };
 
-bool fractalTest(ivec3 gridCoords) {
-    vec3 pos = gridCoords / textureScale;
-    if (pos.x <= 0 || pos.x >= 1 || pos.y <= 0 || pos.y >= 1 || pos.z <= 0 || pos.z >= 1) {
-        return false;
-    }
-
-    int iter = 0;
-    ivec3 voxel = ivec3(floor(pos * 3 - 1));
-    while (iter <= maxIter) {
-        ivec3 absVoxel = abs(voxel);
-        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
-            return false;
-        }
-
-        iter ++;
-
-        float power = pow(3, iter);
-        vec3 location = floor(pos * power);
-        voxel = ivec3(mod(location, 3) - 1);
-    }
-
-    return true;
-}
-
 bool isLocked(ivec3 pixel) {
     return imageAtomicCompSwap(worldLockBuffer, pixel, 0, 1) == 1 ? true : false;
 }
@@ -74,10 +50,7 @@ void skipVoxel() {
 }
 
 void main() {
-    const ivec3 pixel = ivec3(gl_GlobalInvocationID);
-    if (fractalTest(pixel)) {
-        setVoxelID(pixel, 2);
-    }
+    //    const ivec3 pixel = ivec3(gl_GlobalInvocationID);
     //    if (isLocked(pixel)) {
     //        return;
     //    }
@@ -101,7 +74,7 @@ void main() {
     //
     //    setVoxelID(pixel, downVoxelID);
     //    setVoxelID(downPixel, voxelID);
-
+    //
     //    RuleOffset ruleOffset = OffsetData.voxelRuleOffsets[voxelID];
     //    for (int i = 0; i < ruleOffset.count; i++) {
     //        Rule rule = RuleData.ruleArray[ruleOffset.start + i];

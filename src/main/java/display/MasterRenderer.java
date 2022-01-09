@@ -5,6 +5,7 @@ import models.RawModel;
 import simulation.SimulationShader;
 import toolbox.Keyboard;
 import toolbox.Point3D;
+import toolbox.Vector3D;
 
 import static core.DisplayManager.HEIGHT;
 import static core.DisplayManager.WIDTH;
@@ -42,7 +43,6 @@ public class MasterRenderer {
 
         simulationShader.start();
         simulationShader.loadTextureScale(world.getWorldScale());
-        simulationShader.loadMaxIter(4);
         simulationShader.stop();
 
         displayBufferId = MasterRenderer.createDisplayBuffer();
@@ -69,42 +69,52 @@ public class MasterRenderer {
         final int h = world.getWorldScale().y;
         final int d = world.getWorldScale().z;
 
-        final float[] pixels = new float[w * h * d * 4];
-        for (int i = 0; i < w * h * d; i++) {
-            if (rand.nextFloat() < 0.01) {
-                pixels[i * 4] = 1;
-                pixels[i * 4 + 1] = 1;
-                pixels[i * 4 + 2] = 1;
-                pixels[i * 4 + 3] = 1;
+        final float[] pixels = new float[w * h * d];
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                for (int z = 0; z < d; z++) {
+                    final Vector3D pos = new Vector3D(x, y, z).div(world.getWorldScale().toVector3D());
+
+                    int iter = 0;
+                    boolean hit = true;
+                    Point3D voxel = pos.mult(3).sub(1).floor().toPoint3D();
+                    while (iter <= 4) {
+                        final Point3D absVoxel = voxel.abs();
+                        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
+                            hit = false;
+                            break;
+                        }
+
+                        iter++;
+
+                        final float power = (float) Math.pow(3, iter);
+                        final Vector3D location = pos.mult(power).floor();
+                        voxel = location.mod(3).sub(1).toPoint3D();
+                    }
+
+                    if (hit) {
+                        pixels[x + y * w + z * w * h] = 2;
+                    }
+                }
             }
+
+//            pixels[x] = 1;
         }
 
-//        for (int x = w / 2 - 1; x < w / 2 + 1; x++) {
-//            for (int y = 0; y < h / 2; y++) {
-//                for (int z = d / 2 - 1; z < d / 2 + 1; z++) {
-//                    if (rand.nextFloat() < 0.1) {
-//                        final int idx = 4 * (x + (y * w) + (z * w * h));
-//                        pixels[idx] = 1;
-//                    }
-//                }
-//            }
-//        }
+        simulationTextureId = TextureManager.create3DTexture(w, h, d, GL_R8, GL_RED, GL_FLOAT, pixels);
 
-        final Point3D scale = world.getWorldScale();
-        simulationTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_RGBA32F, GL_RGBA, GL_FLOAT, pixels);
-
-        updateSimulation();
+//        updateSimulation();
     }
 
     public void updateSimulation() {
         simulationShader.start();
 
         final Point3D scale = world.getWorldScale();
-        final int nextSimulationTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_RGBA32F, GL_RGBA);
+        final int nextSimulationTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_R8, GL_RED);
         final int lockWorldBuffer = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_R32UI, GL_RED, GL_UNSIGNED_BYTE);
 
-        glBindImageTexture(0, simulationTextureId, 0, true, 0, GL_READ_ONLY, GL_RGBA32F);
-        glBindImageTexture(1, nextSimulationTextureId, 0, true, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, simulationTextureId, 0, true, 0, GL_READ_ONLY, GL_R8);
+        glBindImageTexture(1, nextSimulationTextureId, 0, true, 0, GL_WRITE_ONLY, GL_R8);
         glBindImageTexture(2, lockWorldBuffer, 0, true, 0, GL_READ_WRITE, GL_RED);
         glDispatchCompute(scale.x, scale.y, scale.z);
 
@@ -115,11 +125,11 @@ public class MasterRenderer {
     }
 
     public void render() {
-        // Simulation
-        if (currentFrame % 2 == 0 && Keyboard.isKeyDown("Q")) {
-            updateSimulation();
-        }
-        // Simulation
+//        // Simulation
+//        if (currentFrame % 2 == 0 && Keyboard.isKeyDown("Q")) {
+//            updateSimulation();
+//        }
+//        // Simulation
 
         // Start renderer
         renderShader.start();
@@ -142,12 +152,12 @@ public class MasterRenderer {
         bindFrameBuffer();
 
         // Create new texture
-        final int colorAttachment = MasterRenderer.createAttachment(0);
-        final int depthAttachment = MasterRenderer.createAttachment(1);
-        final int rayDirAttachment = MasterRenderer.createAttachment(2);
-        final int frameCountAttachment = MasterRenderer.createAttachment(3);
-        final int normalAttachment = MasterRenderer.createAttachment(4);
-        final int lightAttachment = MasterRenderer.createAttachment(5);
+        final int colorAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 0);
+        final int depthAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 1);
+        final int rayDirAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 2);
+        final int frameCountAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 3);
+        final int normalAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 4);
+        final int lightAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 5);
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
@@ -168,7 +178,7 @@ public class MasterRenderer {
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
+        glDrawArrays(GL_QUAD_STRIP, 0, quad.getVertexCount());
 
         renderShader.loadOldCameraPos();
         renderShader.loadOldMatrices();
@@ -227,8 +237,8 @@ public class MasterRenderer {
         return frameBuffer;
     }
 
-    public static int createAttachment(final int id) {
-        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT);
+    public static int createAttachment(final int internalFormat, final int format, final int id) {
+        final int texture = TextureManager.create2DTexture(WIDTH, HEIGHT, internalFormat, format, GL_FLOAT);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, texture, 0);
 
         return texture;
