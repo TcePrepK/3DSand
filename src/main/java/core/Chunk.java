@@ -5,12 +5,13 @@ import elements.ElementRegistry;
 import toolbox.Maths;
 import toolbox.Noise;
 import toolbox.Point3D;
+import toolbox.Vector3D;
 
 import static core.GlobalVariables.*;
 
 public class Chunk {
     private final int w, h, d;
-    private final int x, z;
+    private final int x, y, z;
     private final String id;
 
     private int minX, maxX, minY, maxY, minZ, maxZ;
@@ -19,10 +20,11 @@ public class Chunk {
     private final Element[] grid;
     private final float[] idGrid;
 
-    public Chunk(final int x, final int z, final String id) {
+    public Chunk(final int x, final int y, final int z, final String id) {
         w = h = d = mapChunkSize;
 
         this.x = x;
+        this.y = y;
         this.z = z;
 
         this.id = id;
@@ -33,20 +35,24 @@ public class Chunk {
         if (noisyWorld) {
             generateChunkViaNoise();
         } else {
-            generateChunk();
+            generateSponge();
+//            generateChunk();
         }
     }
 
     public void generateChunkViaNoise() {
         for (int offX = 0; offX < w; offX++) {
-            for (int offZ = 0; offZ < d; offZ++) {
-                final float scale = 100;
-                final int finalX = x + offX;
-                final int finalZ = z + offZ;
-                int height = (int) ((Noise.noise(finalX / scale, finalZ / scale) + 1) * h / 2);
+            for (int offY = 0; offY < h; offY++) {
+                for (int offZ = 0; offZ < d; offZ++) {
+                    final float scale = 100;
+                    final int finalX = x + offX;
+                    final int finalY = y + offY;
+                    final int finalZ = z + offZ;
+                    final float noise = (float) Math.abs(Noise.noise(finalX / scale, finalY / scale, finalZ / scale));
 
-                while (height >= 0) {
-                    setElement(x + offX, height--, z + offZ, ElementRegistry.getElementByName("Dirt"));
+                    if (noise >= 0.5) {
+                        setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Dirt"));
+                    }
                 }
             }
         }
@@ -54,11 +60,49 @@ public class Chunk {
 
     public void generateChunk() {
         for (int offX = 0; offX < w; offX++) {
-            for (int offZ = 0; offZ < d; offZ++) {
-                setElement(x + offX, 0, z + offZ, ElementRegistry.getElementByName("Dirt"));
+            for (int offY = 0; offY < h; offY++) {
+                for (int offZ = 0; offZ < d; offZ++) {
+                    setElement(x + offX, y + offY, z + offZ, ElementRegistry.getElementByName("Dirt"));
+                }
             }
         }
     }
+
+    public void generateSponge() {
+        for (int offX = 0; offX < w; offX++) {
+            for (int offY = 0; offY < h; offY++) {
+                for (int offZ = 0; offZ < d; offZ++) {
+                    final Point3D fin = new Point3D(x + offX, y + offY, z + offZ).add(world.getWorldScale().div(2));
+                    final int finalX = fin.x;
+                    final int finalY = fin.y;
+                    final int finalZ = fin.z;
+                    final Vector3D pos = new Vector3D(finalX, finalY, finalZ).div(world.getWorldScale().toVector3D());
+
+                    int iter = 0;
+                    boolean hit = true;
+                    Point3D voxel = pos.mult(3).sub(1).floor().toPoint3D();
+                    while (iter <= 4) {
+                        final Point3D absVoxel = voxel.abs();
+                        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
+                            hit = false;
+                            break;
+                        }
+
+                        iter++;
+
+                        final float power = (float) Math.pow(3, iter);
+                        final Vector3D location = pos.mult(power).floor();
+                        voxel = location.mod(3).sub(1).toPoint3D();
+                    }
+
+                    if (hit) {
+                        setElement(x + offX, y + offY, z + offZ, ElementRegistry.getElementByName("Dirt"));
+                    }
+                }
+            }
+        }
+    }
+
 
     public void awakeGrid(final int x, final int y, final int z) {
         minXw = Math.min(minXw, x - 1);
@@ -124,7 +168,7 @@ public class Chunk {
             return;
         }
 
-        final int idx = getIdx(x - this.x, y, z - this.z);
+        final int idx = getIdx(x - this.x, y - this.y, z - this.z);
         grid[idx] = e;
         idGrid[idx] = e == null ? 0 : e.getId();
         world.setBufferElement(x, y, z, e);
@@ -139,7 +183,7 @@ public class Chunk {
             return null;
         }
 
-        return grid[getIdx(x - this.x, y, z - this.z)];
+        return grid[getIdx(x - this.x, y - this.y, z - this.z)];
     }
 
     public Element getElement(final Point3D pos) {
@@ -147,7 +191,7 @@ public class Chunk {
     }
 
     public boolean outBounds(final int x, final int y, final int z) {
-        return (x < this.x || x >= this.x + w || y < 0 || y >= h || z < this.z || z >= this.z + d);
+        return (x < this.x || x >= this.x + w || y < this.y || y >= this.y + h || z < this.z || z >= this.z + d);
     }
 
     public int getIdx(final int x, final int y, final int z) {

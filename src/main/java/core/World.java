@@ -3,7 +3,6 @@ package core;
 import elements.Element;
 import toolbox.Point3D;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +15,7 @@ public class World {
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
     //    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
-    private final Point3D worldScale = new Point3D(8 * mapChunkSize);
+    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize);
     private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
 
     public final float[] worldBuffer = new float[worldScale.x * worldScale.y * worldScale.z];
@@ -66,12 +65,8 @@ public class World {
     }
 
     public void setBufferElement(final int x, final int y, final int z, final Element e) {
-        if (!registerWorldToBuffer) {
-            return;
-        }
-
         final int oX = x + worldScale.x / 2;
-        final int oY = y;
+        final int oY = y + worldScale.y / 2;
         final int oZ = z + worldScale.z / 2;
 
         if (oX < 0 || oY < 0 || oZ < 0 || oX >= worldScale.x || oY >= worldScale.y || oZ >= worldScale.z) {
@@ -80,16 +75,17 @@ public class World {
         }
 
         worldBuffer[getBufferIDX(oX, oY, oZ)] = e == null ? 0 : e.getId();
+        renderer.recreateWorldTexture = true;
     }
 
     public void updateBuffer() {
-        final Point3D cameraPos = camera.getPosition().floor().toPoint3D();
+//        final Point3D cameraPos = camera.getPosition().floor().toPoint3D();
 //        final Point startingChunk = World.getChunkPosition(cameraPos.x, cameraPos.z);
-        final Point startingChunk = new Point(0, 0);
-
-        final int totalLength = worldScale.x * worldScale.y * worldScale.z;
-        final float[] byteList = new float[totalLength];
-
+//        final Point startingChunk = new Point(0, 0);
+//
+//        final int totalLength = worldScale.x * worldScale.y * worldScale.z;
+//        final float[] byteList = new float[totalLength];
+//
 //        int totalPos = 0;
 //        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
 //            for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
@@ -131,35 +127,33 @@ public class World {
         return (y < 0 || y >= mapChunkSize);
     }
 
-    public static Point getChunkPosition(final int x, final int z) {
+    public static Point3D getChunkPosition(final int x, final int y, final int z) {
         final float w = mapChunkSize;
-        return new Point((int) Math.floor(x / w), (int) Math.floor(z / w));
+        return new Point3D((int) Math.floor(x / w), (int) Math.floor(y / w), (int) Math.floor(z / w));
     }
 
     public Chunk getChunkWithId(final String id) {
         return chunksById.get(id);
     }
 
-    public Chunk getChunkWithPoint(final Point chunkPos) {
-        final String id = chunkPos.x + "/" + chunkPos.y;
-        return chunksById.get(id);
+    public Chunk getChunkWithPoint(final Point3D chunkPos) {
+        return chunksById.get(chunkPos.toString());
     }
 
-    public Chunk getChunk(final int x, final int z) {
-        final Point chunkPos = World.getChunkPosition(x, z);
-        final String id = chunkPos.x + "/" + chunkPos.y;
-        return getChunkWithId(id);
+    public Chunk getChunk(final int x, final int y, final int z) {
+        final Point3D chunkPos = World.getChunkPosition(x, y, z);
+        return getChunkWithId(chunkPos.toString());
     }
 
-    public Chunk getChunkOrCreate(final int x, final int z) {
-        final float w = mapChunkSize;
-        final Point chunkPos = World.getChunkPosition(x, z);
-        final String id = chunkPos.x + "/" + chunkPos.y;
+    public Chunk getChunkOrCreate(final int x, final int y, final int z) {
+        final int w = mapChunkSize;
+        final Point3D chunkPos = World.getChunkPosition(x, y, z);
+        final String id = chunkPos.toString();
         if (chunksById.containsKey(id)) {
-            return getChunk(x, z);
+            return getChunk(x, y, z);
         }
 
-        final Chunk chunk = new Chunk(chunkPos.x * (int) w, chunkPos.y * (int) w, id);
+        final Chunk chunk = new Chunk(chunkPos.x * w, chunkPos.y * w, chunkPos.z * w, id);
         chunksById.put(id, chunk);
         chunkList.add(chunk);
 
@@ -167,15 +161,15 @@ public class World {
     }
 
     public static Chunk getChunkAtTile(final int x, final int y, final int z, final boolean createIfNull) {
-        if (World.outBounds(x, y, z)) {
-            return null;
-        }
+//        if (World.outBounds(x, y, z)) {
+//            return null;
+//        }
 
         if (!createIfNull) {
-            return world.getChunk(x, z);
+            return world.getChunk(x, y, z);
         }
 
-        return world.getChunkOrCreate(x, z);
+        return world.getChunkOrCreate(x, y, z);
     }
 
     public static Chunk getChunkAtTile(final Point3D p, final boolean createIfNull) {
@@ -183,9 +177,9 @@ public class World {
     }
 
     public static Element getElement(final int x, final int y, final int z) {
-        if (World.outBounds(x, y, z)) {
-            return null;
-        }
+//        if (World.outBounds(x, y, z)) {
+//            return null;
+//        }
 
         final Chunk chunk = World.getChunkAtTile(x, y, z, false);
 

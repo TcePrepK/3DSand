@@ -33,7 +33,9 @@ public class Main {
         // First chunks :)
         for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
             for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
-                world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize);
+                for (int m = -chunkViewDistance; m < chunkViewDistance; m++) {
+                    world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize, m * mapChunkSize);
+                }
             }
         }
 //        world.updateBuffer();

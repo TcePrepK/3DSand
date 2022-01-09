@@ -5,7 +5,6 @@ import models.RawModel;
 import simulation.SimulationShader;
 import toolbox.Keyboard;
 import toolbox.Point3D;
-import toolbox.Vector3D;
 
 import static core.DisplayManager.HEIGHT;
 import static core.DisplayManager.WIDTH;
@@ -31,6 +30,7 @@ public class MasterRenderer {
     private int oldLightAttachmentId;
 
     private boolean loadCameraVariables = false;
+    public boolean recreateWorldTexture = false;
 
     public MasterRenderer() {
         final float[] positions = {-1, 1, -1, -1, 1, 1, 1, -1};
@@ -63,47 +63,6 @@ public class MasterRenderer {
 
             world.setBufferSize();
         }, "m");
-
-        // Temporary
-        final int w = world.getWorldScale().x;
-        final int h = world.getWorldScale().y;
-        final int d = world.getWorldScale().z;
-
-        final float[] pixels = new float[w * h * d];
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                for (int z = 0; z < d; z++) {
-                    final Vector3D pos = new Vector3D(x, y, z).div(world.getWorldScale().toVector3D());
-
-                    int iter = 0;
-                    boolean hit = true;
-                    Point3D voxel = pos.mult(3).sub(1).floor().toPoint3D();
-                    while (iter <= 4) {
-                        final Point3D absVoxel = voxel.abs();
-                        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
-                            hit = false;
-                            break;
-                        }
-
-                        iter++;
-
-                        final float power = (float) Math.pow(3, iter);
-                        final Vector3D location = pos.mult(power).floor();
-                        voxel = location.mod(3).sub(1).toPoint3D();
-                    }
-
-                    if (hit) {
-                        pixels[x + y * w + z * w * h] = 2;
-                    }
-                }
-            }
-
-//            pixels[x] = 1;
-        }
-
-        simulationTextureId = TextureManager.create3DTexture(w, h, d, GL_R8, GL_RED, GL_FLOAT, pixels);
-
-//        updateSimulation();
     }
 
     public void updateSimulation() {
@@ -140,10 +99,15 @@ public class MasterRenderer {
         if (loadCameraVariables) {
             renderShader.loadCameraVariables();
             loadCameraVariables = false;
+        }
 
-//            oldColorAttachmentId = DisplayRenderer.create2DTexture();
-//            oldDepthAttachmentId = DisplayRenderer.create2DTexture();
-//            frameCounter = 0;
+        if (recreateWorldTexture) {
+            glDeleteTextures(worldTextureId);
+
+            final Point3D scale = world.getWorldScale();
+            worldTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_R8, GL_RED, GL_FLOAT, world.getWorldBuffer());
+
+            recreateWorldTexture = false;
         }
 
         renderShader.loadRandomVector();
@@ -161,8 +125,7 @@ public class MasterRenderer {
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
-//        glBindTexture(GL_TEXTURE_3D, create3DTexture(world.getWorldScale(), world.getWorldBuffer()));
-        glBindTexture(GL_TEXTURE_3D, simulationTextureId);
+        glBindTexture(GL_TEXTURE_3D, worldTextureId);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, oldColorAttachmentId);
         glActiveTexture(GL_TEXTURE2);
