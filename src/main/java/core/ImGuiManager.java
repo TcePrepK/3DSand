@@ -30,8 +30,6 @@ public class ImGuiManager {
             final Point3D randomPos = new Point3D(rand.nextInt(100), rand.nextInt(100), rand.nextInt(100));
             test.addPoint(randomPos);
         }
-
-        System.out.println(test.toString(0));
     }
 
     public static void renderBranch(final Octatree branch, final String name, final int id) {

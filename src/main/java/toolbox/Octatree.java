@@ -31,16 +31,25 @@ public class Octatree {
 
     public void createBranches() {
         final float newWidth = width / 2;
-        for (int i = 0; i < 2; i++) {
-            final float newX = x + newWidth * i;
+        for (int k = 0; k < 2; k++) {
+            final float newZ = z + newWidth * k;
             for (int j = 0; j < 2; j++) {
                 final float newY = y + newWidth * j;
-                for (int k = 0; k < 2; k++) {
-                    final float newZ = z + newWidth * k;
+                for (int i = 0; i < 2; i++) {
+                    final float newX = x + newWidth * i;
                     branches.add(new Octatree(new Vector3D(newX, newY, newZ), newWidth, limit));
                 }
             }
         }
+    }
+
+    public void addPointToBranch(final Point3D point) {
+        final Vector3D pos = point.toVector3D().sub(new Vector3D(x, y, z));
+
+        final int destX = pos.x < width / 2 ? 0 : 1;
+        final int destY = pos.y < width / 2 ? 0 : 1;
+        final int destZ = pos.z < width / 2 ? 0 : 1;
+        branches.get(destX + destY * 2 + destZ * 4).addPoint(point);
     }
 
     public void addPoint(final Point3D point) {
@@ -52,10 +61,8 @@ public class Octatree {
 
         if (!branched && points.size() == limit) {
             createBranches();
-            for (final Octatree branch : branches) {
-                for (final Point3D branchPoint : points) {
-                    branch.addPoint(branchPoint);
-                }
+            for (final Point3D branchPoint : points) {
+                addPointToBranch(branchPoint);
             }
 
             branched = true;
@@ -66,9 +73,7 @@ public class Octatree {
             return;
         }
 
-        for (final Octatree branch : branches) {
-            branch.addPoint(point);
-        }
+        addPointToBranch(point);
     }
 
     public String toString(final int tabs) {
