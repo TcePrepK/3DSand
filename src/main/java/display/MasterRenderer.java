@@ -6,8 +6,7 @@ import simulation.SimulationShader;
 import toolbox.Keyboard;
 import toolbox.Point3D;
 
-import static core.DisplayManager.HEIGHT;
-import static core.DisplayManager.WIDTH;
+import static core.DisplayManager.*;
 import static core.GlobalVariables.*;
 import static org.lwjgl.opengl.GL46.*;
 
@@ -31,6 +30,7 @@ public class MasterRenderer {
 
     private boolean loadCameraVariables = false;
     public boolean recreateWorldTexture = false;
+    public boolean reloadResolutions = false;
 
     public MasterRenderer() {
         final float[] positions = {-1, 1, -1, -1, 1, 1, 1, -1};
@@ -38,7 +38,7 @@ public class MasterRenderer {
         quad = loader.loadToVAO(positions, 2);
 
         renderShader.start();
-        renderShader.loadVariables();
+        renderShader.loadResolutions();
         renderShader.stop();
 
         simulationShader.start();
@@ -63,6 +63,12 @@ public class MasterRenderer {
 
             world.setBufferSize();
         }, "m");
+
+        screenSizeChange.add(() -> {
+            renderShader.start();
+            renderShader.loadResolutions();
+            renderShader.stop();
+        });
     }
 
     public void updateSimulation() {
@@ -95,6 +101,11 @@ public class MasterRenderer {
 
         // Load variables
         renderShader.setResetEverything(loadCameraVariables);
+
+        if (reloadResolutions) {
+            renderShader.loadResolutions();
+            reloadResolutions = false;
+        }
 
         if (loadCameraVariables) {
             renderShader.loadCameraVariables();

@@ -5,8 +5,10 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import toolbox.Keyboard;
 import toolbox.Mouse;
+import toolbox.Signal;
 import toolbox.Vector3D;
 
+import static core.DisplayManager.screenSizeChange;
 import static core.GlobalVariables.*;
 import static toolbox.Maths.clamp;
 
@@ -26,11 +28,10 @@ public class Camera {
     private final Matrix4f projectionMatrix = new Matrix4f();
     private final Matrix4f projectionViewMatrix = new Matrix4f();
 
-    private final float cameraAspectRatio = DisplayManager.WIDTH / (float) DisplayManager.HEIGHT;
-    private final float viewportWidth = 2 * (float) Math.tan(Math.toRadians(Camera.FOV) / 2.0);
-    private final float viewportHeight = viewportWidth / cameraAspectRatio;
+    private float cameraAspectRatio = DisplayManager.WIDTH / (float) DisplayManager.HEIGHT;
+    private float viewportWidth = 2 * (float) Math.tan(Math.toRadians(Camera.FOV) / 2.0);
+    private float viewportHeight = viewportWidth / cameraAspectRatio;
 
-    private Vector3D cameraDirection;
     private Vector3D topLeftCorner;
     private Vector3D xIncrement;
     private Vector3D yIncrement;
@@ -54,6 +55,8 @@ public class Camera {
         matrixWatcher.add(() -> {
             renderer.loadCameraVariablesNextFrame();
         });
+
+        screenSizeChange.add(this::screenResize);
     }
 
     public void update() {
@@ -79,8 +82,16 @@ public class Camera {
         }
     }
 
+    public void screenResize() {
+        cameraAspectRatio = DisplayManager.WIDTH / (float) DisplayManager.HEIGHT;
+        viewportWidth = 2 * (float) Math.tan(Math.toRadians(Camera.FOV) / 2.0);
+        viewportHeight = viewportWidth / cameraAspectRatio;
+
+        createProjectionMatrix();
+    }
+
     public void calculateVariables(final Vector3D playerPos) {
-        cameraDirection = playerPos.sub(position).normalize();
+        final Vector3D cameraDirection = playerPos.sub(position).normalize();
         final Vector3D camRightVector = new Vector3D(viewMatrix.m00(), viewMatrix.m10(), viewMatrix.m20());
         final Vector3D camUpVector = new Vector3D(viewMatrix.m01(), viewMatrix.m11(), viewMatrix.m21());
 

@@ -1,7 +1,6 @@
 package toolbox;
 
 import core.DisplayManager;
-import core.Signal;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;

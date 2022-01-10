@@ -57,7 +57,7 @@ public class RendererShader extends ShaderProgram {
         renderingFractal = super.getUniformLocation("renderingFractal");
     }
 
-    public void loadVariables() {
+    public void loadResolutions() {
         ShaderProgram.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
         ShaderProgram.load2DVector(viewportRes, camera.getViewportResolution());
         ShaderProgram.load3DVector(chunkScale, new Vector3D(mapChunkSize));

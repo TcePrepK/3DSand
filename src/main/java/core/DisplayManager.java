@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+import toolbox.Signal;
 import toolbox.Timer;
 
 import java.awt.*;
@@ -12,8 +13,8 @@ import java.awt.*;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class DisplayManager {
-    public static final int WIDTH = 1280;
-    public static final int HEIGHT = 720;
+    public static int WIDTH = 1280;
+    public static int HEIGHT = 720;
     private static final int FPS_CAP = 120;
 
     private static final Timer timer = new Timer();
@@ -21,6 +22,8 @@ public class DisplayManager {
     private static float framesPerSecond;
 
     private static long windowID;
+
+    public static final Signal screenSizeChange = new Signal();
 
     public static void createDisplay() {
         GLFWErrorCallback.createPrint(System.err).set();
@@ -34,6 +37,8 @@ public class DisplayManager {
             throw new IllegalStateException("Window failed");
         }
 
+        glfwSetWindowSizeCallback(DisplayManager.windowID, DisplayManager::screenResize);
+
         final Dimension monitor = Toolkit.getDefaultToolkit().getScreenSize();
         glfwSetWindowPos(DisplayManager.windowID, (monitor.width - DisplayManager.WIDTH) / 2, (monitor.height - DisplayManager.HEIGHT) / 2);
         glfwMakeContextCurrent(DisplayManager.windowID);
@@ -42,6 +47,7 @@ public class DisplayManager {
         glfwShowWindow(DisplayManager.windowID);
 
         GL11.glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
+
 
         DisplayManager.timer.startTimer();
     }
@@ -53,6 +59,12 @@ public class DisplayManager {
         DisplayManager.delta = (float) DisplayManager.timer.stopTimer();
         DisplayManager.framesPerSecond = 1 / DisplayManager.delta;
         DisplayManager.timer.startTimer();
+    }
+
+    private static void screenResize(final long window, final int width, final int height) {
+        DisplayManager.WIDTH = width;
+        DisplayManager.HEIGHT = height;
+        DisplayManager.screenSizeChange.dispatch();
     }
 
     public static float getFrameTimeSeconds() {

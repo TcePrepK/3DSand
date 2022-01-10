@@ -1,7 +1,4 @@
-package core;
-
-import toolbox.CustomRunnable;
-import toolbox.Keyboard;
+package toolbox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
