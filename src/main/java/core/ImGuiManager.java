@@ -4,32 +4,19 @@ import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import toolbox.Octatree;
-import toolbox.Point3D;
-import toolbox.Vector3D;
 
-import java.util.HashMap;
 import java.util.List;
 
-import static core.GlobalVariables.rand;
+import static core.GlobalVariables.world;
 
 public class ImGuiManager {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
 
-    private final HashMap<String, Boolean> enabledOnes = new HashMap<>();
-
-    private final Octatree test;
-
     public ImGuiManager() {
         ImGui.createContext();
         imGuiGlfw.init(DisplayManager.getWindow(), true);
         imGuiGl3.init("#version 450");
-
-        test = new Octatree(new Vector3D(0), 100, 3);
-        for (int i = 0; i <= 50; i++) {
-            final Point3D randomPos = new Point3D(rand.nextInt(100), rand.nextInt(100), rand.nextInt(100));
-            test.addPoint(randomPos);
-        }
     }
 
     public static void renderBranch(final Octatree branch, final String name, final int id) {
@@ -42,7 +29,7 @@ public class ImGuiManager {
                     ImGuiManager.renderBranch(branches.get(i), "Branch " + (i + 1), i);
                 }
             } else {
-                ImGui.text("PointAmount: " + branch.getPointAmount());
+                ImGui.text(" ~PointAmount: " + branch.getPointAmount());
             }
             ImGui.treePop();
         } else {
@@ -61,7 +48,11 @@ public class ImGuiManager {
         // FPS
 
         // World Branch
-        ImGuiManager.renderBranch(test, "OctaTree", 0);
+        for (int i = 0; i < world.getChunkList().size(); i++) {
+            final Chunk chunk = world.getChunkList().get(i);
+            final Octatree octatree = chunk.getOctaTree();
+            ImGuiManager.renderBranch(octatree, "Chunk " + chunk.getId() + " " + octatree.getPointAmount(), i);
+        }
         // World Branch
 
         ImGui.end();

@@ -16,7 +16,7 @@ public class GlobalVariables {
     public static boolean freePlayMode = true;
     public static boolean showDirtyRect = true;
     public static boolean renderChunks = true;
-    public static boolean noisyWorld = false;
+    public static boolean noisyWorld = true;
 
     public static boolean renderingFractal = false;
 

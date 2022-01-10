@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+import toolbox.Timer;
 
 import java.awt.*;
 
@@ -15,7 +16,7 @@ public class DisplayManager {
     public static final int HEIGHT = 720;
     private static final int FPS_CAP = 120;
 
-    private static long lastFrameTime;
+    private static final Timer timer = new Timer();
     private static float delta;
     private static float framesPerSecond;
 
@@ -41,17 +42,17 @@ public class DisplayManager {
         glfwShowWindow(DisplayManager.windowID);
 
         GL11.glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
-        DisplayManager.lastFrameTime = DisplayManager.getCurrentTime();
+
+        DisplayManager.timer.startTimer();
     }
 
     public static void updateDisplay() {
         glfwSwapBuffers(DisplayManager.windowID);
         glfwPollEvents();
 
-        final long currentFrameTime = DisplayManager.getCurrentTime();
-        DisplayManager.delta = (currentFrameTime - DisplayManager.lastFrameTime) / 1000f;
-        DisplayManager.lastFrameTime = currentFrameTime;
+        DisplayManager.delta = (float) DisplayManager.timer.stopTimer();
         DisplayManager.framesPerSecond = 1 / DisplayManager.delta;
+        DisplayManager.timer.startTimer();
     }
 
     public static float getFrameTimeSeconds() {

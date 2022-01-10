@@ -23,10 +23,10 @@ public class Octatree {
         branches = new ArrayList<>();
     }
 
-    public boolean inBounds(final Point3D point) {
-        return (point.x > x && point.x < x + width &&
-                point.y > y && point.y < y + width &&
-                point.z > z && point.z < z + width);
+    private boolean inBounds(final Point3D point) {
+        return (point.x >= x && point.x < x + width &&
+                point.y >= y && point.y < y + width &&
+                point.z >= z && point.z < z + width);
     }
 
     public void createBranches() {
@@ -43,7 +43,7 @@ public class Octatree {
         }
     }
 
-    public void addPointToBranch(final Point3D point) {
+    private void addPointToBranch(final Point3D point) {
         final Vector3D pos = point.toVector3D().sub(new Vector3D(x, y, z));
 
         final int destX = pos.x < width / 2 ? 0 : 1;

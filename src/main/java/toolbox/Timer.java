@@ -3,7 +3,7 @@ package toolbox;
 import core.DisplayManager;
 
 public class Timer {
-    private float startTime;
+    private double startTime = 0;
     private boolean counting = false;
 
     public void startTimer() {
@@ -15,10 +15,12 @@ public class Timer {
         counting = true;
     }
 
-    public float stopTimer() {
+    public double stopTimer() {
+        final double time = (DisplayManager.getCurrentTime() - startTime) / (double) 1000;
+
         counting = false;
         startTime = 0;
 
-        return (DisplayManager.getCurrentTime() - startTime) / 1000f;
+        return time;
     }
 }

@@ -31,24 +31,14 @@ public class Main {
         // Camera
 
         // First chunks :)
-//        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
-//            for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
-//                for (int m = -chunkViewDistance; m < chunkViewDistance; m++) {
-//                    world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize, m * mapChunkSize);
-//                }
-//            }
-//        }
-//        world.updateBuffer();
-//        world.getChunkOrCreate(0, 0);
+        for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
+            for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
+                for (int m = -chunkViewDistance; m < chunkViewDistance; m++) {
+                    world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize, m * mapChunkSize);
+                }
+            }
+        }
         // First chunks :)
-
-//        final Octatree test = new Octatree(new Vector3D(0), 100, 3);
-//        for (int i = 0; i <= 50; i++) {
-//            final Point3D randomPos = new Point3D(rand.nextInt(100), rand.nextInt(100), rand.nextInt(100));
-//            test.addPoint(randomPos);
-//        }
-//
-//        System.out.println(test.toString(0));
 
         // Game Loop
         while (!GLFW.glfwWindowShouldClose(DisplayManager.getWindow())) {

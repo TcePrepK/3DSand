@@ -2,10 +2,7 @@ package core;
 
 import elements.Element;
 import elements.ElementRegistry;
-import toolbox.Maths;
-import toolbox.Noise;
-import toolbox.Point3D;
-import toolbox.Vector3D;
+import toolbox.*;
 
 import static core.GlobalVariables.*;
 
@@ -17,6 +14,7 @@ public class Chunk {
     private int minX, maxX, minY, maxY, minZ, maxZ;
     private int minXw, maxXw, minYw, maxYw, minZw, maxZw;
 
+    private final Octatree octaTree;
     private final Element[] grid;
     private final float[] idGrid;
 
@@ -28,6 +26,8 @@ public class Chunk {
         this.z = z;
 
         this.id = id;
+
+        octaTree = new Octatree(new Vector3D(x, y, z), w, 16);
         grid = new Element[w * h * d];
         idGrid = new float[w * h * d];
 
@@ -172,6 +172,7 @@ public class Chunk {
         grid[idx] = e;
         idGrid[idx] = e == null ? 0 : e.getId();
         world.setBufferElement(x, y, z, e);
+        octaTree.addPoint(new Point3D(x, y, z));
     }
 
     public void setElement(final Point3D pos, final Element e) {
@@ -244,6 +245,10 @@ public class Chunk {
 
     public String getId() {
         return id;
+    }
+
+    public Octatree getOctaTree() {
+        return octaTree;
     }
 
     public Element[] getGrid() {
