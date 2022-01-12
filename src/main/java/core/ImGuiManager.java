@@ -7,8 +7,6 @@ import toolbox.Octatree;
 
 import java.util.List;
 
-import static core.GlobalVariables.world;
-
 public class ImGuiManager {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
@@ -48,11 +46,11 @@ public class ImGuiManager {
         // FPS
 
         // World Branch
-        for (int i = 0; i < world.getChunkList().size(); i++) {
-            final Chunk chunk = world.getChunkList().get(i);
-            final Octatree octatree = chunk.getOctaTree();
-            ImGuiManager.renderBranch(octatree, "Chunk " + chunk.getId() + " " + octatree.getPointAmount(), i);
-        }
+//        for (int i = 0; i < world.getChunkList().size(); i++) {
+//            final Chunk chunk = world.getChunkList().get(i);
+//            final Octatree octatree = chunk.getOctaTree();
+//            ImGuiManager.renderBranch(octatree, "Chunk " + chunk.getId() + " " + octatree.getPointAmount(), i);
+//        }
         // World Branch
 
         ImGui.end();

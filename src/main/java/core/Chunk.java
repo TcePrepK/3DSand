@@ -7,29 +7,27 @@ import toolbox.*;
 import static core.GlobalVariables.*;
 
 public class Chunk {
-    private final int w, h, d;
-    private final int x, y, z;
+    private final Point3D pos;
     private final String id;
 
     private int minX, maxX, minY, maxY, minZ, maxZ;
     private int minXw, maxXw, minYw, maxYw, minZw, maxZw;
 
     private final Octatree octaTree;
-    private final Element[] grid;
-    private final float[] idGrid;
+
+    private final Point3D chunkScale = new Point3D(mapChunkSize);
+    private final Element[] grid = new Element[chunkScale.x * chunkScale.y * chunkScale.z];
+    private final float[] idGrid = new float[chunkScale.x * chunkScale.y * chunkScale.z];
+
+//    private final int bitmaskSize = 4;
+//    private final Point3D bitmaskScale = chunkScale.div(bitmaskSize);
+//    private final int[] bitmaskGrid = new int[bitmaskScale.x * bitmaskScale.y * bitmaskScale.z];
 
     public Chunk(final int x, final int y, final int z, final String id) {
-        w = h = d = mapChunkSize;
-
-        this.x = x;
-        this.y = y;
-        this.z = z;
-
+        pos = new Point3D(x, y, z);
         this.id = id;
 
-        octaTree = new Octatree(new Vector3D(x, y, z), w, 16);
-        grid = new Element[w * h * d];
-        idGrid = new float[w * h * d];
+        octaTree = new Octatree(new Vector3D(x, y, z), chunkScale.x, 16);
 
         // Generate
         if (noisyWorld) {
@@ -41,13 +39,13 @@ public class Chunk {
     }
 
     public void generateChunkViaNoise() {
-        for (int offX = 0; offX < w; offX++) {
-            for (int offY = 0; offY < h; offY++) {
-                for (int offZ = 0; offZ < d; offZ++) {
+        for (int offX = 0; offX < chunkScale.x; offX++) {
+            for (int offY = 0; offY < chunkScale.y; offY++) {
+                for (int offZ = 0; offZ < chunkScale.z; offZ++) {
                     final float scale = 100;
-                    final int finalX = x + offX;
-                    final int finalY = y + offY;
-                    final int finalZ = z + offZ;
+                    final int finalX = pos.x + offX;
+                    final int finalY = pos.y + offY;
+                    final int finalZ = pos.z + offZ;
                     final float noise = (float) Math.abs(Noise.noise(finalX / scale, finalY / scale, finalZ / scale));
 
                     if (noise >= 0.5) {
@@ -59,20 +57,20 @@ public class Chunk {
     }
 
     public void generateChunk() {
-        for (int offX = 0; offX < w; offX++) {
-            for (int offY = 0; offY < h; offY++) {
-                for (int offZ = 0; offZ < d; offZ++) {
-                    setElement(x + offX, y + offY, z + offZ, ElementRegistry.getElementByName("Dirt"));
+        for (int offX = 0; offX < chunkScale.x; offX++) {
+            for (int offY = 0; offY < chunkScale.y; offY++) {
+                for (int offZ = 0; offZ < chunkScale.z; offZ++) {
+                    setElement(pos.x + offX, pos.y + offY, pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
                 }
             }
         }
     }
 
     public void generateSponge() {
-        for (int offX = 0; offX < w; offX++) {
-            for (int offY = 0; offY < h; offY++) {
-                for (int offZ = 0; offZ < d; offZ++) {
-                    final Point3D fin = new Point3D(x + offX, y + offY, z + offZ).add(world.getWorldScale().div(2));
+        for (int offX = 0; offX < chunkScale.x; offX++) {
+            for (int offY = 0; offY < chunkScale.y; offY++) {
+                for (int offZ = 0; offZ < chunkScale.z; offZ++) {
+                    final Point3D fin = new Point3D(pos.x + offX, pos.y + offY, pos.z + offZ).add(world.getWorldScale().div(2));
                     final int finalX = fin.x;
                     final int finalY = fin.y;
                     final int finalZ = fin.z;
@@ -96,7 +94,7 @@ public class Chunk {
                     }
 
                     if (hit) {
-                        setElement(x + offX, y + offY, z + offZ, ElementRegistry.getElementByName("Dirt"));
+                        setElement(this.pos.x + offX, this.pos.y + offY, this.pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
                     }
                 }
             }
@@ -125,20 +123,20 @@ public class Chunk {
     }
 
     public void updateRect(final boolean updatedThisFrame) {
-        minX = (int) Maths.clamp(minXw, x, x + w);
-        minY = (int) Maths.clamp(minYw, 0, h);
-        minZ = (int) Maths.clamp(minZw, z, z + d);
-        maxX = (int) Maths.clamp(maxXw, x, x + w);
-        maxY = (int) Maths.clamp(maxYw, 0, h);
-        maxZ = (int) Maths.clamp(maxZw, z, z + d);
+        minX = (int) Maths.clamp(minXw, pos.x, pos.x + chunkScale.x);
+        minY = (int) Maths.clamp(minYw, 0, chunkScale.y);
+        minZ = (int) Maths.clamp(minZw, pos.z, pos.z + chunkScale.z);
+        maxX = (int) Maths.clamp(maxXw, pos.x, pos.x + chunkScale.x);
+        maxY = (int) Maths.clamp(maxYw, 0, chunkScale.y);
+        maxZ = (int) Maths.clamp(maxZw, pos.z, pos.z + chunkScale.z);
 
         if (updatedThisFrame) {
-            minXw = x + w;
-            minYw = h;
-            minZw = z + d;
-            maxXw = x;
+            minXw = pos.x + chunkScale.x;
+            minYw = chunkScale.y;
+            minZw = pos.z + chunkScale.z;
+            maxXw = pos.x;
             maxYw = 0;
-            maxZw = z;
+            maxZw = pos.z;
         } else {
             minXw = 0;
             minYw = 0;
@@ -151,7 +149,7 @@ public class Chunk {
 
     public int getMinHeight(final int x, final int z) {
         int currentHeight = 0;
-        while (currentHeight < h) {
+        while (currentHeight < chunkScale.y) {
             final Element e = getElement(x, currentHeight, z);
             if (e == null) {
                 return currentHeight;
@@ -168,11 +166,12 @@ public class Chunk {
             return;
         }
 
-        final int idx = getIdx(x - this.x, y - this.y, z - this.z);
+        final int idx = getIdx(x - pos.x, y - pos.y, z - pos.z);
         grid[idx] = e;
         idGrid[idx] = e == null ? 0 : e.getId();
         world.setBufferElement(x, y, z, e);
         octaTree.addPoint(new Point3D(x, y, z));
+//        bitmaskGrid[getBitmaskIdx(x - pos.x, y - pos.y, z - pos.z)] += e == null ? -1 : 1;
     }
 
     public void setElement(final Point3D pos, final Element e) {
@@ -184,7 +183,7 @@ public class Chunk {
             return null;
         }
 
-        return grid[getIdx(x - this.x, y - this.y, z - this.z)];
+        return grid[getIdx(x - pos.x, y - pos.y, z - pos.z)];
     }
 
     public Element getElement(final Point3D pos) {
@@ -192,31 +191,27 @@ public class Chunk {
     }
 
     public boolean outBounds(final int x, final int y, final int z) {
-        return (x < this.x || x >= this.x + w || y < this.y || y >= this.y + h || z < this.z || z >= this.z + d);
+        return (x < pos.x || x >= pos.x + chunkScale.x || y < pos.y || y >= pos.y + chunkScale.y || z < pos.z || z >= pos.z + chunkScale.z);
     }
 
     public int getIdx(final int x, final int y, final int z) {
-        return x + (y * w) + (z * w * d);
+        return x + (y * chunkScale.x) + (z * chunkScale.x * chunkScale.y);
     }
 
-    public int getWidth() {
-        return w;
-    }
+//    public int getBitmaskIdx(final int x, final int y, final int z) {
+//        return x / bitmaskSize + (y / bitmaskSize * bitmaskScale.x) + (z / bitmaskSize * bitmaskScale.x * bitmaskScale.y);
+//    }
 
     public int getHeight() {
-        return h;
-    }
-
-    public int getDepth() {
-        return d;
+        return chunkScale.y;
     }
 
     public int getX() {
-        return x;
+        return pos.x;
     }
 
     public int getZ() {
-        return z;
+        return pos.z;
     }
 
     public int getMinX() {
@@ -251,12 +246,8 @@ public class Chunk {
         return octaTree;
     }
 
-    public Element[] getGrid() {
-        return grid;
-    }
-
-    public float[] getIdGrid() {
-        return idGrid;
-    }
+//    public int[] getBitmaskGrid() {
+//        return bitmaskGrid;
+//    }
 }
     

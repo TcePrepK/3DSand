@@ -166,7 +166,16 @@ void DDA(in out Ray ray, in out HitRecord record) {
             break;
         }
 
-        DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+        int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
+        if (bitmask == 0) {
+            for (int i = 0; i < bitmaskSize; i++) {
+                DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+            }
+        } else {
+            DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+        }
+
+        //        DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
     }
 
     if (hitId != 0) {

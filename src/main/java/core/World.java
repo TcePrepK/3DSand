@@ -21,6 +21,10 @@ public class World {
     public final float[] worldBuffer = new float[worldScale.x * worldScale.y * worldScale.z];
     private Point3D bufferScale = new Point3D();
 
+    private final int bitmaskSize = 4;
+    private final Point3D bitmaskScale = worldScale.div(bitmaskSize);
+    private final byte[] bitmaskGrid = new byte[bitmaskScale.x * bitmaskScale.y * bitmaskScale.z];
+
     public void update() {
         for (int i = 0; i < chunkUpdateList.size(); i++) {
             boolean updatedThisChunk = false;
@@ -64,6 +68,13 @@ public class World {
         return x + (y * worldScale.x) + (z * worldScale.x * worldScale.y);
     }
 
+    public int getBitmaskIdx(final int x, final int y, final int z) {
+        final int fX = x / bitmaskSize;
+        final int fY = y / bitmaskSize;
+        final int fZ = z / bitmaskSize;
+        return fX + (fY * bitmaskScale.x) + (fZ * bitmaskScale.x * bitmaskScale.y);
+    }
+
     public void setBufferElement(final int x, final int y, final int z, final Element e) {
         final int oX = x + worldScale.x / 2;
         final int oY = y + worldScale.y / 2;
@@ -75,6 +86,7 @@ public class World {
         }
 
         worldBuffer[getBufferIDX(oX, oY, oZ)] = e == null ? 0 : e.getId();
+        bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] += e == null ? -1 : 1;
         renderer.recreateWorldTexture = true;
     }
 
@@ -226,5 +238,13 @@ public class World {
 
     public Point3D getBufferScale() {
         return bufferScale;
+    }
+
+    public byte[] getBitmaskGrid() {
+        return bitmaskGrid;
+    }
+
+    public Point3D getBitmaskScale() {
+        return bitmaskScale;
     }
 }

@@ -19,16 +19,19 @@ uniform vec3 oldCameraPos;
 uniform bool renderingFractal;
 
 layout (binding = 0) uniform sampler3D worldTexture;
-layout (binding = 1) uniform sampler2D oldColorAttachment;
-layout (binding = 2) uniform sampler2D oldDepthAttachment;
-layout (binding = 3) uniform sampler2D oldRayDirAttachment;
-layout (binding = 4) uniform sampler2D frameCountAttachment;
-layout (binding = 5) uniform sampler2D oldNormalAttachment;
-layout (location = 6) uniform sampler2D oldLightAttachment;
+layout (binding = 1) uniform sampler3D bitmaskTexture;
+
+layout (binding = 2) uniform sampler2D oldColorAttachment;
+layout (binding = 3) uniform sampler2D oldDepthAttachment;
+layout (binding = 4) uniform sampler2D oldRayDirAttachment;
+layout (binding = 5) uniform sampler2D frameCountAttachment;
+layout (binding = 6) uniform sampler2D oldNormalAttachment;
+layout (binding = 7) uniform sampler2D oldLightAttachment;
 
 const int maxDistance = 500;
 const int maxFrameCount = 255;
 const bool isPathTracing = true;
+const int bitmaskSize = 4;
 
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out float outDepth;
