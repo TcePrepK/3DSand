@@ -20,17 +20,17 @@ public class MasterRenderer {
     private final DisplayShader displayShader = new DisplayShader();
     private final SimulationShader simulationShader = new SimulationShader();
 
-    private int worldTextureId;
+    private int worldTextureID;
     private int bitmaskTextureID;
-    private int simulationTextureId;
-    private final int displayBufferId;
+    private int simulationTextureID;
+    private final int displayBufferID;
 
-    private int oldColorAttachmentId;
-    private int oldDepthAttachmentId;
-    private int frameCountAttachmentId;
-    private int oldRayDirAttachmentId;
-    private int oldNormalAttachmentId;
-    private int oldLightAttachmentId;
+    private int oldColorAttachmentID;
+    private int oldDepthAttachmentID;
+    private int frameCountAttachmentID;
+    private int oldRayDirAttachmentID;
+    private int oldNormalAttachmentID;
+    private int oldLightAttachmentID;
 
     private boolean loadCameraVariables = false;
     public boolean recreateWorldTexture = false;
@@ -43,21 +43,22 @@ public class MasterRenderer {
 
         renderShader.start();
         renderShader.loadResolutions();
+        renderShader.loadBitmaskSize(world.getBitmaskSize());
         renderShader.stop();
 
         simulationShader.start();
         simulationShader.loadTextureScale(world.getWorldScale());
         simulationShader.stop();
 
-        displayBufferId = MasterRenderer.createDisplayBuffer();
+        displayBufferID = MasterRenderer.createDisplayBuffer();
         MasterRenderer.unbindFrameBuffer();
 
-        oldColorAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
-        oldDepthAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
-        oldRayDirAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
-        frameCountAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_R8, GL_RGB);
-        oldNormalAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
-        oldLightAttachmentId = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        oldColorAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        oldDepthAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        oldRayDirAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        frameCountAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_R8, GL_RGB);
+        oldNormalAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        oldLightAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
 
         world.setBufferSize();
 
@@ -82,15 +83,15 @@ public class MasterRenderer {
         final int nextSimulationTextureId = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_R8, GL_RED);
         final int lockWorldBuffer = TextureManager.create3DTexture(scale.x, scale.y, scale.z, GL_R32UI, GL_RED, GL_UNSIGNED_BYTE);
 
-        glBindImageTexture(0, simulationTextureId, 0, true, 0, GL_READ_ONLY, GL_R8);
+        glBindImageTexture(0, simulationTextureID, 0, true, 0, GL_READ_ONLY, GL_R8);
         glBindImageTexture(1, nextSimulationTextureId, 0, true, 0, GL_WRITE_ONLY, GL_R8);
         glBindImageTexture(2, lockWorldBuffer, 0, true, 0, GL_READ_WRITE, GL_RED);
         glDispatchCompute(scale.x, scale.y, scale.z);
 
         simulationShader.stop();
 
-        glDeleteTextures(simulationTextureId);
-        simulationTextureId = nextSimulationTextureId;
+        glDeleteTextures(simulationTextureID);
+        simulationTextureID = nextSimulationTextureId;
     }
 
     public void render() {
@@ -117,10 +118,14 @@ public class MasterRenderer {
         }
 
         if (recreateWorldTexture) {
-            glDeleteTextures(worldTextureId);
+            glDeleteTextures(worldTextureID);
+            glDeleteTextures(bitmaskTextureID);
 
             final Point3D worldScale = world.getWorldScale();
-            worldTextureId = TextureManager.create3DTexture(worldScale.x, worldScale.y, worldScale.z, GL_R8, GL_RED, GL_FLOAT, world.getWorldBuffer());
+            final ByteBuffer worldBuffer = BufferUtils.createByteBuffer(worldScale.x * worldScale.y * worldScale.z);
+            worldBuffer.put(world.getWorldBuffer());
+            worldBuffer.flip();
+            worldTextureID = TextureManager.create3DTexture(worldScale.x, worldScale.y, worldScale.z, GL_R8, GL_RED, GL_UNSIGNED_BYTE, worldBuffer);
 
             final Point3D bitmaskScale = world.getBitmaskScale();
             final ByteBuffer bitmaskBuffer = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
@@ -146,23 +151,22 @@ public class MasterRenderer {
 
         // Draw Things
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_3D, worldTextureId);
+        glBindTexture(GL_TEXTURE_3D, worldTextureID);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_3D, bitmaskTextureID);
 
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, oldColorAttachmentId);
+        glBindTexture(GL_TEXTURE_2D, oldColorAttachmentID);
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, oldDepthAttachmentId);
+        glBindTexture(GL_TEXTURE_2D, oldDepthAttachmentID);
         glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, oldRayDirAttachmentId);
+        glBindTexture(GL_TEXTURE_2D, oldRayDirAttachmentID);
         glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, frameCountAttachmentId);
+        glBindTexture(GL_TEXTURE_2D, frameCountAttachmentID);
         glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, oldNormalAttachmentId);
+        glBindTexture(GL_TEXTURE_2D, oldNormalAttachmentID);
         glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, oldLightAttachmentId);
-
+        glBindTexture(GL_TEXTURE_2D, oldLightAttachmentID);
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -188,19 +192,19 @@ public class MasterRenderer {
 
         displayShader.stop();
 
-        glDeleteTextures(oldColorAttachmentId);
-        glDeleteTextures(oldDepthAttachmentId);
-        glDeleteTextures(frameCountAttachmentId);
-        glDeleteTextures(oldRayDirAttachmentId);
-        glDeleteTextures(oldNormalAttachmentId);
-        glDeleteTextures(oldLightAttachmentId);
+        glDeleteTextures(oldColorAttachmentID);
+        glDeleteTextures(oldDepthAttachmentID);
+        glDeleteTextures(frameCountAttachmentID);
+        glDeleteTextures(oldRayDirAttachmentID);
+        glDeleteTextures(oldNormalAttachmentID);
+        glDeleteTextures(oldLightAttachmentID);
 
-        oldColorAttachmentId = colorAttachment;
-        oldDepthAttachmentId = depthAttachment;
-        oldRayDirAttachmentId = rayDirAttachment;
-        frameCountAttachmentId = frameCountAttachment;
-        oldNormalAttachmentId = normalAttachment;
-        oldLightAttachmentId = lightAttachment;
+        oldColorAttachmentID = colorAttachment;
+        oldDepthAttachmentID = depthAttachment;
+        oldRayDirAttachmentID = rayDirAttachment;
+        frameCountAttachmentID = frameCountAttachment;
+        oldNormalAttachmentID = normalAttachment;
+        oldLightAttachmentID = lightAttachment;
     }
 
     public void loadCameraVariablesNextFrame() {
@@ -208,7 +212,7 @@ public class MasterRenderer {
     }
 
     public void bindFrameBuffer() {
-        glBindFramebuffer(GL_FRAMEBUFFER, displayBufferId);
+        glBindFramebuffer(GL_FRAMEBUFFER, displayBufferID);
         glViewport(0, 0, WIDTH, HEIGHT);
     }
 
@@ -234,13 +238,13 @@ public class MasterRenderer {
 
     public void cleanUp() {
         renderShader.cleanUp();
-        glDeleteTextures(worldTextureId);
-        glDeleteTextures(oldColorAttachmentId);
-        glDeleteTextures(oldDepthAttachmentId);
-        glDeleteTextures(frameCountAttachmentId);
-        glDeleteTextures(oldRayDirAttachmentId);
-        glDeleteTextures(oldNormalAttachmentId);
-        glDeleteTextures(oldLightAttachmentId);
-        glDeleteBuffers(displayBufferId);
+        glDeleteTextures(worldTextureID);
+        glDeleteTextures(oldColorAttachmentID);
+        glDeleteTextures(oldDepthAttachmentID);
+        glDeleteTextures(frameCountAttachmentID);
+        glDeleteTextures(oldRayDirAttachmentID);
+        glDeleteTextures(oldNormalAttachmentID);
+        glDeleteTextures(oldLightAttachmentID);
+        glDeleteBuffers(displayBufferID);
     }
 }

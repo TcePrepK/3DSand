@@ -119,11 +119,6 @@ int DDAIdGetter(ivec3 gridCoords) {
     //        return 0;
     //    }
 
-    // Sponge
-    if (!Menger_Sponge(gridCoords)) {
-        return 0;
-    }
-
     // Triangle
     //    if (!Triangle(gridCoords)) {
     //        return 0;
@@ -197,7 +192,7 @@ void DDA(in out Ray ray, in out HitRecord record) {
         record.light = true;
     } else {
         vec3 cubeColor = vec3(0);
-        if (hitId == 2) {
+        if (hitId >= 2) {
             //            cubeColor = vec3(0.65, 0.4, 0.3);
             cubeColor = vec3(0.5, 0.2, 0.5);
         } else {

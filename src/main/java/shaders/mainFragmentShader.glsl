@@ -17,6 +17,7 @@ uniform bool resetEverything;
 uniform vec3 oldCameraPos;
 
 uniform bool renderingFractal;
+uniform int bitmaskSize;
 
 layout (binding = 0) uniform sampler3D worldTexture;
 layout (binding = 1) uniform sampler3D bitmaskTexture;
@@ -31,7 +32,6 @@ layout (binding = 7) uniform sampler2D oldLightAttachment;
 const int maxDistance = 500;
 const int maxFrameCount = 255;
 const bool isPathTracing = true;
-const int bitmaskSize = 4;
 
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out float outDepth;

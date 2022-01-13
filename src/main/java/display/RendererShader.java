@@ -28,6 +28,7 @@ public class RendererShader extends ShaderProgram {
     private int resetEverything;
     private int oldCameraPos;
     private int renderingFractal;
+    private int bitmaskSize;
 
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
@@ -55,6 +56,7 @@ public class RendererShader extends ShaderProgram {
         resetEverything = super.getUniformLocation("resetEverything");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
         renderingFractal = super.getUniformLocation("renderingFractal");
+        bitmaskSize = super.getUniformLocation("bitmaskSize");
     }
 
     public void loadResolutions() {
@@ -71,6 +73,10 @@ public class RendererShader extends ShaderProgram {
         ShaderProgram.loadBoolean(renderingFractal, GlobalVariables.renderingFractal);
 
         ShaderProgram.loadFloat(wFactor, camera.getwFactor());
+    }
+
+    public void loadBitmaskSize(final int size) {
+        ShaderProgram.loadInt(bitmaskSize, size);
     }
 
     public void loadOldCameraPos() {
