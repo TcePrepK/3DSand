@@ -77,22 +77,6 @@ vec3 getNewDirection() {
     return normalize(vec3(cos(phi) * r, sin(phi) * r, u));
 }
 
-void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, out float dist, out int idx) {
-    dist = min(min(tV.x, tV.y), tV.z);
-    idx = dist == tV.x ? 0 : dist == tV.y ? 1 : 2;
-
-    if (idx == 0) {
-        gridCoords.x += stepDir.x;
-        tV.x += tS.x;
-    } else if (idx == 1) {
-        gridCoords.y += stepDir.y;
-        tV.y += tS.y;
-    } else {
-        gridCoords.z += stepDir.z;
-        tV.z += tS.z;
-    }
-}
-
 int DDAIdGetter(ivec3 gridCoords) {
     if (!renderingFractal) {
         vec3 texturePos = gridCoords / textureScale + vec3(0.5);
@@ -125,6 +109,22 @@ int DDAIdGetter(ivec3 gridCoords) {
     //    }
 
     return 2;
+}
+
+void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, out float dist, out int idx) {
+    dist = min(min(tV.x, tV.y), tV.z);
+    idx = dist == tV.x ? 0 : dist == tV.y ? 1 : 2;
+
+    if (idx == 0) {
+        gridCoords.x += stepDir.x;
+        tV.x += tS.x;
+    } else if (idx == 1) {
+        gridCoords.y += stepDir.y;
+        tV.y += tS.y;
+    } else {
+        gridCoords.z += stepDir.z;
+        tV.z += tS.z;
+    }
 }
 
 void DDA(in out Ray ray, in out HitRecord record) {
@@ -163,9 +163,11 @@ void DDA(in out Ray ray, in out HitRecord record) {
 
         int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
         if (bitmask == 0) {
-            for (int i = 0; i < bitmaskSize; i++) {
-                DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
-            }
+            ivec3 bitmaskGridCoords = ivec3(floor(gridCoords / 4.0));
+
+            DDAStep(stepDir, tS, bitmaskGridCoords, tV, record.distance, idx);
+
+            gridCoords = bitmaskGridCoords * 4;
         } else {
             DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
         }
