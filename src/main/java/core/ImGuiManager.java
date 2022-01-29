@@ -4,8 +4,11 @@ import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import toolbox.Octatree;
+import toolbox.Point3D;
 
 import java.util.List;
+
+import static core.GlobalVariables.world;
 
 public class ImGuiManager {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
@@ -36,14 +39,23 @@ public class ImGuiManager {
         }
     }
 
-    public void update() {
+    public void update(final double generationTime, final double renderTime) {
         imGuiGlfw.newFrame();
         ImGui.newFrame();
         ImGui.begin("Cool Window");
 
         // FPS
         ImGui.text("FPS: " + DisplayManager.getFPS());
+        ImGui.text("Rendering time: " + renderTime * 1000f + "ms");
+        ImGui.spacing();
+        ImGui.spacing();
         // FPS
+
+        // World
+        final Point3D worldScale = world.getWorldScale();
+        ImGui.text("World: " + worldScale.x + "x" + worldScale.y + "x" + worldScale.z);
+        ImGui.text("World generation time: " + generationTime + "sec");
+        // World
 
         // World Branch
 //        for (int i = 0; i < world.getChunkList().size(); i++) {

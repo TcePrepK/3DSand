@@ -86,7 +86,10 @@ public class World {
         }
 
         worldBuffer[getBufferIDX(oX, oY, oZ)] = e == null ? 0 : (byte) e.getId();
-        bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] += e == null ? -1 : 1;
+//        bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] += e == null ? -1 : 1;
+        if (e != null) {
+            bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] = 1;
+        }
         renderer.recreateWorldTexture = true;
     }
 

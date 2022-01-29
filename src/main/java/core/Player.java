@@ -9,6 +9,7 @@ import toolbox.Keyboard;
 import toolbox.Rectangle;
 import toolbox.Vector3D;
 
+import static core.GlobalVariables.world;
 import static toolbox.Maths.rotateVector2D;
 
 public class Player {
@@ -17,7 +18,7 @@ public class Player {
     private static final float JUMP_POWER = 5;
     private final float HEIGHT = 0;
 
-    private final Vector3D position = new Vector3D();
+    private final Vector3D position = world.getWorldScale().div(2).toVector3D();
     private final Vector2f[] hitboxPoints = {
             new Vector2f(-0.5f, -0.5f),
             new Vector2f(0.5f, -0.5f),

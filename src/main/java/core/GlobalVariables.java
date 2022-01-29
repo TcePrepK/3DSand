@@ -4,7 +4,6 @@ import display.MasterRenderer;
 import elements.ElementPlacer;
 import elements.ElementRegistry;
 import toolbox.MousePicker;
-import toolbox.Noise;
 
 import java.util.Random;
 
@@ -27,11 +26,10 @@ public class GlobalVariables {
     public final static World world = new World();
     public static MousePicker mousePicker;
     public final static Random rand = new Random();
-    public final static Noise noise = new Noise();
     public static Camera camera = new Camera();
     public static Player player;
 
-    public final static int mapChunkSize = 32;
+    public final static int mapChunkSize = 64;
     public final static int chunkViewDistance = 4;
 
     public static ImGuiManager imGuiManager;

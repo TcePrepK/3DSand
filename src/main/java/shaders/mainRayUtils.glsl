@@ -14,6 +14,12 @@ struct HitRecord {
     int id;
 };
 
+struct WorldBox {
+    float firstHitTime;
+    float secondHitTime;
+    float timeDistance;
+} world;
+
 float clamp(float v, float min, float max) {
     if (v < min) return min;
     if (v > max) return max;
@@ -57,6 +63,14 @@ vec2 rand2D() {
     return randState * 2.0 - 1.0;
 }
 
+ivec2 intTexture(sampler2D image, vec2 position) {
+    return ivec2(texture(image, position) * 255);
+}
+
+ivec3 intTexture(sampler3D image, vec3 position) {
+    return ivec3(texture(image, position) * 255);
+}
+
 vec3 getSkyColor(vec3 dir) {
     float time = 0.5 * (dir.y + 1);
     return vec3(0.5, 0.7, 1) * time + (1 - time);
@@ -77,38 +91,24 @@ vec3 getNewDirection() {
     return normalize(vec3(cos(phi) * r, sin(phi) * r, u));
 }
 
-int DDAIdGetter(ivec3 gridCoords) {
-    if (!renderingFractal) {
-        vec3 texturePos = gridCoords / textureScale + vec3(0.5);
-        if (inBounds(texturePos)) {
-            return int(texture(worldTexture, texturePos).r * 255);
-        } else {
-            return 0;
-        }
+bool between2Points1D(int v, int min, int max) {
+    int finalMin = min < max ? min : max;
+    int finalMax = min < max ? max : min;
+    if (v < finalMin || v > finalMax) {
+        return false;
     }
 
+    return true;
+}
 
-    // Classic Mandel Bulb
-    //    if (!Mandelbulb_Classic(gridCoords)) {
-    //        return 0;
-    //    }
-
-    // Strange Mandel Bulb
-    //    if (!Mandelbulb_Strange(gridCoords)) {
-    //        return 0;
-    //    }
-
-    // Bulb that goes through time
-    //    if (!Mandelbulb_4D(gridCoords)) {
-    //        return 0;
-    //    }
-
-    // Triangle
-    //    if (!Triangle(gridCoords)) {
-    //        return 0;
-    //    }
-
-    return 2;
+vec2 AABB(vec3 rayPos, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
+    vec3 tMin = (boxMin - rayPos) / rayDir;
+    vec3 tMax = (boxMax - rayPos) / rayDir;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    return vec2(tNear, tFar);
 }
 
 void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, out float dist, out int idx) {
@@ -128,51 +128,66 @@ void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, ou
 }
 
 void DDA(in out Ray ray, in out HitRecord record) {
-    bvec3 dirSign = greaterThanEqual(ray.dir, vec3(0));
+    const float off = 0.001;
 
-    ivec3 stepDir = mix(ivec3(-1), ivec3(1), dirSign);
-    ivec3 voxExit = mix(ivec3(0), ivec3(1), dirSign);
-    vec3 rayInverse = 1 / ray.dir;
+    const bvec3 dirSign = greaterThanEqual(ray.dir, vec3(0));
 
-    ivec3 gridCoords = ivec3(floor(ray.pos));
+    const ivec3 stepDir = mix(ivec3(-1), ivec3(1), dirSign);
+    const ivec3 voxExit = mix(ivec3(0), ivec3(1), dirSign);
+    const vec3 rayInverse = 1 / ray.dir;
+
+    // Calculating world
+    vec2 worldTime = AABB(ray.pos, ray.dir, vec3(0), textureScale);
+    float closestTime = worldTime.x;
+    float fartestTime = worldTime.y;
+    if (closestTime < 0) {
+        closestTime = 0;
+    }
+
+    if (fartestTime - closestTime > maxDistance) {
+        fartestTime = closestTime + maxDistance;
+    }
+
+    record.distance = closestTime;
+
+    world.firstHitTime = closestTime;
+    world.secondHitTime = fartestTime;
+
+    ivec3 gridCoords = ivec3(floor(at(ray, record.distance)));
 
     vec3 tV = rayInverse * (vec3(gridCoords + voxExit) - ray.pos);
     vec3 tS = rayInverse * vec3(stepDir);
 
     int idx = 0;
     int hitId = 0;
-    while (record.distance < maxDistance) {
-        vec3 texturePos = gridCoords / textureScale + vec3(0.5);
-        if (
-        (stepDir.x > 0 && texturePos.x > 1) || (stepDir.x < 0 && texturePos.x < 0) ||
-        (stepDir.y > 0 && texturePos.y > 1) || (stepDir.y < 0 && texturePos.y < 0) ||
-        (stepDir.z > 0 && texturePos.z > 1) || (stepDir.z < 0 && texturePos.z < 0)
-        ) {
-            record.distance = maxDistance;
-            break;
-        }
+    while (record.distance < world.secondHitTime) {
+        vec3 texturePos = gridCoords / textureScale;
+        int bitmask = intTexture(bitmaskTexture, texturePos).r;
+        if (bitmask == 0) {
+            vec3 currPos = at(ray, record.distance);
+            const vec3 distToBorder = rayInverse * (voxExit * 4 - (fract(currPos) + (gridCoords % 4)));
+            const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z) + off;
 
-        hitId = DDAIdGetter(gridCoords);
-        if (hitId != 0) {
-            if (hitId == 1) {
-                record.light = true;
+            record.distance += time;
+            currPos = at(ray, record.distance);
+            gridCoords = ivec3(floor(currPos));
+            tV = record.distance + rayInverse * (voxExit - fract(currPos));
+        } else {
+            hitId = intTexture(worldTexture, texturePos).r;
+            if (hitId != 0) {
+                if (hitId == 1) {
+                    record.light = true;
+                }
+
+                break;
             }
 
-            break;
-        }
-
-        int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
-        if (bitmask == 0) {
-            ivec3 bitmaskGridCoords = ivec3(floor(gridCoords / 4.0));
-
-            DDAStep(stepDir, tS, bitmaskGridCoords, tV, record.distance, idx);
-
-            gridCoords = bitmaskGridCoords * 4;
-        } else {
             DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
         }
+    }
 
-        //        DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+    if (record.distance >= world.secondHitTime) {
+        record.light = true;
     }
 
     if (hitId != 0) {
@@ -188,6 +203,10 @@ void DDA(in out Ray ray, in out HitRecord record) {
     record.position = at(ray, record.distance);
     record.hitVoxel = gridCoords;
 
+    //    record.light = true;
+    //
+    //    outLight = vec3(record.distance / maxDistance);
+
     const vec3 skyColor = getSkyColor(ray.dir);
     if (hitId == 0) {
         ray.color = skyColor;
@@ -199,7 +218,7 @@ void DDA(in out Ray ray, in out HitRecord record) {
             cubeColor = vec3(0.5, 0.2, 0.5);
         } else {
             //            cubeColor = vec3(1);
-            cubeColor = abs(gridCoords / textureScale) * 2;
+            cubeColor = abs(gridCoords / textureScale - 0.5) * 2;
         }
 
         ray.color = cubeColor;
@@ -207,8 +226,10 @@ void DDA(in out Ray ray, in out HitRecord record) {
 }
 
 HitRecord PrimaryDDA(in out Ray ray) {
-    HitRecord record = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
+    HitRecord record;
     DDA(ray, record);
+
+    outDepth = record.distance / maxDistance;
 
     return record;
 }
@@ -227,7 +248,6 @@ bool LightDDA(in out Ray ray, in out HitRecord record) {
 
 HitRecord ColorDDA(in out Ray ray) {
     HitRecord record = PrimaryDDA(ray);
-    outDepth = record.distance / maxDistance;
     if (record.light) {
         return record;
     }
@@ -250,7 +270,7 @@ HitRecord ColorDDA(in out Ray ray) {
     Ray lightRay = Ray(offHitPoint, randDir, vec3(0), true);
     if (LightDDA(lightRay, lightRecord)) {
         ray.color *= getSkyColor(randDir);
-        outLight = lightRecord.distance / maxDistance;
+        //        outLight = lightRecord.distance / maxDistance;
 
         return record;
     }

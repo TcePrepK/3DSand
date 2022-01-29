@@ -109,8 +109,9 @@ public class Camera {
             return;
         }
 
-        desiredZoomLevel -= (int) delta * 10;
-        clampDesiredZoomLevel();
+        final float zoomSpeed = 5;
+        desiredZoomLevel *= 1 - (int) delta / 100f * zoomSpeed;
+//        clampDesiredZoomLevel();
     }
 
     private void updateZoom() {

@@ -29,38 +29,33 @@ public class Chunk {
 
         octaTree = new Octatree(new Vector3D(x, y, z), chunkScale.x, 16);
 
-        // Generate
-        if (noisyWorld) {
-            generateChunkViaNoise();
-        } else {
-            generateSponge();
-//            generateChunk();
-        }
+        generateNoiseChunk();
+//        generateSponge();
     }
 
-    public void generateChunkViaNoise() {
+    public void generateNoiseChunk() {
+        final int noiseX = (int) (rand.nextFloat() * 1000);
+        final int noiseY = (int) (rand.nextFloat() * 1000);
+        final int noiseZ = (int) (rand.nextFloat() * 1000);
+        final float scale1 = rand.nextFloat() * 100;
+        final float scale2 = 50;
         for (int offX = 0; offX < chunkScale.x; offX++) {
+            final int finalX = pos.x + offX;
             for (int offY = 0; offY < chunkScale.y; offY++) {
+                final int finalY = pos.y + offY;
                 for (int offZ = 0; offZ < chunkScale.z; offZ++) {
-                    final float scale = 100;
-                    final int finalX = pos.x + offX;
-                    final int finalY = pos.y + offY;
                     final int finalZ = pos.z + offZ;
-                    final float noise = (float) Math.abs(Noise.noise(finalX / scale, finalY / scale, finalZ / scale));
+                    final float val = (float) Math.abs(Noise.noise(finalX / scale1 + noiseX, finalY / scale1 + noiseY, finalZ / scale1 + noiseZ));
 
-                    if (noise >= 0.5) {
+                    if (val < 0.5) {
+                        continue;
+                    }
+
+                    if (Math.abs(Noise.noise(finalX / scale2, finalY / scale2, finalZ / scale2)) < 0.01) {
+                        setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Sand"));
+                    } else {
                         setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Dirt"));
                     }
-                }
-            }
-        }
-    }
-
-    public void generateChunk() {
-        for (int offX = 0; offX < chunkScale.x; offX++) {
-            for (int offY = 0; offY < chunkScale.y; offY++) {
-                for (int offZ = 0; offZ < chunkScale.z; offZ++) {
-                    setElement(pos.x + offX, pos.y + offY, pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
                 }
             }
         }
@@ -70,15 +65,11 @@ public class Chunk {
         for (int offX = 0; offX < chunkScale.x; offX++) {
             for (int offY = 0; offY < chunkScale.y; offY++) {
                 for (int offZ = 0; offZ < chunkScale.z; offZ++) {
-                    final Point3D fin = new Point3D(pos.x + offX, pos.y + offY, pos.z + offZ).add(world.getWorldScale().div(2));
-                    final int finalX = fin.x;
-                    final int finalY = fin.y;
-                    final int finalZ = fin.z;
-                    final Vector3D pos = new Vector3D(finalX, finalY, finalZ).div(world.getWorldScale().toVector3D());
+                    final Vector3D normPos = new Vector3D(pos.x + offX, pos.y + offY, pos.z + offZ).add(world.getWorldScale().div(2).toVector3D()).div(world.getWorldScale().toVector3D());
 
                     int iter = 0;
                     boolean hit = true;
-                    Point3D voxel = pos.mult(3).sub(1).floor().toPoint3D();
+                    Point3D voxel = normPos.mult(3).sub(1).toPoint3D();
                     while (iter <= 4) {
                         final Point3D absVoxel = voxel.abs();
                         if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
@@ -89,12 +80,12 @@ public class Chunk {
                         iter++;
 
                         final float power = (float) Math.pow(3, iter);
-                        final Vector3D location = pos.mult(power).floor();
+                        final Vector3D location = normPos.mult(power).floor();
                         voxel = location.mod(3).sub(1).toPoint3D();
                     }
 
                     if (hit) {
-                        setElement(this.pos.x + offX, this.pos.y + offY, this.pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
+                        setElement(pos.x + offX, pos.y + offY, pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
                     }
                 }
             }
@@ -170,7 +161,7 @@ public class Chunk {
         grid[idx] = e;
         idGrid[idx] = e == null ? 0 : e.getId();
         world.setBufferElement(x, y, z, e);
-        octaTree.addPoint(new Point3D(x, y, z));
+//        octaTree.addPoint(new Point3D(x, y, z));
 //        bitmaskGrid[getBitmaskIdx(x - pos.x, y - pos.y, z - pos.z)] += e == null ? -1 : 1;
     }
 

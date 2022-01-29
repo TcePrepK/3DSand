@@ -54,9 +54,9 @@ public class MasterRenderer {
         MasterRenderer.unbindFrameBuffer();
 
         oldColorAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
-        oldDepthAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
+        oldDepthAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_R8, GL_RED);
         oldRayDirAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
-        frameCountAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_R8, GL_RGB);
+        frameCountAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_R8, GL_RED);
         oldNormalAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
         oldLightAttachmentID = TextureManager.create2DTexture(WIDTH, HEIGHT, GL_RGB32F, GL_RGB);
 
@@ -143,9 +143,9 @@ public class MasterRenderer {
 
         // Create new texture
         final int colorAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 0);
-        final int depthAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 1);
+        final int depthAttachment = MasterRenderer.createAttachment(GL_R8, GL_RED, 1);
         final int rayDirAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 2);
-        final int frameCountAttachment = MasterRenderer.createAttachment(GL_R8, GL_RGB, 3);
+        final int frameCountAttachment = MasterRenderer.createAttachment(GL_R8, GL_RED, 3);
         final int normalAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 4);
         final int lightAttachment = MasterRenderer.createAttachment(GL_RGBA32F, GL_RGB, 5);
 

@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFW;
 import toolbox.Keyboard;
 import toolbox.Mouse;
 import toolbox.MousePicker;
+import toolbox.Timer;
 
 import static core.GlobalVariables.*;
 
@@ -30,7 +31,9 @@ public class Main {
         mousePicker = new MousePicker(camera);
         // Camera
 
-        // First chunks :)
+        // World Generation
+        final Timer timer = new Timer();
+        timer.startTimer();
         for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
             for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
                 for (int m = -chunkViewDistance; m < chunkViewDistance; m++) {
@@ -38,7 +41,8 @@ public class Main {
                 }
             }
         }
-        // First chunks :)
+        final double generationTime = timer.stopTimer();
+        // World Generation
 
         // Game Loop
         while (!GLFW.glfwWindowShouldClose(DisplayManager.getWindow())) {
@@ -53,8 +57,11 @@ public class Main {
 //            world.updateBuffer();
             final double u2 = DisplayManager.getCurrentTime();
 
+            timer.startTimer();
             renderer.render();
-            imGuiManager.update();
+            final double renderTime = timer.stopTimer();
+
+            imGuiManager.update(generationTime, renderTime);
 
             DisplayManager.updateDisplay();
         }
