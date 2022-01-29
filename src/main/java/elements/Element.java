@@ -5,7 +5,7 @@ import core.GlobalVariables;
 import core.World;
 import toolbox.Color;
 import toolbox.Keyboard;
-import toolbox.Point3D;
+import toolbox.Points.Point3D;
 
 import java.awt.*;
 import java.util.ArrayList;

@@ -1,8 +1,4 @@
-import core.DisplayManager;
-import core.ImGuiManager;
-import core.Loader;
-import core.Player;
-import display.MasterRenderer;
+import core.*;
 import org.lwjgl.glfw.GLFW;
 import toolbox.Keyboard;
 import toolbox.Mouse;
@@ -52,15 +48,13 @@ public class Main {
             elementPlacer.update();
             Mouse.update();
 
-            final double u1 = DisplayManager.getCurrentTime();
 //            world.update();
 //            world.updateBuffer();
-            final double u2 = DisplayManager.getCurrentTime();
 
             timer.startTimer();
             renderer.render();
-            final double renderTime = timer.stopTimer();
 
+            final double renderTime = timer.stopTimer();
             imGuiManager.update(generationTime, renderTime);
 
             DisplayManager.updateDisplay();

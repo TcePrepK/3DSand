@@ -1,5 +1,7 @@
 package toolbox;
 
+import toolbox.Points.Point3D;
+
 import java.util.ArrayList;
 import java.util.List;
 

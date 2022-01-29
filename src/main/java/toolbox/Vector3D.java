@@ -2,6 +2,7 @@ package toolbox;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import toolbox.Points.Point3D;
 
 public class Vector3D {
     public float x, y, z;

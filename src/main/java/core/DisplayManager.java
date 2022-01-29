@@ -43,11 +43,10 @@ public class DisplayManager {
         glfwSetWindowPos(DisplayManager.windowID, (monitor.width - DisplayManager.WIDTH) / 2, (monitor.height - DisplayManager.HEIGHT) / 2);
         glfwMakeContextCurrent(DisplayManager.windowID);
         GL.createCapabilities();
-        glfwSwapInterval(1);
+        glfwSwapInterval(0);
         glfwShowWindow(DisplayManager.windowID);
 
         GL11.glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
-
 
         DisplayManager.timer.startTimer();
     }

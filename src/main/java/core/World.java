@@ -1,7 +1,7 @@
 package core;
 
 import elements.Element;
-import toolbox.Point3D;
+import toolbox.Points.Point3D;
 
 import java.util.ArrayList;
 import java.util.HashMap;

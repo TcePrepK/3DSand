@@ -8,7 +8,7 @@ import models.RawModel;
 import org.joml.Vector3f;
 import toolbox.Color;
 import toolbox.Mouse;
-import toolbox.Point3D;
+import toolbox.Points.Point3D;
 
 import static core.GlobalVariables.*;
 

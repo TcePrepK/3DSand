@@ -1,6 +1,7 @@
-package toolbox;
+package toolbox.Points;
 
 import org.joml.Vector3f;
+import toolbox.Vector3D;
 
 public class Point3D {
     public int x, y, z;

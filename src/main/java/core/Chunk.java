@@ -2,7 +2,11 @@ package core;
 
 import elements.Element;
 import elements.ElementRegistry;
-import toolbox.*;
+import toolbox.Maths;
+import toolbox.Noise;
+import toolbox.Octatree;
+import toolbox.Points.Point3D;
+import toolbox.Vector3D;
 
 import static core.GlobalVariables.*;
 
@@ -37,7 +41,7 @@ public class Chunk {
         final int noiseX = (int) (rand.nextFloat() * 1000);
         final int noiseY = (int) (rand.nextFloat() * 1000);
         final int noiseZ = (int) (rand.nextFloat() * 1000);
-        final float scale1 = rand.nextFloat() * 100;
+        final float scale1 = rand.nextFloat() * mapChunkSize * 2;
         final float scale2 = 50;
         for (int offX = 0; offX < chunkScale.x; offX++) {
             final int finalX = pos.x + offX;

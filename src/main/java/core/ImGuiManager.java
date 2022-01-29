@@ -4,7 +4,7 @@ import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import toolbox.Octatree;
-import toolbox.Point3D;
+import toolbox.Points.Point3D;
 
 import java.util.List;
 

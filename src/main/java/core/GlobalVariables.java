@@ -1,6 +1,5 @@
 package core;
 
-import display.MasterRenderer;
 import elements.ElementPlacer;
 import elements.ElementRegistry;
 import toolbox.MousePicker;

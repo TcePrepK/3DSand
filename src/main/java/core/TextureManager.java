@@ -23,12 +23,28 @@ public class TextureManager {
         return texture;
     }
 
+    public static int create2DTexture(final int width, final int height, final int internalFormat, final int format, final int dataType, final ByteBuffer pixels) {
+        final int texture = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, dataType, pixels);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        return texture;
+    }
+
     public static int create2DTexture(final int width, final int height, final int internalFormat, final int format, final int dataType) {
-        return TextureManager.create2DTexture(width, height, internalFormat, format, dataType, null);
+        return TextureManager.create2DTexture(width, height, internalFormat, format, dataType, (float[]) null);
     }
 
     public static int create2DTexture(final int width, final int height, final int internalFormat, final int format) {
-        return TextureManager.create2DTexture(width, height, internalFormat, format, GL_FLOAT, null);
+        return TextureManager.create2DTexture(width, height, internalFormat, format, GL_FLOAT, (float[]) null);
     }
     // 2D
 
