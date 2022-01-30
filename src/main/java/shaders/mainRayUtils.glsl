@@ -137,11 +137,20 @@ void DDA(in out Ray ray, in out HitRecord record) {
     const vec3 rayInverse = 1 / ray.dir;
 
     // Calculating world
-    vec2 worldTime = AABB(ray.pos, ray.dir, vec3(0), textureScale);
-    float closestTime = worldTime.x;
-    float fartestTime = worldTime.y;
+    vec3 tMin = (0 - ray.pos) / ray.dir;
+    vec3 tMax = (textureScale - ray.pos) / ray.dir;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+    float closestTime = max(max(t1.x, t1.y), t1.z);
+    float fartestTime = min(min(t2.x, t2.y), t2.z);
+    int idx = closestTime == t1.x ? 0 : closestTime == t1.y ? 1 : 2;
+
     if (closestTime < 0) {
         closestTime = 0;
+    }
+
+    if (fartestTime <= closestTime) {
+        fartestTime = closestTime = maxDistance;
     }
 
     if (fartestTime - closestTime > maxDistance) {
@@ -158,7 +167,7 @@ void DDA(in out Ray ray, in out HitRecord record) {
     vec3 tV = rayInverse * (vec3(gridCoords + voxExit) - ray.pos);
     vec3 tS = rayInverse * vec3(stepDir);
 
-    int idx = 0;
+    //    int idx = fartestTime == t2.x ? 0 : fartestTime == t2.y ? 1 : 2;
     int hitId = 0;
     while (record.distance < world.secondHitTime) {
         vec3 texturePos = gridCoords / textureScale;
@@ -166,9 +175,10 @@ void DDA(in out Ray ray, in out HitRecord record) {
         if (bitmask == 0) {
             vec3 currPos = at(ray, record.distance);
             const vec3 distToBorder = rayInverse * (voxExit * 4 - (fract(currPos) + (gridCoords % 4)));
-            const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z) + off;
+            const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z);
+            idx = time == distToBorder.x ? 0 : time == distToBorder.y ? 1 : 2;
 
-            record.distance += time;
+            record.distance += time + off;
             currPos = at(ray, record.distance);
             gridCoords = ivec3(floor(currPos));
             tV = record.distance + rayInverse * (voxExit - fract(currPos));
@@ -186,7 +196,7 @@ void DDA(in out Ray ray, in out HitRecord record) {
         }
     }
 
-    if (record.distance >= world.secondHitTime) {
+    if (hitId == 0) {
         record.light = true;
     }
 
@@ -202,10 +212,6 @@ void DDA(in out Ray ray, in out HitRecord record) {
 
     record.position = at(ray, record.distance);
     record.hitVoxel = gridCoords;
-
-    //    record.light = true;
-    //
-    //    outLight = vec3(record.distance / maxDistance);
 
     const vec3 skyColor = getSkyColor(ray.dir);
     if (hitId == 0) {
