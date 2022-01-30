@@ -6,13 +6,13 @@ import display.DisplayShader;
 import display.RendererShader;
 import models.RawModel;
 import org.lwjgl.BufferUtils;
-import toolbox.Keyboard;
 import toolbox.Points.Point3D;
 
 import java.nio.ByteBuffer;
 
 import static core.DisplayManager.*;
-import static core.GlobalVariables.*;
+import static core.GlobalVariables.loader;
+import static core.GlobalVariables.world;
 import static org.lwjgl.opengl.GL46.*;
 
 public class MasterRenderer {
@@ -49,15 +49,6 @@ public class MasterRenderer {
 
         displayBufferID = MasterRenderer.createDisplayBuffer();
         MasterRenderer.unbindFrameBuffer();
-
-        world.setBufferSize();
-
-        Keyboard.keyPressed.add(() -> {
-            renderingFractal = !renderingFractal;
-            loadCameraVariables = true;
-
-            world.setBufferSize();
-        }, "m");
 
         screenSizeChange.add(() -> {
             renderShader.start();
@@ -122,6 +113,7 @@ public class MasterRenderer {
         }
 
         renderShader.loadRandomVector();
+        renderShader.loadPathTracingSetting();
 
         // Bind texture buffer
         bindFrameBuffer();

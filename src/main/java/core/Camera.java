@@ -3,7 +3,6 @@ package core;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import toolbox.Keyboard;
 import toolbox.Mouse;
 import toolbox.Signal;
 import toolbox.Vector3D;
@@ -44,8 +43,6 @@ public class Camera {
     private float yaw = 0;
     private float roll;
 
-    private float wFactor = 0;
-
     public Camera() {
         createProjectionMatrix();
 
@@ -70,15 +67,6 @@ public class Camera {
 
         if (mouseLocked) {
             // Mouse.setCursorPosition(DisplayManager.WIDTH / 2, DisplayManager.HEIGHT / 2);
-        }
-
-        final float off = 0.01f;
-        if (Keyboard.isKeyDown("Q")) {
-            wFactor -= off;
-            matrixWatcher.dispatch();
-        } else if (Keyboard.isKeyDown("E")) {
-            wFactor += off;
-            matrixWatcher.dispatch();
         }
     }
 
@@ -241,9 +229,5 @@ public class Camera {
 
     public Vector2f getViewportResolution() {
         return new Vector2f(viewportWidth, viewportHeight);
-    }
-
-    public float getwFactor() {
-        return wFactor;
     }
 }

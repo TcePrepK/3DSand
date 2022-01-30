@@ -1,7 +1,6 @@
 package display;
 
 import core.DisplayManager;
-import core.GlobalVariables;
 import core.ShaderProgram;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -24,11 +23,10 @@ public class RendererShader extends ShaderProgram {
     private int textureScale;
     private int chunkScale;
     private int randVector2D;
-    private int wFactor;
     private int resetEverything;
     private int oldCameraPos;
-    private int renderingFractal;
     private int bitmaskSize;
+    private int isPathTracing;
 
     public RendererShader() {
         super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
@@ -52,11 +50,10 @@ public class RendererShader extends ShaderProgram {
         textureScale = super.getUniformLocation("textureScale");
         chunkScale = super.getUniformLocation("chunkScale");
         randVector2D = super.getUniformLocation("randVector2D");
-        wFactor = super.getUniformLocation("wFactor");
         resetEverything = super.getUniformLocation("resetEverything");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
-        renderingFractal = super.getUniformLocation("renderingFractal");
         bitmaskSize = super.getUniformLocation("bitmaskSize");
+        isPathTracing = super.getUniformLocation("isPathTracing");
     }
 
     public void loadResolutions() {
@@ -70,9 +67,6 @@ public class RendererShader extends ShaderProgram {
         ShaderProgram.load3DVector(lookFrom, camera.getPosition());
         ShaderProgram.load3DVector(lookTo, player.getPosition());
         ShaderProgram.load3DVector(textureScale, world.getBufferScale().toVector3D());
-        ShaderProgram.loadBoolean(renderingFractal, GlobalVariables.renderingFractal);
-
-        ShaderProgram.loadFloat(wFactor, camera.getwFactor());
     }
 
     public void loadBitmaskSize(final int size) {
@@ -81,6 +75,10 @@ public class RendererShader extends ShaderProgram {
 
     public void loadOldCameraPos() {
         ShaderProgram.load3DVector(oldCameraPos, camera.getPosition());
+    }
+
+    public void loadPathTracingSetting() {
+        ShaderProgram.loadBoolean(isPathTracing, pathTracing);
     }
 
     public void loadOldMatrices() {

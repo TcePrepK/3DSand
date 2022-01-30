@@ -16,10 +16,9 @@ public class World {
 
     //    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
     private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize);
-    private final Point3D fractalScale = new Point3D(5 * mapChunkSize);
 
     public final byte[] worldBuffer = new byte[worldScale.x * worldScale.y * worldScale.z];
-    private Point3D bufferScale = new Point3D();
+    private final Point3D bufferScale = worldScale;
 
     private final int bitmaskSize = 4;
     private final Point3D bitmaskScale = worldScale.div(bitmaskSize);
@@ -53,14 +52,6 @@ public class World {
             }
 
             chunk.updateRect(updatedThisChunk);
-        }
-    }
-
-    public void setBufferSize() {
-        if (renderingFractal) {
-            bufferScale = fractalScale;
-        } else {
-            bufferScale = worldScale;
         }
     }
 
@@ -233,10 +224,6 @@ public class World {
 
     public Point3D getWorldScale() {
         return worldScale;
-    }
-
-    public Point3D getFractalScale() {
-        return fractalScale;
     }
 
     public Point3D getBufferScale() {

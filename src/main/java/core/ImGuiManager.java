@@ -51,6 +51,14 @@ public class ImGuiManager {
         ImGui.spacing();
         // FPS
 
+        // Ray Control
+        if (ImGui.checkbox("Path Tracing", GlobalVariables.pathTracing)) {
+            GlobalVariables.pathTracing = !GlobalVariables.pathTracing;
+        }
+        ImGui.spacing();
+        ImGui.spacing();
+        // Ray Control
+
         // World
         final Point3D worldScale = world.getWorldScale();
         ImGui.text("World: " + worldScale.x + "x" + worldScale.y + "x" + worldScale.z);

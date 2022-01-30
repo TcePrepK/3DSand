@@ -259,6 +259,7 @@ HitRecord ColorDDA(in out Ray ray) {
     }
 
     if (!isPathTracing) {
+        ray.color = abs(record.hitVoxel / textureScale - 0.5) * 2;
         return record;
     }
 

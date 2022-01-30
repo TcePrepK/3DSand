@@ -15,8 +15,7 @@ public class GlobalVariables {
     public static boolean showDirtyRect = true;
     public static boolean renderChunks = true;
     public static boolean noisyWorld = true;
-
-    public static boolean renderingFractal = false;
+    public static boolean pathTracing = true;
 
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
@@ -28,8 +27,8 @@ public class GlobalVariables {
     public static Camera camera = new Camera();
     public static Player player;
 
-    public final static int mapChunkSize = 64;
-    public final static int chunkViewDistance = 4;
+    public final static int mapChunkSize = 32;
+    public final static int chunkViewDistance = 2;
 
     public static ImGuiManager imGuiManager;
     public static Loader loader;
