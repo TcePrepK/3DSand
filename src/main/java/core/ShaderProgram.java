@@ -123,7 +123,7 @@ public abstract class ShaderProgram {
 
     private static void shaderReader(final StringBuilder shaderSource, final String file, final List<String> includeList) {
         try {
-            final BufferedReader reader = new BufferedReader(new FileReader("src/main/java" + file));
+            final BufferedReader reader = new BufferedReader(new FileReader("res" + file));
             String line;
             while ((line = reader.readLine()) != null) {
                 final Pattern commentPattern = Pattern.compile("\\/\\/[^\\n\\r]+");
