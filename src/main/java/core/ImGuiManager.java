@@ -46,7 +46,7 @@ public class ImGuiManager {
 
         // FPS
         ImGui.text("FPS: " + DisplayManager.getFPS());
-        ImGui.text("Rendering time: " + renderTime * 1000f + "ms");
+        ImGui.text("Rendering time: " + renderTime + "ms");
         ImGui.spacing();
         ImGui.spacing();
         // FPS

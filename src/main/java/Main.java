@@ -51,12 +51,9 @@ public class Main {
 //            world.update();
 //            world.updateBuffer();
 
-            timer.startTimer();
+            DisplayManager.startRenderTimer();
             renderer.render();
-
-            final double renderTime = timer.stopTimer();
-            imGuiManager.update(generationTime, renderTime);
-
+            imGuiManager.update(generationTime, DisplayManager.getRenderTime());
             DisplayManager.updateDisplay();
         }
 

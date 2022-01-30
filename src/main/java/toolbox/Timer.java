@@ -1,7 +1,5 @@
 package toolbox;
 
-import core.DisplayManager;
-
 public class Timer {
     private double startTime = 0;
     private boolean counting = false;
@@ -11,16 +9,21 @@ public class Timer {
             stopTimer();
         }
 
-        startTime = DisplayManager.getCurrentTime();
+        startTime = Timer.getCurrentTime();
         counting = true;
     }
 
     public double stopTimer() {
-        final double time = (DisplayManager.getCurrentTime() - startTime) / (double) 1000;
+        final double time = (Timer.getCurrentTime() - startTime) / (double) 1000;
 
         counting = false;
         startTime = 0;
 
         return time;
+    }
+
+    private static long getCurrentTime() {
+        return System.currentTimeMillis();
+//        return Sys.getTime() * 1000 / Sys.getTimerResolution();
     }
 }

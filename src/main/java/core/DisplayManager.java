@@ -17,9 +17,11 @@ public class DisplayManager {
     public static int HEIGHT = 720;
     private static final int FPS_CAP = 120;
 
-    private static final Timer timer = new Timer();
+    private static final Timer fpsTimer = new Timer();
+    private static final Timer renderTimer = new Timer();
     private static float delta;
-    private static float framesPerSecond;
+    private static float FPS;
+    private static float renderTime;
 
     private static long windowID;
 
@@ -48,16 +50,28 @@ public class DisplayManager {
 
         GL11.glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
 
-        DisplayManager.timer.startTimer();
+        DisplayManager.fpsTimer.startTimer();
     }
 
     public static void updateDisplay() {
         glfwSwapBuffers(DisplayManager.windowID);
         glfwPollEvents();
 
-        DisplayManager.delta = (float) DisplayManager.timer.stopTimer();
-        DisplayManager.framesPerSecond = 1 / DisplayManager.delta;
-        DisplayManager.timer.startTimer();
+        DisplayManager.delta = (float) DisplayManager.fpsTimer.stopTimer();
+        DisplayManager.FPS = 1 / DisplayManager.delta;
+        DisplayManager.renderTime = (float) Math.floor(DisplayManager.renderTimer.stopTimer() * 1000 * 100) / 100;
+
+        DisplayManager.fpsTimer.startTimer();
+    }
+
+    public static void closeDisplay() {
+        Callbacks.glfwFreeCallbacks(DisplayManager.windowID);
+        glfwDestroyWindow(DisplayManager.windowID);
+        glfwTerminate();
+    }
+
+    public static void startRenderTimer() {
+        DisplayManager.renderTimer.startTimer();
     }
 
     private static void screenResize(final long window, final int width, final int height) {
@@ -71,21 +85,14 @@ public class DisplayManager {
     }
 
     public static float getFPS() {
-        return DisplayManager.framesPerSecond;
-    }
-
-    public static void closeDisplay() {
-        Callbacks.glfwFreeCallbacks(DisplayManager.windowID);
-        glfwDestroyWindow(DisplayManager.windowID);
-        glfwTerminate();
-    }
-
-    public static long getCurrentTime() {
-        return System.currentTimeMillis();
-//        return Sys.getTime() * 1000 / Sys.getTimerResolution();
+        return DisplayManager.FPS;
     }
 
     public static long getWindow() {
         return DisplayManager.windowID;
+    }
+
+    public static float getRenderTime() {
+        return DisplayManager.renderTime;
     }
 }
