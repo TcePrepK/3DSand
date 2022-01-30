@@ -1,12 +1,8 @@
 package elements;
 
-import core.Chunk;
-import core.World;
-import models.ColoredModel;
-import models.PlaneModelCreator;
-import models.RawModel;
+import game.Chunk;
+import game.World;
 import org.joml.Vector3f;
-import toolbox.Color;
 import toolbox.Mouse;
 import toolbox.Points.Point3D;
 
@@ -14,12 +10,8 @@ import static core.GlobalVariables.*;
 
 public class ElementPlacer {
     private Point3D currentPosition;
-    private ColoredModel plane;
 
     public void init() {
-        final RawModel rawModel = PlaneModelCreator.getPlaneRawModel(1, 1, new Color(1, 0, 0, 0.75f));
-        plane = new ColoredModel(0, 1, 0, rawModel);
-
         Mouse.mouseLeftDown.add(this::mouseLeftDown);
     }
 
@@ -29,7 +21,6 @@ public class ElementPlacer {
         final Vector3f pos = mousePicker.getCurrentWorldPoint();
         if (pos == null) {
             currentPosition = null;
-            plane.setPosition(0, -0.01f, 0);
             return;
         }
 
@@ -47,8 +38,6 @@ public class ElementPlacer {
                 currentHeight++;
             }
         }
-
-        plane.setPosition(currentPosition.x + 0.5f, currentHeight + 0.01f, currentPosition.z + 0.5f);
     }
 
     private void mouseLeftDown() {

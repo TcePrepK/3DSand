@@ -2,6 +2,9 @@ package core;
 
 import elements.ElementPlacer;
 import elements.ElementRegistry;
+import game.Camera;
+import game.Player;
+import game.World;
 import toolbox.MousePicker;
 
 import java.util.Random;

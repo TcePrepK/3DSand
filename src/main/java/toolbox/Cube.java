@@ -2,15 +2,15 @@ package toolbox;
 
 import org.joml.Vector3f;
 
-public class Rectangle {
+public class Cube {
     private float x, y, z;
     private float w, h, d;
 
-    public Rectangle() {
+    public Cube() {
         this(0, 0, 0, 0, 0, 0);
     }
 
-    public Rectangle(final float x, final float y, final float z, final float w, final float h, final float d) {
+    public Cube(final float x, final float y, final float z, final float w, final float h, final float d) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -19,24 +19,24 @@ public class Rectangle {
         this.d = d;
     }
 
-    public Rectangle setPosition(final float x, final float y, final float z) {
-        return new Rectangle(x, y, z, w, h, d);
+    public Cube setPosition(final float x, final float y, final float z) {
+        return new Cube(x, y, z, w, h, d);
     }
 
-    public Rectangle makeBigger(final float a) {
-        return new Rectangle(x, y, z, w + a, h + a, d + a);
+    public Cube makeBigger(final float a) {
+        return new Cube(x, y, z, w + a, h + a, d + a);
     }
 
-    public Rectangle setSize(final float w, final float h, final float d) {
-        return new Rectangle(x, y, z, w, h, d);
+    public Cube setSize(final float w, final float h, final float d) {
+        return new Cube(x, y, z, w, h, d);
     }
 
-    public Rectangle moveAdd(final Vector3f point) {
-        return new Rectangle(x + point.x(), y + point.y(), z + point.z(), w, h, d);
+    public Cube moveAdd(final Vector3f point) {
+        return new Cube(x + point.x(), y + point.y(), z + point.z(), w, h, d);
     }
 
-    public Rectangle moveAdd(final float x, final float y, final float z) {
-        return new Rectangle(this.x + x, this.y + y, this.z + z, w, h, d);
+    public Cube moveAdd(final float x, final float y, final float z) {
+        return new Cube(this.x + x, this.y + y, this.z + z, w, h, d);
     }
 
     public void includePoint(final float x, final float y, final float z) {

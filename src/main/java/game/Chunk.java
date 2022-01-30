@@ -1,4 +1,4 @@
-package core;
+package game;
 
 import elements.Element;
 import elements.ElementRegistry;

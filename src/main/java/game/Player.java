@@ -1,12 +1,10 @@
-package core;
+package game;
 
-import models.ColoredModel;
-import models.MeshModel;
+import core.GlobalVariables;
+import display.DisplayManager;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import toolbox.Color;
 import toolbox.Keyboard;
-import toolbox.Rectangle;
 import toolbox.Vector3D;
 
 import static core.GlobalVariables.world;
@@ -31,14 +29,9 @@ public class Player {
     private boolean isInAir = false;
 
     private final Camera camera;
-    private final ColoredModel model;
 
     public Player(final Camera camera) {
         this.camera = camera;
-
-        final MeshModel mesh = new MeshModel();
-        mesh.createCube(new Rectangle(0, 0, 0, 1, HEIGHT + 1, 1), new Color(1, 0, 0, 1));
-        model = new ColoredModel(0, 0, 0, mesh.createModelWithMesh());
 
         Keyboard.keyPressed.add(() -> GlobalVariables.freePlayMode = false, "J");
         Keyboard.keyPressed.add(() -> GlobalVariables.freePlayMode = true, "K");
@@ -92,9 +85,6 @@ public class Player {
 
         camera.calculateMatrices();
         camera.calculateVariables(position);
-
-        // model.setPosition(position.toVector3f());
-        // model.movePosition(0, HEIGHT / 2 + 0.5f, 0);
     }
 
     private void calculateCameraPosition() {

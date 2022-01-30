@@ -2,22 +2,21 @@ package core;
 
 import core.imageBuffers.ImageBuffer3D;
 import display.DisplayShader;
-import display.RendererShader;
-import models.RawModel;
+import display.RayTracerShader;
 import org.lwjgl.BufferUtils;
 import toolbox.Points.Point3D;
 
 import java.nio.ByteBuffer;
 
-import static core.DisplayManager.*;
 import static core.GlobalVariables.loader;
 import static core.GlobalVariables.world;
+import static display.DisplayManager.*;
 import static org.lwjgl.opengl.GL46.*;
 
 public class MasterRenderer {
     private final RawModel quad;
 
-    private final RendererShader renderShader = new RendererShader();
+    private final RayTracerShader renderShader = new RayTracerShader();
     private final DisplayShader displayShader = new DisplayShader();
 
     private final int displayBufferID;

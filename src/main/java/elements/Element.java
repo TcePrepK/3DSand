@@ -1,8 +1,8 @@
 package elements;
 
-import core.Chunk;
 import core.GlobalVariables;
-import core.World;
+import game.Chunk;
+import game.World;
 import toolbox.Color;
 import toolbox.Keyboard;
 import toolbox.Points.Point3D;

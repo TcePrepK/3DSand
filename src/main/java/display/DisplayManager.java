@@ -1,11 +1,11 @@
-package core;
+package display;
 
+import core.Signal;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
-import toolbox.Signal;
 import toolbox.Timer;
 
 import java.awt.*;

@@ -1,4 +1,8 @@
-import core.*;
+import core.ImGuiManager;
+import core.Loader;
+import core.MasterRenderer;
+import display.DisplayManager;
+import game.Player;
 import org.lwjgl.glfw.GLFW;
 import toolbox.Keyboard;
 import toolbox.Mouse;

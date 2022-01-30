@@ -1,6 +1,5 @@
 package display;
 
-import core.DisplayManager;
 import core.ShaderProgram;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -8,7 +7,7 @@ import toolbox.Vector3D;
 
 import static core.GlobalVariables.*;
 
-public class RendererShader extends ShaderProgram {
+public class RayTracerShader extends ShaderProgram {
     private static final String VERTEX_FILE = "/shaders/mainVertexShader.glsl";
     private static final String FRAGMENT_FILE = "/shaders/mainFragmentShader.glsl";
 
@@ -28,8 +27,8 @@ public class RendererShader extends ShaderProgram {
     private int bitmaskSize;
     private int isPathTracing;
 
-    public RendererShader() {
-        super(RendererShader.VERTEX_FILE, RendererShader.FRAGMENT_FILE);
+    public RayTracerShader() {
+        super(RayTracerShader.VERTEX_FILE, RayTracerShader.FRAGMENT_FILE);
     }
 
     @Override

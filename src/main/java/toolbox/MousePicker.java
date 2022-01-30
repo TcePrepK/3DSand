@@ -1,7 +1,7 @@
 package toolbox;
 
-import core.Camera;
-import core.World;
+import game.Camera;
+import game.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

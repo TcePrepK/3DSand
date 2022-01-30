@@ -1,14 +1,15 @@
-package core;
+package game;
 
+import core.Signal;
+import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import toolbox.Mouse;
-import toolbox.Signal;
 import toolbox.Vector3D;
 
-import static core.DisplayManager.screenSizeChange;
 import static core.GlobalVariables.*;
+import static display.DisplayManager.screenSizeChange;
 import static toolbox.Maths.clamp;
 
 public class Camera {
