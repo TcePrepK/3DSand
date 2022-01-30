@@ -1,6 +1,5 @@
 package core;
 
-import core.imageBuffers.ImageBuffer2D;
 import core.imageBuffers.ImageBuffer3D;
 import display.DisplayShader;
 import display.RendererShader;
@@ -26,12 +25,7 @@ public class MasterRenderer {
     private final ImageBuffer3D worldBuffer;
     private final ImageBuffer3D bitmaskBuffer;
 
-    private final ImageBuffer2D colorAttachment = new ImageBuffer2D(WIDTH, HEIGHT, 0, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-    private final ImageBuffer2D depthAttachment = new ImageBuffer2D(WIDTH, HEIGHT, 1, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    private final ImageBuffer2D rayDirAttachment = new ImageBuffer2D(WIDTH, HEIGHT, 2, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-    private final ImageBuffer2D frameCountAttachment = new ImageBuffer2D(WIDTH, HEIGHT, 3, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    private final ImageBuffer2D normalAttachment = new ImageBuffer2D(WIDTH, HEIGHT, 4, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-    private final ImageBuffer2D lightAttachment = new ImageBuffer2D(WIDTH, HEIGHT, 5, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+    private final AttachmentManager attachmentManager = new AttachmentManager(WIDTH, HEIGHT);
 
     private boolean loadCameraVariables = false;
     public boolean recreateWorldTexture = false;
@@ -45,7 +39,7 @@ public class MasterRenderer {
         renderShader.start();
         renderShader.loadResolutions();
         renderShader.loadBitmaskSize(world.getBitmaskSize());
-        renderShader.stop();
+        ShaderProgram.stop();
 
         displayBufferID = MasterRenderer.createDisplayBuffer();
         MasterRenderer.unbindFrameBuffer();
@@ -53,14 +47,9 @@ public class MasterRenderer {
         screenSizeChange.add(() -> {
             renderShader.start();
             renderShader.loadResolutions();
-            renderShader.stop();
+            ShaderProgram.stop();
 
-            colorAttachment.updateResolution(WIDTH, HEIGHT);
-            depthAttachment.updateResolution(WIDTH, HEIGHT);
-            rayDirAttachment.updateResolution(WIDTH, HEIGHT);
-            frameCountAttachment.updateResolution(WIDTH, HEIGHT);
-            normalAttachment.updateResolution(WIDTH, HEIGHT);
-            lightAttachment.updateResolution(WIDTH, HEIGHT);
+            attachmentManager.updateResolutions(WIDTH, HEIGHT);
         });
 
         final Point3D worldScale = world.getWorldScale();
@@ -68,6 +57,13 @@ public class MasterRenderer {
 
         final Point3D bitmaskScale = world.getBitmaskScale();
         bitmaskBuffer = new ImageBuffer3D(bitmaskScale, 1, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+
+        attachmentManager.add("color", 0, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("depth", 1, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        attachmentManager.add("rayDir", 2, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("frameCount", 3, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        attachmentManager.add("normal", 4, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("light", 5, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
     }
 
     public void render() {
@@ -117,56 +113,51 @@ public class MasterRenderer {
 
         // Bind texture buffer
         bindFrameBuffer();
+        // Bind texture buffer
 
-        // Create new texture
-        colorAttachment.createAttachment();
-        depthAttachment.createAttachment();
-        rayDirAttachment.createAttachment();
-        frameCountAttachment.createAttachment();
-        normalAttachment.createAttachment();
-        lightAttachment.createAttachment();
+        // Create attachments
+        attachmentManager.createAttachments();
+        // Create attachments
 
-        // Draw Things
+        // Binding attachments
         worldBuffer.bind();
         bitmaskBuffer.bind();
 
-        colorAttachment.bind();
-        depthAttachment.bind();
-        rayDirAttachment.bind();
-        frameCountAttachment.bind();
-        normalAttachment.bind();
-        lightAttachment.bind();
+        attachmentManager.bind();
+        // Binding attachments
 
+        // Drawing
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
         glDrawArrays(GL_QUAD_STRIP, 0, quad.getVertexCount());
+        // Drawing
 
+        // Load old variables
         renderShader.loadOldCameraPos();
         renderShader.loadOldMatrices();
+        // Load old variables
 
         // Unbind texture buffer
         MasterRenderer.unbindFrameBuffer();
-        renderShader.stop();
+        ShaderProgram.stop();
+        // Unbind texture buffer
 
         // Start display
         displayShader.start();
+        // Start display
 
         // Render texture to screen
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorAttachment.getRecentID());
+        glBindTexture(GL_TEXTURE_2D, attachmentManager.get("color").getRecentID());
+        // Render texture to screen
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
 
-        displayShader.stop();
+        ShaderProgram.stop();
 
-        colorAttachment.update();
-        depthAttachment.update();
-        rayDirAttachment.update();
-        frameCountAttachment.update();
-        normalAttachment.update();
-        lightAttachment.update();
+        attachmentManager.update();
     }
 
     public void loadCameraVariablesNextFrame() {
@@ -197,12 +188,7 @@ public class MasterRenderer {
         worldBuffer.delete();
         bitmaskBuffer.delete();
 
-        colorAttachment.delete();
-        depthAttachment.delete();
-        rayDirAttachment.delete();
-        frameCountAttachment.delete();
-        normalAttachment.delete();
-        lightAttachment.delete();
+        attachmentManager.delete();
 
         glDeleteBuffers(displayBufferID);
     }

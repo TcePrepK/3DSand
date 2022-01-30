@@ -18,7 +18,6 @@ import static org.lwjgl.opengl.GL45.*;
 
 public abstract class ShaderProgram {
     private final int programID;
-    private final int stopID = 0;
 
     private final int vertexShaderID;
     private final int fragmentShaderID;
@@ -62,12 +61,12 @@ public abstract class ShaderProgram {
         glUseProgram(programID);
     }
 
-    public void stop() {
-        glUseProgram(stopID);
+    public static void stop() {
+        glUseProgram(0);
     }
 
     public void cleanUp() {
-        stop();
+        ShaderProgram.stop();
         glDetachShader(programID, vertexShaderID);
         glDetachShader(programID, fragmentShaderID);
         glDetachShader(programID, computeShaderID);

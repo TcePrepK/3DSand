@@ -6,11 +6,12 @@ import toolbox.Points.Point3D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static core.GlobalVariables.*;
 
 public class World {
-    private final HashMap<String, Chunk> chunksById = new HashMap<>();
+    private final Map<String, Chunk> chunksById = new HashMap<>();
     private final List<Chunk> chunkList = new ArrayList<>();
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
