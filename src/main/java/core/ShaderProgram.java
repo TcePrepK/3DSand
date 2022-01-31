@@ -143,7 +143,7 @@ public abstract class ShaderProgram {
                     includeList.add(includePath);
                     ShaderProgram.shaderReader(shaderSource, includePath, includeList);
                 } else {
-                    shaderSource.append(line).append("//\n");
+                    shaderSource.append(line).append("\n");
                 }
             }
             reader.close();
@@ -161,7 +161,7 @@ public abstract class ShaderProgram {
         glShaderSource(shaderID, shaderSource);
         glCompileShader(shaderID);
         if (glGetShaderi(shaderID, GL_COMPILE_STATUS) == GL_FALSE) {
-            System.out.println(glGetShaderInfoLog(shaderID, 500));
+            System.out.println(glGetShaderInfoLog(shaderID, 1000));
             System.err.println("Could not compile shader!");
             System.exit(-1);
         }

@@ -43,18 +43,6 @@ vec3 at(Ray ray, float time) {
     return ray.pos + ray.dir * time;
 }
 
-bool inBounds(vec2 texturePos) {
-    return (texturePos.x > 0 && texturePos.y > 0 && texturePos.x < 1 && texturePos.y < 1);
-}
-
-bool inBounds(vec3 texturePos) {
-    return (texturePos.x > 0 && texturePos.y > 0 && texturePos.z > 0 && texturePos.x < 1 && texturePos.y < 1 && texturePos.z < 1);
-}
-
-bool inBounds(float height) {
-    return (height < chunkScale.y || height >= 0);
-}
-
 vec2 randState = gl_FragCoord.xy * randVector2D;
 vec2 rand2D() {
     randState.x = fract(sin(dot(randState.xy, vec2(12.9898, 78.233))) * 43758.5453);
@@ -91,16 +79,6 @@ vec3 getNewDirection() {
     return normalize(vec3(cos(phi) * r, sin(phi) * r, u));
 }
 
-bool between2Points1D(int v, int min, int max) {
-    int finalMin = min < max ? min : max;
-    int finalMax = min < max ? max : min;
-    if (v < finalMin || v > finalMax) {
-        return false;
-    }
-
-    return true;
-}
-
 vec2 AABB(vec3 rayPos, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     vec3 tMin = (boxMin - rayPos) / rayDir;
     vec3 tMax = (boxMax - rayPos) / rayDir;
@@ -111,7 +89,7 @@ vec2 AABB(vec3 rayPos, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     return vec2(tNear, tFar);
 }
 
-void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, out float dist, out int idx) {
+void DDAStep(ivec3 stepDir, vec3 tS, inout ivec3 gridCoords, inout vec3 tV, out float dist, out int idx) {
     dist = min(min(tV.x, tV.y), tV.z);
     idx = dist == tV.x ? 0 : dist == tV.y ? 1 : 2;
 
@@ -127,7 +105,7 @@ void DDAStep(ivec3 stepDir, vec3 tS, in out ivec3 gridCoords, in out vec3 tV, ou
     }
 }
 
-void DDA(in out Ray ray, in out HitRecord record) {
+void DDA(inout Ray ray, inout HitRecord record) {
     const float off = 0.001;
 
     const bvec3 dirSign = greaterThanEqual(ray.dir, vec3(0));
@@ -167,7 +145,6 @@ void DDA(in out Ray ray, in out HitRecord record) {
     vec3 tV = rayInverse * (vec3(gridCoords + voxExit) - ray.pos);
     vec3 tS = rayInverse * vec3(stepDir);
 
-    //    int idx = fartestTime == t2.x ? 0 : fartestTime == t2.y ? 1 : 2;
     int hitId = 0;
     while (record.distance < world.secondHitTime) {
         vec3 texturePos = gridCoords / textureScale;
@@ -194,10 +171,6 @@ void DDA(in out Ray ray, in out HitRecord record) {
 
             DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
         }
-    }
-
-    if (hitId == 0) {
-        record.light = true;
     }
 
     if (hitId != 0) {
@@ -231,7 +204,7 @@ void DDA(in out Ray ray, in out HitRecord record) {
     }
 }
 
-HitRecord PrimaryDDA(in out Ray ray) {
+HitRecord PrimaryDDA(inout Ray ray) {
     HitRecord record;
     DDA(ray, record);
 
@@ -240,25 +213,27 @@ HitRecord PrimaryDDA(in out Ray ray) {
     return record;
 }
 
-HitRecord FinderDDA(in out Ray ray, float distance) {
+HitRecord FinderDDA(inout Ray ray, float distance) {
     HitRecord record = HitRecord(vec3(0), ivec3(0), vec3(0), distance, false, 0);
     DDA(ray, record);
 
     return record;
 }
 
-bool LightDDA(in out Ray ray, in out HitRecord record) {
+bool LightDDA(inout Ray ray, inout HitRecord record) {
     DDA(ray, record);
     return record.light;
 }
 
-HitRecord ColorDDA(in out Ray ray) {
+HitRecord ColorDDA(inout Ray ray) {
     HitRecord record = PrimaryDDA(ray);
+    outLight = record.light ? vec3(1) : vec3(0);
     if (record.light) {
         return record;
     }
 
     if (!isPathTracing) {
+        outLight = vec3(0.5);
         ray.color = abs(record.hitVoxel / textureScale - 0.5) * 2;
         return record;
     }
@@ -281,27 +256,6 @@ HitRecord ColorDDA(in out Ray ray) {
 
         return record;
     }
-
-    //    int iter = 0;
-    //    vec3 bounceDir = ray.dir;
-    //    HitRecord bounceRecord = HitRecord(lightRecord.normal, lightRecord.position, 0, false, 0);
-    //    while (++iter <= 20) {
-    //        bounceDir = reflect(bounceDir, bounceRecord.normal);
-    //        Ray bounceRay = Ray(bounceRecord.position + bounceRecord.normal / 100, bounceDir, vec3(0));
-    //
-    //        if (LightDDA(bounceRay, bounceRecord)) {
-    //            break;
-    //        }
-    //    }
-    //
-    //    ray.color *= getSkyColor(bounceDir) / iter;
-    //
-    //    vec3 offPosition = lightRecord.position + lightRecord.normal / 100;
-    //    Ray bounceRay = Ray(offPosition, reflect(fakeRay.dir, lightRecord.normal), vec3(0));
-    //    if (LightDDA(fakeRay, lightRecord)) {
-    //        ray.color *= getSkyColor(fakeDir) / 2;
-    //        return;
-    //    }
 
     ray.color = fakeColor;
     return record;
