@@ -40,9 +40,6 @@ public class MasterRenderer {
         renderShader.loadBitmaskSize(world.getBitmaskSize());
         ShaderProgram.stop();
 
-        displayBufferID = MasterRenderer.createDisplayBuffer();
-        MasterRenderer.unbindFrameBuffer();
-
         screenSizeChange.add(() -> {
             renderShader.start();
             renderShader.loadResolutions();
@@ -63,6 +60,8 @@ public class MasterRenderer {
         attachmentManager.add("frameCount", 3, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
         attachmentManager.add("normal", 4, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
         attachmentManager.add("light", 5, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+
+        displayBufferID = createDisplayBuffer();
     }
 
     public void render() {
@@ -173,11 +172,17 @@ public class MasterRenderer {
         glViewport(0, 0, WIDTH, HEIGHT);
     }
 
-    private static int createDisplayBuffer() {
+    private int createDisplayBuffer() {
         final int frameBuffer = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-        final int[] attachments = new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5};
+
+        final int size = attachmentManager.size();
+        final int[] attachments = new int[size];
+        for (int i = 0; i < size; i++) {
+            attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+        }
         glDrawBuffers(attachments);
+        MasterRenderer.unbindFrameBuffer();
         return frameBuffer;
     }
 

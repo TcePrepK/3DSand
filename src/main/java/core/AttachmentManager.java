@@ -1,9 +1,11 @@
 package core;
 
+import core.imageBuffers.ImageBuffer;
 import core.imageBuffers.ImageBuffer2D;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class AttachmentManager {
     private int width, height;
@@ -15,27 +17,22 @@ public class AttachmentManager {
     }
 
     public void update() {
-        for (final ImageBuffer2D imageBuffer : imageBufferList.values()) {
-            imageBuffer.update();
-        }
-    }
-
-    public void bind() {
-        for (final ImageBuffer2D imageBuffer : imageBufferList.values()) {
-            imageBuffer.bind();
-        }
+        forEach(ImageBuffer2D::update);
     }
 
     public void createAttachments() {
-        for (final ImageBuffer2D imageBuffer : imageBufferList.values()) {
-            imageBuffer.createAttachment();
-        }
+        forEach(ImageBuffer2D::createAttachment);
     }
 
-    public void delete() {
-        for (final ImageBuffer2D imageBuffer : imageBufferList.values()) {
-            imageBuffer.delete();
-        }
+    public void bind() {
+        forEach(ImageBuffer2D::bind);
+    }
+
+    public void updateResolutions(final int width, final int height) {
+        this.width = width;
+        this.height = height;
+
+        forEach(imageBuffer -> imageBuffer.updateResolution(width, height));
     }
 
     public void add(final String id, final int location, final int offset, final int internalFormat, final int format, final int dataType) {
@@ -51,12 +48,15 @@ public class AttachmentManager {
         imageBufferList.remove(id);
     }
 
-    public void updateResolutions(final int width, final int height) {
-        this.width = width;
-        this.height = height;
+    public void delete() {
+        forEach(ImageBuffer::delete);
+    }
+    
+    public void forEach(final Consumer<ImageBuffer2D> func) {
+        imageBufferList.values().forEach(func);
+    }
 
-        for (final ImageBuffer2D imageBuffer : imageBufferList.values()) {
-            imageBuffer.updateResolution(width, height);
-        }
+    public int size() {
+        return imageBufferList.size();
     }
 }
