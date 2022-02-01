@@ -43,6 +43,10 @@ public class MasterRenderer {
         renderShader.loadBitmaskSize(world.getBitmaskSize());
         ShaderProgram.stop();
 
+        displayShader.start();
+        displayShader.loadResolution();
+        ShaderProgram.stop();
+
         screenSizeChange.add(() -> {
             renderShader.start();
             renderShader.loadResolutions();

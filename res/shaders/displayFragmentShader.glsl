@@ -1,11 +1,13 @@
 #version 450 core
 
-in vec2 textureCoords;
-
+uniform vec2 resolution;
 uniform sampler2D renderedTexture;
 
 out vec4 outColor;
 
 void main(void) {
-    outColor = texture(renderedTexture, textureCoords);
+    vec2 pixelPosition = gl_FragCoord.xy / resolution;
+    pixelPosition.y = 1 - pixelPosition.y;
+
+    outColor = texture(renderedTexture, pixelPosition);
 }

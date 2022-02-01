@@ -18,7 +18,8 @@ struct WorldBox {
     float firstHitTime;
     float secondHitTime;
     float timeDistance;
-} world;
+};
+WorldBox world = WorldBox(0, 0, 0);
 
 float clamp(float v, float min, float max) {
     if (v < min) return min;
