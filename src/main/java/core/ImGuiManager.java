@@ -4,6 +4,7 @@ import display.DisplayManager;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import toolbox.Logger;
 import toolbox.Octatree;
 import toolbox.Points.Point3D;
 
@@ -19,6 +20,8 @@ public class ImGuiManager {
         ImGui.createContext();
         imGuiGlfw.init(DisplayManager.getWindow(), true);
         imGuiGl3.init("#version 450");
+
+        Logger.out("~ ImGui Initialized Successfully");
     }
 
     public static void renderBranch(final Octatree branch, final String name, final int id) {

@@ -205,7 +205,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
 }
 
 HitRecord PrimaryDDA(inout Ray ray) {
-    HitRecord record;
+    HitRecord record = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
     DDA(ray, record);
 
     outDepth = record.distance / maxDistance;
@@ -227,13 +227,11 @@ bool LightDDA(inout Ray ray, inout HitRecord record) {
 
 HitRecord ColorDDA(inout Ray ray) {
     HitRecord record = PrimaryDDA(ray);
-    outLight = record.light ? vec3(1) : vec3(0);
     if (record.light) {
         return record;
     }
 
     if (!isPathTracing) {
-        outLight = vec3(0.5);
         ray.color = abs(record.hitVoxel / textureScale - 0.5) * 2;
         return record;
     }
@@ -252,7 +250,6 @@ HitRecord ColorDDA(inout Ray ray) {
     Ray lightRay = Ray(offHitPoint, randDir, vec3(0), true);
     if (LightDDA(lightRay, lightRecord)) {
         ray.color *= getSkyColor(randDir);
-        //        outLight = lightRecord.distance / maxDistance;
 
         return record;
     }

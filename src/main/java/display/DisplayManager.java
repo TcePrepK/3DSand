@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+import toolbox.Logger;
 import toolbox.Timer;
 
 import java.awt.*;
@@ -33,11 +34,13 @@ public class DisplayManager {
         if (!glfwInit()) {
             throw new IllegalStateException("GLFW init failed");
         }
+        Logger.out("~ GLFW Initialized Successfully");
 
         DisplayManager.windowID = glfwCreateWindow(DisplayManager.WIDTH, DisplayManager.HEIGHT, "Game", MemoryUtil.NULL, MemoryUtil.NULL);
         if (DisplayManager.windowID == MemoryUtil.NULL) {
             throw new IllegalStateException("Window failed");
         }
+        Logger.out("~ Windows Created Successfully");
 
         glfwSetWindowSizeCallback(DisplayManager.windowID, DisplayManager::screenResize);
 
@@ -49,14 +52,12 @@ public class DisplayManager {
         glfwShowWindow(DisplayManager.windowID);
 
         GL11.glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
+        Logger.out("~ Viewport Set Successfully");
 
         DisplayManager.fpsTimer.startTimer();
     }
 
     public static void updateDisplay() {
-        glfwSwapBuffers(DisplayManager.windowID);
-        glfwPollEvents();
-
         DisplayManager.delta = (float) DisplayManager.fpsTimer.stopTimer();
         DisplayManager.FPS = 1 / DisplayManager.delta;
         DisplayManager.renderTime = (float) Math.floor(DisplayManager.renderTimer.stopTimer() * 1000 * 100) / 100;

@@ -44,7 +44,7 @@ layout (location = 5) out vec3 outLight;
 void applyFog(Ray ray, HitRecord record);
 int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount);
 
-void pathTracing() {
+void pathTracing(void) {
     const vec2 pixelPosition = gl_FragCoord.xy / resolution;
     int frameCount = int(texture(frameCountAttachment, pixelPosition).r * (maxFrameCount + 1.0));
 
@@ -81,7 +81,7 @@ void pathTracing() {
     // Fog
 }
 
-void primaryTracing() {
+void primaryTracing(void) {
     const vec2 pixelPosition = gl_FragCoord.xy / resolution;
     const vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
 
@@ -127,8 +127,6 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
 
     const float distWeight = map(dist, 0, threshold, 1, 0);
     const float weight = distWeight * normalWeight;
-
-    //    outColor = vec3(weight);
 
     return int(round(frameCount * weight)) + 1;
 }

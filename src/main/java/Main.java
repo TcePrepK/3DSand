@@ -4,10 +4,7 @@ import core.MasterRenderer;
 import display.DisplayManager;
 import game.Player;
 import org.lwjgl.glfw.GLFW;
-import toolbox.Keyboard;
-import toolbox.Mouse;
-import toolbox.MousePicker;
-import toolbox.Timer;
+import toolbox.*;
 
 import static core.GlobalVariables.*;
 
@@ -32,6 +29,7 @@ public class Main {
         // Camera
 
         // World Generation
+        Logger.out("~ World Generation Starting");
         final Timer timer = new Timer();
         timer.startTimer();
         for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
@@ -40,11 +38,13 @@ public class Main {
                     world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize, m * mapChunkSize);
                 }
             }
+            Logger.out("~ World Generation " + Math.floor((i + chunkViewDistance + 1) / 4f * 100) + "% Done");
         }
         final double generationTime = timer.stopTimer();
         // World Generation
 
         // Game Loop
+        Logger.out("~ First Frame Starting");
         while (!GLFW.glfwWindowShouldClose(DisplayManager.getWindow())) {
             currentFrame++;
 
@@ -58,6 +58,9 @@ public class Main {
             DisplayManager.startRenderTimer();
             renderer.render();
             imGuiManager.update(generationTime, DisplayManager.getRenderTime());
+            MasterRenderer.finishRendering();
+            renderer.loadOldCameraVariables();
+
             DisplayManager.updateDisplay();
         }
 

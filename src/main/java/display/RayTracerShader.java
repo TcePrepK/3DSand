@@ -72,17 +72,14 @@ public class RayTracerShader extends ShaderProgram {
         ShaderProgram.loadInt(bitmaskSize, size);
     }
 
-    public void loadOldCameraPos() {
+    public void loadOldVariables() {
         ShaderProgram.load3DVector(oldCameraPos, camera.getPosition());
+        ShaderProgram.loadMatrix(oldMVPMatrix, new Matrix4f(camera.getProjectionViewMatrix()));
+        ShaderProgram.loadMatrix(oldViewMatrix, new Matrix4f(camera.getViewMatrix()));
     }
 
     public void loadPathTracingSetting() {
         ShaderProgram.loadBoolean(isPathTracing, pathTracing);
-    }
-
-    public void loadOldMatrices() {
-        ShaderProgram.loadMatrix(oldMVPMatrix, new Matrix4f(camera.getProjectionViewMatrix()));
-        ShaderProgram.loadMatrix(oldViewMatrix, new Matrix4f(camera.getViewMatrix()));
     }
 
     public void loadRandomVector() {

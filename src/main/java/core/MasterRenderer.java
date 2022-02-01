@@ -1,6 +1,7 @@
 package core;
 
 import core.imageBuffers.ImageBuffer3D;
+import display.DisplayManager;
 import display.DisplayShader;
 import display.RayTracerShader;
 import org.lwjgl.BufferUtils;
@@ -11,6 +12,8 @@ import java.nio.ByteBuffer;
 import static core.GlobalVariables.loader;
 import static core.GlobalVariables.world;
 import static display.DisplayManager.*;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.opengl.GL46.*;
 
 public class MasterRenderer {
@@ -130,11 +133,6 @@ public class MasterRenderer {
         glDrawArrays(GL_QUAD_STRIP, 0, quad.getVertexCount());
         // Drawing
 
-        // Load old variables
-        renderShader.loadOldCameraPos();
-        renderShader.loadOldMatrices();
-        // Load old variables
-
         // Unbind texture buffer
         MasterRenderer.unbindFrameBuffer();
         ShaderProgram.stop();
@@ -158,8 +156,19 @@ public class MasterRenderer {
         attachmentManager.update();
     }
 
+    public static void finishRendering() {
+        glfwSwapBuffers(DisplayManager.getWindow());
+        glfwPollEvents();
+    }
+
     public void loadCameraVariablesNextFrame() {
         loadCameraVariables = true;
+    }
+
+    public void loadOldCameraVariables() {
+        renderShader.start();
+        renderShader.loadOldVariables();
+        ShaderProgram.stop();
     }
 
     public void bindFrameBuffer() {
