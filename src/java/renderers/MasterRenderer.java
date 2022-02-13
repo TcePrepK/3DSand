@@ -1,10 +1,13 @@
-package core;
+package renderers;
 
+import core.AttachmentManager;
+import core.RawModel;
 import core.imageBuffers.ImageBuffer3D;
 import display.DisplayManager;
-import display.DisplayShader;
-import display.RayTracerShader;
 import org.lwjgl.BufferUtils;
+import shaders.BaseShader;
+import shaders.DisplayBaseShader;
+import shaders.RayTracerBaseShader;
 import toolbox.Points.Point3D;
 
 import java.nio.ByteBuffer;
@@ -19,8 +22,8 @@ import static org.lwjgl.opengl.GL46.*;
 public class MasterRenderer {
     private final RawModel quad;
 
-    private final RayTracerShader renderShader = new RayTracerShader();
-    private final DisplayShader displayShader = new DisplayShader();
+    private final RayTracerBaseShader renderShader = new RayTracerBaseShader();
+    private final DisplayBaseShader displayShader = new DisplayBaseShader();
 
     private final int displayBufferID;
 
@@ -41,16 +44,16 @@ public class MasterRenderer {
         renderShader.start();
         renderShader.loadResolutions();
         renderShader.loadBitmaskSize(world.getBitmaskSize());
-        ShaderProgram.stop();
+        BaseShader.stop();
 
         displayShader.start();
         displayShader.loadResolution();
-        ShaderProgram.stop();
+        BaseShader.stop();
 
         screenSizeChange.add(() -> {
             renderShader.start();
             renderShader.loadResolutions();
-            ShaderProgram.stop();
+            BaseShader.stop();
 
             attachmentManager.updateResolutions(WIDTH, HEIGHT);
         });
@@ -139,7 +142,7 @@ public class MasterRenderer {
 
         // Unbind texture buffer
         MasterRenderer.unbindFrameBuffer();
-        ShaderProgram.stop();
+        BaseShader.stop();
         // Unbind texture buffer
 
         // Start display
@@ -155,7 +158,7 @@ public class MasterRenderer {
         glEnableVertexAttribArray(0);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
 
-        ShaderProgram.stop();
+        BaseShader.stop();
 
         attachmentManager.update();
     }
@@ -172,7 +175,7 @@ public class MasterRenderer {
     public void loadOldCameraVariables() {
         renderShader.start();
         renderShader.loadOldVariables();
-        ShaderProgram.stop();
+        BaseShader.stop();
     }
 
     public void bindFrameBuffer() {

@@ -5,6 +5,7 @@ import elements.ElementRegistry;
 import game.Camera;
 import game.Player;
 import game.World;
+import renderers.MasterRenderer;
 import toolbox.MousePicker;
 
 import java.util.Random;

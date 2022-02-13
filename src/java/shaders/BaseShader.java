@@ -1,4 +1,4 @@
-package core;
+package shaders;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -16,16 +16,16 @@ import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.GL45.*;
 
-public abstract class ShaderProgram {
+public abstract class BaseShader {
     private final int programID;
 
     private final int vertexShaderID;
     private final int fragmentShaderID;
     private final int computeShaderID;
 
-    public ShaderProgram(final String vertexFile, final String fragmentFile) {
-        vertexShaderID = ShaderProgram.loadShader(vertexFile, GL_VERTEX_SHADER);
-        fragmentShaderID = ShaderProgram.loadShader(fragmentFile, GL_FRAGMENT_SHADER);
+    public BaseShader(final String vertexFile, final String fragmentFile) {
+        vertexShaderID = BaseShader.loadShader(vertexFile, GL_VERTEX_SHADER);
+        fragmentShaderID = BaseShader.loadShader(fragmentFile, GL_FRAGMENT_SHADER);
         computeShaderID = 0;
 
         programID = glCreateProgram();
@@ -37,10 +37,10 @@ public abstract class ShaderProgram {
         getAllUniformLocations();
     }
 
-    public ShaderProgram(final String computeFile) {
+    public BaseShader(final String computeFile) {
         vertexShaderID = 0;
         fragmentShaderID = 0;
-        computeShaderID = ShaderProgram.loadShader(computeFile, GL_COMPUTE_SHADER);
+        computeShaderID = BaseShader.loadShader(computeFile, GL_COMPUTE_SHADER);
 
         programID = glCreateProgram();
         glCreateShader(computeShaderID);
@@ -66,7 +66,7 @@ public abstract class ShaderProgram {
     }
 
     public void cleanUp() {
-        ShaderProgram.stop();
+        BaseShader.stop();
         glDetachShader(programID, vertexShaderID);
         glDetachShader(programID, fragmentShaderID);
         glDetachShader(programID, computeShaderID);
@@ -141,7 +141,7 @@ public abstract class ShaderProgram {
                     }
 
                     includeList.add(includePath);
-                    ShaderProgram.shaderReader(shaderSource, includePath, includeList);
+                    BaseShader.shaderReader(shaderSource, includePath, includeList);
                 } else {
                     shaderSource.append(line).append("\n");
                 }
@@ -155,7 +155,7 @@ public abstract class ShaderProgram {
 
     private static int loadShader(final String file, final int type) {
         final StringBuilder shaderSource = new StringBuilder();
-        ShaderProgram.shaderReader(shaderSource, file, new ArrayList<>());
+        BaseShader.shaderReader(shaderSource, file, new ArrayList<>());
 
         final int shaderID = glCreateShader(type);
         glShaderSource(shaderID, shaderSource);

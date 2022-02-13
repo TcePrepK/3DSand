@@ -1,13 +1,13 @@
-package display;
+package shaders;
 
-import core.ShaderProgram;
+import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import toolbox.Vector3D;
 
 import static core.GlobalVariables.*;
 
-public class RayTracerShader extends ShaderProgram {
+public class RayTracerBaseShader extends BaseShader {
     private static final String VERTEX_FILE = "/shaders/mainVertexShader.glsl";
     private static final String FRAGMENT_FILE = "/shaders/mainFragmentShader.glsl";
 
@@ -27,8 +27,8 @@ public class RayTracerShader extends ShaderProgram {
     private int bitmaskSize;
     private int isPathTracing;
 
-    public RayTracerShader() {
-        super(RayTracerShader.VERTEX_FILE, RayTracerShader.FRAGMENT_FILE);
+    public RayTracerBaseShader() {
+        super(RayTracerBaseShader.VERTEX_FILE, RayTracerBaseShader.FRAGMENT_FILE);
     }
 
     @Override
@@ -56,37 +56,37 @@ public class RayTracerShader extends ShaderProgram {
     }
 
     public void loadResolutions() {
-        ShaderProgram.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
-        ShaderProgram.load2DVector(viewportRes, camera.getViewportResolution());
-        ShaderProgram.load3DVector(chunkScale, new Vector3D(mapChunkSize));
+        BaseShader.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
+        BaseShader.load2DVector(viewportRes, camera.getViewportResolution());
+        BaseShader.load3DVector(chunkScale, new Vector3D(mapChunkSize));
     }
 
     public void loadCameraVariables() {
-        ShaderProgram.loadMatrix(viewMatrix, camera.getViewMatrix());
-        ShaderProgram.load3DVector(lookFrom, camera.getPosition());
-        ShaderProgram.load3DVector(lookTo, player.getPosition());
-        ShaderProgram.load3DVector(textureScale, world.getBufferScale().toVector3D());
+        BaseShader.loadMatrix(viewMatrix, camera.getViewMatrix());
+        BaseShader.load3DVector(lookFrom, camera.getPosition());
+        BaseShader.load3DVector(lookTo, player.getPosition());
+        BaseShader.load3DVector(textureScale, world.getBufferScale().toVector3D());
     }
 
     public void loadBitmaskSize(final int size) {
-        ShaderProgram.loadInt(bitmaskSize, size);
+        BaseShader.loadInt(bitmaskSize, size);
     }
 
     public void loadOldVariables() {
-        ShaderProgram.load3DVector(oldCameraPos, camera.getPosition());
-        ShaderProgram.loadMatrix(oldMVPMatrix, new Matrix4f(camera.getProjectionViewMatrix()));
-        ShaderProgram.loadMatrix(oldViewMatrix, new Matrix4f(camera.getViewMatrix()));
+        BaseShader.load3DVector(oldCameraPos, camera.getPosition());
+        BaseShader.loadMatrix(oldMVPMatrix, new Matrix4f(camera.getProjectionViewMatrix()));
+        BaseShader.loadMatrix(oldViewMatrix, new Matrix4f(camera.getViewMatrix()));
     }
 
     public void loadPathTracingSetting() {
-        ShaderProgram.loadBoolean(isPathTracing, pathTracing);
+        BaseShader.loadBoolean(isPathTracing, pathTracing);
     }
 
     public void loadRandomVector() {
-        ShaderProgram.load2DVector(randVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
+        BaseShader.load2DVector(randVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
     }
 
     public void setResetEverything(final boolean reset) {
-        ShaderProgram.loadBoolean(resetEverything, reset);
+        BaseShader.loadBoolean(resetEverything, reset);
     }
 }

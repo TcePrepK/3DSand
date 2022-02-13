@@ -1,9 +1,9 @@
 import core.ImGuiManager;
 import core.Loader;
-import core.MasterRenderer;
 import display.DisplayManager;
 import game.Player;
 import org.lwjgl.glfw.GLFW;
+import renderers.MasterRenderer;
 import toolbox.*;
 
 import static core.GlobalVariables.*;
