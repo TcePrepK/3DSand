@@ -134,7 +134,9 @@ public class MasterRenderer {
         // Drawing
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
-        glDrawArrays(GL_QUAD_STRIP, 0, quad.getVertexCount());
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
+        glDisableVertexAttribArray(0);
+        glBindVertexArray(0);
         // Drawing
 
         // Unbind texture buffer
@@ -154,6 +156,8 @@ public class MasterRenderer {
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
+        glDisableVertexAttribArray(0);
+        glBindVertexArray(0);
 
         BaseShader.stop();
 
@@ -194,8 +198,10 @@ public class MasterRenderer {
         for (int i = 0; i < size; i++) {
             attachments[i] = GL_COLOR_ATTACHMENT0 + i;
         }
+
         glDrawBuffers(attachments);
         MasterRenderer.unbindFrameBuffer();
+
         return frameBuffer;
     }
 

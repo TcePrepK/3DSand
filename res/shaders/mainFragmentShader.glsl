@@ -50,7 +50,7 @@ void pathTracing(void) {
     const vec2 targetPixel = gl_FragCoord.xy + offset;
     const vec3 rayDir = normalize(topLeftCorner + (targetPixel.x * xIncrement) + (targetPixel.y * yIncrement));
 
-    Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
+    Ray ray = Ray(cameraPos, rayDir, vec3(0));
     outRayDir = rayDir;
     HitRecord record = ColorDDA(ray);
     outNormal = record.normal;
@@ -83,7 +83,7 @@ void primaryTracing(void) {
     const vec2 pixelPosition = gl_FragCoord.xy / resolution;
     const vec3 rayDir = normalize(topLeftCorner + (gl_FragCoord.x * xIncrement) + (gl_FragCoord.y * yIncrement));
 
-    Ray ray = Ray(cameraPos, rayDir, vec3(0), false);
+    Ray ray = Ray(cameraPos, rayDir, vec3(0));
     ColorDDA(ray);
     outColor = ray.color;
 
@@ -113,7 +113,7 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
     }
 
     const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
-    Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0), false);
+    Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0));
     HitRecord oldRecord = FinderDDA(oldRay, texture(oldDepthAttachment, oldScreenPixelPos).r * maxDistance);
 
     //    const float threshold = 0.1 * outDepth;

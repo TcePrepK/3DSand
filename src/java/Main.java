@@ -16,12 +16,12 @@ public class Main {
         loader = new Loader();
         renderer = new MasterRenderer();
 
-        // Inits
+        // Init
         elementRegistery.init();
         elementPlacer.init();
         Keyboard.init();
         Mouse.init();
-        // Inits
+        // Init
 
         // Camera
         player = new Player(camera);
@@ -38,7 +38,7 @@ public class Main {
                     world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize, m * mapChunkSize);
                 }
             }
-            Logger.out("~ World Generation " + Math.floor((i + chunkViewDistance + 1) / 4f * 100) + "% Done");
+            Logger.out("~ World Generation " + Math.floor((i + chunkViewDistance + 1) * 25) + "% Done");
         }
         final double generationTime = timer.stopTimer();
         // World Generation

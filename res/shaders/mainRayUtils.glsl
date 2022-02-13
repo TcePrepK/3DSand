@@ -2,7 +2,6 @@ struct Ray {
     vec3 pos;
     vec3 dir;
     vec3 color;
-    bool lightRay;
 };
 
 struct HitRecord {
@@ -77,7 +76,19 @@ vec3 getNewDirection() {
     float r = sqrt(1 - u * u);
     float phi = 2 * 3.1415 * v;
 
-    return normalize(vec3(cos(phi) * r, sin(phi) * r, u));
+    vec3 result = vec3(cos(phi) * r, sin(phi) * r, u);
+
+    if (result.x == 0) {
+        result.x = 0.001;
+    }
+    if (result.y == 0) {
+        result.y = 0.001;
+    }
+    if (result.z == 0) {
+        result.z = 0.001;
+    }
+
+    return normalize(result);
 }
 
 vec2 AABB(vec3 rayPos, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
@@ -238,7 +249,6 @@ HitRecord ColorDDA(inout Ray ray) {
     }
 
     vec3 offHitPoint = record.position + record.normal / 100;
-    vec3 fakeColor = vec3(0);
 
     vec3 randDir = getNewDirection();
     float product = dot(randDir, record.normal);
@@ -248,13 +258,13 @@ HitRecord ColorDDA(inout Ray ray) {
     }
 
     HitRecord lightRecord = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
-    Ray lightRay = Ray(offHitPoint, randDir, vec3(0), true);
+    Ray lightRay = Ray(offHitPoint, randDir, vec3(0));
     if (LightDDA(lightRay, lightRecord)) {
         ray.color *= getSkyColor(randDir);
 
         return record;
     }
 
-    ray.color = fakeColor;
+    ray.color = vec3(0);
     return record;
 }
