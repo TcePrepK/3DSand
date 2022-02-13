@@ -55,6 +55,10 @@ public class MasterRenderer {
             renderShader.loadResolutions();
             BaseShader.stop();
 
+            displayShader.start();
+            displayShader.loadResolution();
+            BaseShader.stop();
+
             attachmentManager.updateResolutions(WIDTH, HEIGHT);
         });
 

@@ -51,7 +51,7 @@ public class AttachmentManager {
     public void delete() {
         forEach(ImageBuffer::delete);
     }
-    
+
     public void forEach(final Consumer<ImageBuffer2D> func) {
         imageBufferList.values().forEach(func);
     }
