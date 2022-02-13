@@ -11,8 +11,6 @@ uniform mat4 oldViewMatrix;
 
 uniform vec2 randVector2D;
 uniform vec3 textureScale;
-uniform vec3 chunkScale;
-uniform bool resetEverything;
 uniform vec3 oldCameraPos;
 
 uniform bool isPathTracing;

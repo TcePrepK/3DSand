@@ -6,8 +6,8 @@ import core.imageBuffers.ImageBuffer3D;
 import display.DisplayManager;
 import org.lwjgl.BufferUtils;
 import shaders.BaseShader;
-import shaders.DisplayBaseShader;
-import shaders.RayTracerBaseShader;
+import shaders.DisplayShader;
+import shaders.RayTracerShader;
 import toolbox.Points.Point3D;
 
 import java.nio.ByteBuffer;
@@ -22,8 +22,8 @@ import static org.lwjgl.opengl.GL46.*;
 public class MasterRenderer {
     private final RawModel quad;
 
-    private final RayTracerBaseShader renderShader = new RayTracerBaseShader();
-    private final DisplayBaseShader displayShader = new DisplayBaseShader();
+    private final RayTracerShader renderShader = new RayTracerShader();
+    private final DisplayShader displayShader = new DisplayShader();
 
     private final int displayBufferID;
 
@@ -83,9 +83,6 @@ public class MasterRenderer {
 
         // Start renderer
         renderShader.start();
-
-        // Load variables
-        renderShader.setResetEverything(loadCameraVariables);
 
         if (reloadResolutions) {
             renderShader.loadResolutions();

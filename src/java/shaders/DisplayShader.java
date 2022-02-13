@@ -3,14 +3,14 @@ package shaders;
 import display.DisplayManager;
 import org.joml.Vector2f;
 
-public class DisplayBaseShader extends BaseShader {
+public class DisplayShader extends BaseShader {
     private static final String VERTEX_FILE = "/shaders/displayVertexShader.glsl";
     private static final String FRAGMENT_FILE = "/shaders/displayFragmentShader.glsl";
 
     private int resolution;
 
-    public DisplayBaseShader() {
-        super(DisplayBaseShader.VERTEX_FILE, DisplayBaseShader.FRAGMENT_FILE);
+    public DisplayShader() {
+        super(DisplayShader.VERTEX_FILE, DisplayShader.FRAGMENT_FILE);
     }
 
     @Override

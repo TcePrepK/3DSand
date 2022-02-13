@@ -52,13 +52,13 @@ vec2 rand2D() {
     return randState * 2.0 - 1.0;
 }
 
-ivec2 intTexture(sampler2D image, vec2 position) {
-    return ivec2(texture(image, position) * 255);
-}
-
-ivec3 intTexture(sampler3D image, vec3 position) {
-    return ivec3(texture(image, position) * 255);
-}
+//ivec2 intTexture(sampler2D image, vec2 position) {
+//    return ivec2(texture(image, position) * 255);
+//}
+//
+//ivec3 intTexture(sampler3D image, vec3 position) {
+//    return ivec3(texture(image, position) * 255);
+//}
 
 vec3 getSkyColor(vec3 dir) {
     float time = 0.5 * (dir.y + 1);
@@ -149,7 +149,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
     int hitId = 0;
     while (record.distance < world.secondHitTime) {
         vec3 texturePos = gridCoords / textureScale;
-        int bitmask = intTexture(bitmaskTexture, texturePos).r;
+        int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
         if (bitmask == 0) {
             vec3 currPos = at(ray, record.distance);
             const vec3 distToBorder = rayInverse * (voxExit * 4 - (fract(currPos) + (gridCoords % 4)));
@@ -161,7 +161,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
             gridCoords = ivec3(floor(currPos));
             tV = record.distance + rayInverse * (voxExit - fract(currPos));
         } else {
-            hitId = intTexture(worldTexture, texturePos).r;
+            hitId = int(texture(worldTexture, texturePos).r * 255);
             if (hitId != 0) {
                 if (hitId == 1) {
                     record.light = true;

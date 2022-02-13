@@ -142,10 +142,12 @@ public abstract class BaseShader {
 
                     includeList.add(includePath);
                     BaseShader.shaderReader(shaderSource, includePath, includeList);
-                } else {
-                    shaderSource.append(line).append("\n");
+                    continue;
                 }
+
+                shaderSource.append(line).append("\n");
             }
+
             reader.close();
         } catch (final IOException e) {
             e.printStackTrace();
