@@ -33,8 +33,57 @@ public class Chunk {
 
         octaTree = new Octatree(new Vector3D(x, y, z), chunkScale.x, 16);
 
-        generateNoiseChunk();
+        generateTerrain(100);
+        generateCaves(125);
+
+//        generateNoiseChunk();
 //        generateSponge();
+    }
+
+    public void generateTerrain(final float scale) {
+        for (int offX = 0; offX < chunkScale.x; offX++) {
+            final int finalX = pos.x + offX;
+            for (int offZ = 0; offZ < chunkScale.z; offZ++) {
+                final int finalZ = pos.z + offZ;
+
+                float height = (float) Math.abs(Noise.noise(finalX / scale, finalZ / scale)) * mapChunkSize;
+                if (pos.y <= 0) {
+                    height = mapChunkSize;
+                }
+
+                for (int finalY = pos.y; finalY < pos.y + height; finalY++) {
+                    if (Math.abs(Noise.noise(finalX / 50f, finalY / 50f, finalZ / 50f)) < 0.01) {
+                        setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Sand"));
+                    } else {
+                        setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Dirt"));
+                    }
+                }
+            }
+        }
+    }
+
+    public void generateCaves(final float scale) {
+        for (int offX = 0; offX < chunkScale.x; offX++) {
+            final int finalX = pos.x + offX;
+            for (int offY = 0; offY < chunkScale.y; offY++) {
+                final int finalY = pos.y + offY;
+                for (int offZ = 0; offZ < chunkScale.z; offZ++) {
+                    final int finalZ = pos.z + offZ;
+
+                    final float val = (float) Math.abs(Noise.noise(finalX / scale, finalY / scale, finalZ / scale));
+                    if (val > 0.2) {
+                        continue;
+                    }
+
+                    final Element element = getElement(finalX, finalY, finalZ);
+                    if (element == null) {
+                        continue;
+                    }
+
+                    setElement(finalX, finalY, finalZ, null);
+                }
+            }
+        }
     }
 
     public void generateNoiseChunk() {

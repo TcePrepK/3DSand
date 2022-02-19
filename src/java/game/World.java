@@ -77,11 +77,16 @@ public class World {
             return;
         }
 
-        worldBuffer[getBufferIDX(oX, oY, oZ)] = e == null ? 0 : (byte) e.getId();
-//        bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] += e == null ? -1 : 1;
-        if (e != null) {
-            bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] = 1;
+        final int worldIDX = getBufferIDX(oX, oY, oZ);
+        final byte replacedID = worldBuffer[worldIDX];
+        final byte newID = e == null ? 0 : (byte) e.getId();
+        worldBuffer[worldIDX] = newID;
+
+        if (replacedID == newID) {
+            return;
         }
+
+        bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] += newID == 0 ? -1 : 1;
         renderer.recreateWorldTexture = true;
     }
 

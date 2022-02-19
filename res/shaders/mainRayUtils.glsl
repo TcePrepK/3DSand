@@ -43,6 +43,10 @@ vec3 at(Ray ray, float time) {
     return ray.pos + ray.dir * time;
 }
 
+bool closeEnough(float n, float v, float e) {
+    return abs(n - v) < e;
+}
+
 vec2 randState = gl_FragCoord.xy * randVector2D;
 vec2 rand2D() {
     randState.x = fract(sin(dot(randState.xy, vec2(12.9898, 78.233))) * 43758.5453);
@@ -99,6 +103,15 @@ vec2 AABB(vec3 rayPos, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar = min(min(t2.x, t2.y), t2.z);
     return vec2(tNear, tFar);
+}
+
+bool testForBorder(Ray ray, float distance, vec3 size) {
+    const vec3 pos = fract(at(ray, distance) / size);
+    const float e = pow(distance, 0.5) / 500;
+    const bool closeX = closeEnough(pos.x, 0, e);
+    const bool closeY = closeEnough(pos.y, 0, e);
+    const bool closeZ = closeEnough(pos.z, 0, e);
+    return ((closeX && closeY) || (closeX && closeZ) || (closeY && closeZ));
 }
 
 void DDAStep(ivec3 stepDir, vec3 tS, inout ivec3 gridCoords, inout vec3 tV, out float dist, out int idx) {
@@ -158,10 +171,17 @@ void DDA(inout Ray ray, inout HitRecord record) {
     vec3 tS = rayInverse * vec3(stepDir);
 
     int hitId = 0;
+    ray.color = vec3(1);
     while (record.distance < world.secondHitTime) {
         vec3 texturePos = gridCoords / textureScale;
         int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
         if (bitmask == 0) {
+            if (testForBorder(ray, record.distance, stepDir * 4)) {
+                ray.color = vec3(0);
+            } else if (ray.color != vec3(0)) {
+                ray.color = vec3(0.1, 2, 0.1);
+            }
+
             vec3 currPos = at(ray, record.distance);
             const vec3 distToBorder = rayInverse * (voxExit * 4 - (fract(currPos) + (gridCoords % 4)));
             const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z);
@@ -172,6 +192,10 @@ void DDA(inout Ray ray, inout HitRecord record) {
             gridCoords = ivec3(floor(currPos));
             tV = record.distance + rayInverse * (voxExit - fract(currPos));
         } else {
+            if (testForBorder(ray, record.distance, stepDir * 4)) {
+                ray.color = vec3(0);
+            }
+
             hitId = int(texture(worldTexture, texturePos).r * 255);
             if (hitId != 0) {
                 if (hitId == 1) {
@@ -212,7 +236,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
             cubeColor = abs(gridCoords / textureScale - 0.5) * 2;
         }
 
-        ray.color = cubeColor;
+        ray.color *= cubeColor;
     }
 }
 
