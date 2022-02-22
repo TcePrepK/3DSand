@@ -46,9 +46,11 @@ public class Chunk {
             for (int offZ = 0; offZ < chunkScale.z; offZ++) {
                 final int finalZ = pos.z + offZ;
 
-                float height = (float) Math.abs(Noise.noise(finalX / scale, finalZ / scale)) * mapChunkSize;
-                if (pos.y <= 0) {
+                final float height;
+                if (pos.y < chunkViewDistance * mapChunkSize) {
                     height = mapChunkSize;
+                } else {
+                    height = (float) Math.abs(Noise.noise(finalX / scale, finalZ / scale)) * mapChunkSize;
                 }
 
                 for (int finalY = pos.y; finalY < pos.y + height; finalY++) {

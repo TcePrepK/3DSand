@@ -37,11 +37,11 @@ public class Camera {
     private Vector3D yIncrement;
 
     private final Vector3D position = new Vector3D();
-    private float angleAroundPlayer = 180;
-    private float zoomLevel = 200; // 2
+    private float angleAroundPlayer = 211; // 180
+    private float zoomLevel = 806; // 200
     private float desiredZoomLevel = zoomLevel;
-    private float pitch = 0; // 20
-    private float yaw = 0;
+    private float pitch = 25; // 20
+    private float yaw = 331; // 0
     private float roll;
 
     public Camera() {
@@ -69,6 +69,12 @@ public class Camera {
         if (mouseLocked) {
             // Mouse.setCursorPosition(DisplayManager.WIDTH / 2, DisplayManager.HEIGHT / 2);
         }
+
+        System.out.println("--------------------");
+        System.out.println(angleAroundPlayer);
+        System.out.println(zoomLevel);
+        System.out.println(pitch);
+        System.out.println(yaw);
     }
 
     public void screenResize() {

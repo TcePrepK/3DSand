@@ -4,7 +4,6 @@ import core.AttachmentManager;
 import core.RawModel;
 import core.imageBuffers.ImageBuffer3D;
 import display.DisplayManager;
-import org.lwjgl.BufferUtils;
 import shaders.BaseShader;
 import shaders.DisplayShader;
 import shaders.RayTracerShader;
@@ -99,17 +98,22 @@ public class MasterRenderer {
         }
 
         if (recreateWorldTexture) {
-            final Point3D worldScale = world.getWorldScale();
-            final ByteBuffer worldByteBuffer = BufferUtils.createByteBuffer(worldScale.x * worldScale.y * worldScale.z);
-            worldByteBuffer.put(world.getWorldBuffer());
+//            final Point3D worldScale = world.getWorldScale();
+//            final ByteBuffer worldByteBuffer = BufferUtils.createByteBuffer(world.getWorldBuffer().capacity()).put(world.getWorldBuffer());
+//            worldByteBuffer.flip();
+            final ByteBuffer worldByteBuffer = world.getWorldBuffer();
             worldByteBuffer.flip();
             worldBuffer.create(worldByteBuffer);
+            worldByteBuffer.clear();
 
-            final Point3D bitmaskScale = world.getBitmaskScale();
-            final ByteBuffer bitmaskByteBuffer = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
-            bitmaskByteBuffer.put(world.getBitmaskGrid());
+//            final Point3D bitmaskScale = world.getBitmaskScale();
+//            final ByteBuffer bitmaskByteBuffer = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
+//            bitmaskByteBuffer.put(world.getBitmaskGrid());
+//            bitmaskByteBuffer.flip();
+            final ByteBuffer bitmaskByteBuffer = world.getBitmaskGrid();
             bitmaskByteBuffer.flip();
             bitmaskBuffer.create(bitmaskByteBuffer);
+            bitmaskByteBuffer.clear();
 
             worldBuffer.update();
             bitmaskBuffer.update();

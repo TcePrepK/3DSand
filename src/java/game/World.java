@@ -1,8 +1,11 @@
 package game;
 
 import elements.Element;
+import org.lwjgl.BufferUtils;
 import toolbox.Points.Point3D;
+import toolbox.Timer;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,12 +21,16 @@ public class World {
     //    private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize, mapChunkSize, 2 * chunkViewDistance * mapChunkSize);
     private final Point3D worldScale = new Point3D(2 * chunkViewDistance * mapChunkSize);
 
-    public final byte[] worldBuffer = new byte[worldScale.x * worldScale.y * worldScale.z];
+    public final ByteBuffer worldBuffer = BufferUtils.createByteBuffer(worldScale.x * worldScale.y * worldScale.z);
     private final Point3D bufferScale = worldScale;
 
     private final int bitmaskSize = 4;
     private final Point3D bitmaskScale = worldScale.div(bitmaskSize);
-    private final byte[] bitmaskGrid = new byte[bitmaskScale.x * bitmaskScale.y * bitmaskScale.z];
+    private final int[] bitmaskSizeGrid = new int[bitmaskScale.x * bitmaskScale.y * bitmaskScale.z];
+    private final ByteBuffer bitmaskGrid = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
+
+    public final List<Point3D> chunkGenerationList = new ArrayList<>();
+    private double totalGenerationTime;
 
     public void update() {
         for (int i = 0; i < chunkUpdateList.size(); i++) {
@@ -56,6 +63,34 @@ public class World {
         }
     }
 
+    public double updateChunkGenerationList() {
+        if (chunkGenerationList.isEmpty()) {
+            return totalGenerationTime;
+        }
+
+        final Timer generationTimer = new Timer();
+        generationTimer.startTimer();
+        while (generationTimer.getTime() < 0.1) {
+            if (chunkGenerationList.isEmpty()) {
+                renderer.recreateWorldTexture = true;
+                break;
+            }
+
+            final int randomIndex = rand.nextInt(chunkGenerationList.size());
+            final Point3D selectedPos = chunkGenerationList.get(randomIndex);
+            world.getChunkByChunkPos(selectedPos, true);
+            chunkGenerationList.remove(selectedPos);
+
+            renderer.recreateWorldTexture = false;
+        }
+        totalGenerationTime += generationTimer.stopTimer();
+        return totalGenerationTime;
+    }
+
+    public void addChunkToGenerationList(final Point3D pos) {
+        chunkGenerationList.add(pos);
+    }
+
     public int getBufferIDX(final int x, final int y, final int z) {
         return x + (y * worldScale.x) + (z * worldScale.x * worldScale.y);
     }
@@ -78,15 +113,18 @@ public class World {
         }
 
         final int worldIDX = getBufferIDX(oX, oY, oZ);
-        final byte replacedID = worldBuffer[worldIDX];
+        final byte replacedID = worldBuffer.get(worldIDX);
         final byte newID = e == null ? 0 : (byte) e.getId();
-        worldBuffer[worldIDX] = newID;
+        worldBuffer.put(worldIDX, newID);
 
         if (replacedID == newID) {
             return;
         }
 
-        bitmaskGrid[getBitmaskIdx(oX, oY, oZ)] += newID == 0 ? -1 : 1;
+        final int bitmaskIDX = getBitmaskIdx(oX, oY, oZ);
+        bitmaskSizeGrid[bitmaskIDX] += newID == 0 ? -1 : 1;
+        bitmaskGrid.put(bitmaskIDX, (byte) ((bitmaskSizeGrid[bitmaskIDX] == 0) ? 0 : 1));
+
         renderer.recreateWorldTexture = true;
     }
 
@@ -162,9 +200,27 @@ public class World {
         final Point3D chunkPos = World.getChunkPosition(x, y, z);
         final String id = chunkPos.toString();
         if (chunksById.containsKey(id)) {
-            return getChunk(x, y, z);
+            return getChunkWithId(id);
         }
 
+        final Chunk chunk = new Chunk(chunkPos.x * w, chunkPos.y * w, chunkPos.z * w, id);
+        chunksById.put(id, chunk);
+        chunkList.add(chunk);
+
+        return chunk;
+    }
+
+    public Chunk getChunkByChunkPos(final Point3D chunkPos, final boolean createIfNull) {
+        final String id = chunkPos.toString();
+        if (chunksById.containsKey(id)) {
+            return getChunkWithId(id);
+        }
+
+        if (!createIfNull) {
+            return null;
+        }
+
+        final int w = mapChunkSize;
         final Chunk chunk = new Chunk(chunkPos.x * w, chunkPos.y * w, chunkPos.z * w, id);
         chunksById.put(id, chunk);
         chunkList.add(chunk);
@@ -224,7 +280,7 @@ public class World {
         return chunkUpdateList;
     }
 
-    public byte[] getWorldBuffer() {
+    public ByteBuffer getWorldBuffer() {
         return worldBuffer;
     }
 
@@ -236,7 +292,7 @@ public class World {
         return bufferScale;
     }
 
-    public byte[] getBitmaskGrid() {
+    public ByteBuffer getBitmaskGrid() {
         return bitmaskGrid;
     }
 

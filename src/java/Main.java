@@ -5,6 +5,7 @@ import game.Player;
 import org.lwjgl.glfw.GLFW;
 import renderers.MasterRenderer;
 import toolbox.*;
+import toolbox.Points.Point3D;
 
 import static core.GlobalVariables.*;
 
@@ -30,18 +31,26 @@ public class Main {
 
         // World Generation
         Logger.out("~ World Generation Starting");
-        final Timer timer = new Timer();
-        timer.startTimer();
         for (int i = -chunkViewDistance; i < chunkViewDistance; i++) {
             for (int j = -chunkViewDistance; j < chunkViewDistance; j++) {
-                for (int m = -chunkViewDistance; m < chunkViewDistance; m++) {
-                    world.getChunkOrCreate(i * mapChunkSize, j * mapChunkSize, m * mapChunkSize);
+                for (int k = -chunkViewDistance; k < chunkViewDistance; k++) {
+                    world.addChunkToGenerationList(new Point3D(i, j, k));
                 }
             }
-            Logger.out("~ World Generation " + Math.floor((i + chunkViewDistance + 1) * 25) + "% Done");
         }
-        final double generationTime = timer.stopTimer();
+        final int totalChunks = (int) Math.pow(2 * chunkViewDistance, 3);
         // World Generation
+
+        // Test
+//        final BitManager manager = new BitManager(256, 256, 256, 1);
+
+//        manager.writeValue(0, 0b1111);
+//        manager.writeValue(1, 0b1111);
+//        manager.writeValue(2, 0b1111);
+
+//        System.out.println(manager.readByte(0));
+
+        // Test
 
         // Game Loop
         Logger.out("~ First Frame Starting");
@@ -54,6 +63,12 @@ public class Main {
 
 //            world.update();
 //            world.updateBuffer();
+            final double generationTime = world.updateChunkGenerationList();
+            worldGenerationPercentage = (totalChunks - world.chunkGenerationList.size()) / (float) totalChunks * 100;
+
+            if (worldGenerationPercentage != 100 && !Maths.closeEnough(worldGenerationPercentage, 0, 1) && Maths.closeEnough(worldGenerationPercentage % 25, 0, 1)) {
+                renderer.recreateWorldTexture = true;
+            }
 
             DisplayManager.startRenderTimer();
             renderer.render();

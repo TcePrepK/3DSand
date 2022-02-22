@@ -13,6 +13,10 @@ public class Timer {
         counting = true;
     }
 
+    public double getTime() {
+        return (Timer.getCurrentTime() - startTime) / (double) 1000;
+    }
+
     public double stopTimer() {
         final double time = (Timer.getCurrentTime() - startTime) / (double) 1000;
 

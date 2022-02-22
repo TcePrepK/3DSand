@@ -11,6 +11,7 @@ import toolbox.Points.Point3D;
 import java.util.List;
 
 import static core.GlobalVariables.world;
+import static core.GlobalVariables.worldGenerationPercentage;
 
 public class ImGuiManager {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
@@ -66,6 +67,7 @@ public class ImGuiManager {
         // World
         final Point3D worldScale = world.getWorldScale();
         ImGui.text("World: " + worldScale.x + "x" + worldScale.y + "x" + worldScale.z);
+        ImGui.text("World generation percentage: " + worldGenerationPercentage + "%");
         ImGui.text("World generation time: " + generationTime + "sec");
         // World
 
