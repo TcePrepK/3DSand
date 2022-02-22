@@ -20,6 +20,7 @@ public class GlobalVariables {
     public static boolean renderChunks = true;
     public static boolean noisyWorld = true;
     public static boolean pathTracing = true;
+    public static boolean drawBitmaskBorders = false;
 
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
@@ -32,7 +33,7 @@ public class GlobalVariables {
     public static Player player;
 
     public final static int mapChunkSize = 32;
-    public final static int chunkViewDistance = 8;
+    public final static int chunkViewDistance = 2;
     public static float worldGenerationPercentage = 0;
 
     public static ImGuiManager imGuiManager;

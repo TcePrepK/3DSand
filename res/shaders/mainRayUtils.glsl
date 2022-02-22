@@ -176,10 +176,12 @@ void DDA(inout Ray ray, inout HitRecord record) {
         vec3 texturePos = gridCoords / textureScale;
         int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
         if (bitmask == 0) {
-            if (testForBorder(ray, record.distance, stepDir * 4)) {
-                ray.color = vec3(0);
-            } else if (ray.color != vec3(0)) {
-                ray.color = vec3(0.1, 2, 0.1);
+            if (isRenderingBitmask) {
+                if (testForBorder(ray, record.distance, stepDir * 4)) {
+                    ray.color = vec3(0);
+                } else if (ray.color != vec3(0)) {
+                    ray.color = vec3(0.1, 2, 0.1);
+                }
             }
 
             vec3 currPos = at(ray, record.distance);
@@ -192,7 +194,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
             gridCoords = ivec3(floor(currPos));
             tV = record.distance + rayInverse * (voxExit - fract(currPos));
         } else {
-            if (testForBorder(ray, record.distance, stepDir * 4)) {
+            if (isRenderingBitmask && testForBorder(ray, record.distance, stepDir * 4)) {
                 ray.color = vec3(0);
             }
 

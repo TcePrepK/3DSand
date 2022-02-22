@@ -22,7 +22,9 @@ public class RayTracerShader extends BaseShader {
     private int randVector2D;
     private int oldCameraPos;
     private int bitmaskSize;
+
     private int isPathTracing;
+    private int isRenderingBitmask;
 
     public RayTracerShader() {
         super(RayTracerShader.VERTEX_FILE, RayTracerShader.FRAGMENT_FILE);
@@ -47,7 +49,9 @@ public class RayTracerShader extends BaseShader {
         randVector2D = super.getUniformLocation("randVector2D");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
         bitmaskSize = super.getUniformLocation("bitmaskSize");
+
         isPathTracing = super.getUniformLocation("isPathTracing");
+        isRenderingBitmask = super.getUniformLocation("isRenderingBitmask");
     }
 
     public void loadResolutions() {
@@ -74,6 +78,10 @@ public class RayTracerShader extends BaseShader {
 
     public void loadPathTracingSetting() {
         BaseShader.loadBoolean(isPathTracing, pathTracing);
+    }
+
+    public void loadBitmaskBorderSetting() {
+        BaseShader.loadBoolean(isRenderingBitmask, drawBitmaskBorders);
     }
 
     public void loadRandomVector() {

@@ -14,6 +14,7 @@ uniform vec3 textureScale;
 uniform vec3 oldCameraPos;
 
 uniform bool isPathTracing;
+uniform bool isRenderingBitmask;
 uniform int bitmaskSize;
 
 layout (binding = 0) uniform sampler3D worldTexture;

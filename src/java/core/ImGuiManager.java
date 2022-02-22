@@ -60,6 +60,10 @@ public class ImGuiManager {
         if (ImGui.checkbox("Path Tracing", GlobalVariables.pathTracing)) {
             GlobalVariables.pathTracing = !GlobalVariables.pathTracing;
         }
+
+        if (ImGui.checkbox("Render Bitmask Borders", GlobalVariables.drawBitmaskBorders)) {
+            GlobalVariables.drawBitmaskBorders = !GlobalVariables.drawBitmaskBorders;
+        }
         ImGui.spacing();
         ImGui.spacing();
         // Ray Control

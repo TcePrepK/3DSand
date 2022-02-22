@@ -123,6 +123,7 @@ public class MasterRenderer {
 
         renderShader.loadRandomVector();
         renderShader.loadPathTracingSetting();
+        renderShader.loadBitmaskBorderSetting();
 
         // Bind texture buffer
         bindFrameBuffer();
