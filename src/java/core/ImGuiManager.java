@@ -4,14 +4,14 @@ import display.DisplayManager;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import imgui.type.ImInt;
 import toolbox.Logger;
 import toolbox.Octatree;
 import toolbox.Points.Point3D;
 
 import java.util.List;
 
-import static core.GlobalVariables.world;
-import static core.GlobalVariables.worldGenerationPercentage;
+import static core.GlobalVariables.*;
 
 public class ImGuiManager {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
@@ -56,6 +56,27 @@ public class ImGuiManager {
         ImGui.spacing();
         // FPS
 
+        // Output Control
+        if (ImGui.treeNode("Output Options")) {
+            final String[] options = renderer.getAttachmentManager().keys();
+            int selectedOption = 0;
+            for (int i = 0; i < options.length; i++) {
+                if (options[i].equals(outputOption)) {
+                    selectedOption = i;
+                    break;
+                }
+            }
+
+            final ImInt selected = new ImInt(selectedOption);
+            ImGui.listBox("##Options", selected, options, 5);
+            outputOption = options[selected.get()];
+
+            ImGui.treePop();
+        }
+        ImGui.spacing();
+        ImGui.spacing();
+        // Output Control
+
         // Ray Control
         if (ImGui.checkbox("Path Tracing", GlobalVariables.pathTracing)) {
             GlobalVariables.pathTracing = !GlobalVariables.pathTracing;
@@ -64,6 +85,7 @@ public class ImGuiManager {
         if (ImGui.checkbox("Render Bitmask Borders", GlobalVariables.drawBitmaskBorders)) {
             GlobalVariables.drawBitmaskBorders = !GlobalVariables.drawBitmaskBorders;
         }
+        
         ImGui.spacing();
         ImGui.spacing();
         // Ray Control

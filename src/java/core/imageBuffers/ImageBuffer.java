@@ -48,4 +48,8 @@ public abstract class ImageBuffer {
     public int getRecentID() {
         return id;
     }
+
+    public int getPosition() {
+        return location + offset;
+    }
 }

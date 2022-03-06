@@ -62,23 +62,23 @@ public class Player {
 //        desiredMovement.y += gravity * dt;
         increasePosition(0, desiredMovement.y * dt, 0);
 
-        if (!GlobalVariables.creativeMode) {
-            for (final Vector2f hitpoint : hitboxPoints) {
-                int currentHeight = 0;
-                final int x = (int) Math.floor(position.x + hitpoint.x());
-                final int y = (int) Math.floor(position.y);
-                final int z = (int) Math.floor(position.z + hitpoint.y());
-                final Chunk chunk = World.getChunkAtTile(x, y, z, false);
-                if (chunk != null) {
-                    currentHeight = chunk.getMinHeight(x, z);
-                }
-
-                if (position.y < currentHeight) {
-                    position.y = currentHeight;
-                    isInAir = false;
-                }
-            }
-        }
+//        if (!GlobalVariables.creativeMode) {
+//            for (final Vector2f hitpoint : hitboxPoints) {
+//                int currentHeight = 0;
+//                final int x = (int) Math.floor(position.x + hitpoint.x());
+//                final int y = (int) Math.floor(position.y);
+//                final int z = (int) Math.floor(position.z + hitpoint.y());
+//                final Chunk chunk = World.getChunkAtTile(x, y, z, false);
+//                if (chunk != null) {
+//                    currentHeight = chunk.getMinHeight(x, z);
+//                }
+//
+//                if (position.y < currentHeight) {
+//                    position.y = currentHeight;
+//                    isInAir = false;
+//                }
+//            }
+//        }
 
         camera.update();
         calculateCameraPosition();

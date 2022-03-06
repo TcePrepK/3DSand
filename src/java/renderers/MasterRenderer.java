@@ -2,17 +2,14 @@ package renderers;
 
 import core.AttachmentManager;
 import core.RawModel;
-import core.imageBuffers.ImageBuffer3D;
+import core.SSBO;
+import core.imageBuffers.ImageBuffer2D;
 import display.DisplayManager;
 import shaders.BaseShader;
 import shaders.DisplayShader;
 import shaders.RayTracerShader;
-import toolbox.Points.Point3D;
 
-import java.nio.ByteBuffer;
-
-import static core.GlobalVariables.loader;
-import static core.GlobalVariables.world;
+import static core.GlobalVariables.*;
 import static display.DisplayManager.*;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -26,10 +23,8 @@ public class MasterRenderer {
 
     private final int displayBufferID;
 
-    private final ImageBuffer3D worldBuffer;
-    private final ImageBuffer3D bitmaskBuffer;
-
     private final AttachmentManager attachmentManager = new AttachmentManager(WIDTH, HEIGHT);
+    private final SSBO ssboTest = new SSBO(0, GL_DYNAMIC_READ);
 
     private boolean loadCameraVariables = false;
     public boolean recreateWorldTexture = false;
@@ -40,14 +35,32 @@ public class MasterRenderer {
 
         quad = loader.loadToVAO(positions, 2);
 
-        renderShader.start();
-        renderShader.loadResolutions();
-        renderShader.loadBitmaskSize(world.getBitmaskSize());
-        BaseShader.stop();
-
         displayShader.start();
         displayShader.loadResolution();
         BaseShader.stop();
+
+        renderShader.start();
+        renderShader.loadResolutions();
+        renderShader.loadBitmaskSize(world.getBitmaskSize());
+        renderShader.bindChunkTextures();
+
+        attachmentManager.add("color", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("depth", chunkManager.CHUNK_AMOUNT, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        attachmentManager.add("rayDir", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("frameCount", chunkManager.CHUNK_AMOUNT, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        attachmentManager.add("normal", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("light", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+
+        for (final String key : attachmentManager.keys()) {
+            final ImageBuffer2D imageBuffer = attachmentManager.get(key);
+            renderShader.bindTexture(key + "Attachment", imageBuffer.getPosition());
+        }
+
+        ssboTest.create(new int[]{0, 1, 2});
+
+        BaseShader.stop();
+
+        displayBufferID = createDisplayBuffer();
 
         screenSizeChange.add(() -> {
             renderShader.start();
@@ -60,21 +73,6 @@ public class MasterRenderer {
 
             attachmentManager.updateResolutions(WIDTH, HEIGHT);
         });
-
-        final Point3D worldScale = world.getWorldScale();
-        worldBuffer = new ImageBuffer3D(worldScale, 0, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-
-        final Point3D bitmaskScale = world.getBitmaskScale();
-        bitmaskBuffer = new ImageBuffer3D(bitmaskScale, 1, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-
-        attachmentManager.add("color", 0, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-        attachmentManager.add("depth", 1, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-        attachmentManager.add("rayDir", 2, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-        attachmentManager.add("frameCount", 3, 2, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-        attachmentManager.add("normal", 4, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-        attachmentManager.add("light", 5, 2, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-
-        displayBufferID = createDisplayBuffer();
     }
 
     public void render() {
@@ -97,29 +95,19 @@ public class MasterRenderer {
             loadCameraVariables = false;
         }
 
-        if (recreateWorldTexture) {
-//            final Point3D worldScale = world.getWorldScale();
-//            final ByteBuffer worldByteBuffer = BufferUtils.createByteBuffer(world.getWorldBuffer().capacity()).put(world.getWorldBuffer());
+//        if (recreateWorldTexture) {
+//            final ByteBuffer worldByteBuffer = world.getWorldBuffer();
 //            worldByteBuffer.flip();
-            final ByteBuffer worldByteBuffer = world.getWorldBuffer();
-            worldByteBuffer.flip();
-            worldBuffer.create(worldByteBuffer);
-            worldByteBuffer.clear();
-
-//            final Point3D bitmaskScale = world.getBitmaskScale();
-//            final ByteBuffer bitmaskByteBuffer = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
-//            bitmaskByteBuffer.put(world.getBitmaskGrid());
+//            worldBuffer.updatePixels(worldByteBuffer);
+//            worldByteBuffer.clear();
+//
+//            final ByteBuffer bitmaskByteBuffer = world.getBitmaskGrid();
 //            bitmaskByteBuffer.flip();
-            final ByteBuffer bitmaskByteBuffer = world.getBitmaskGrid();
-            bitmaskByteBuffer.flip();
-            bitmaskBuffer.create(bitmaskByteBuffer);
-            bitmaskByteBuffer.clear();
-
-            worldBuffer.update();
-            bitmaskBuffer.update();
-
-            recreateWorldTexture = false;
-        }
+//            bitmaskBuffer.updatePixels(bitmaskByteBuffer);
+//            bitmaskByteBuffer.clear();
+//
+//            recreateWorldTexture = false;
+//        }
 
         renderShader.loadRandomVector();
         renderShader.loadPathTracingSetting();
@@ -134,10 +122,13 @@ public class MasterRenderer {
         // Create attachments
 
         // Binding attachments
-        worldBuffer.bind();
-        bitmaskBuffer.bind();
+        for (int i = 0; i < 8; i++) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_3D, chunkManager.getChunkBufferIDArray()[i]);
+        }
 
         attachmentManager.bind();
+        ssboTest.bind();
         // Binding attachments
 
         // Drawing
@@ -159,7 +150,7 @@ public class MasterRenderer {
 
         // Render texture to screen
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, attachmentManager.get("color").getRecentID());
+        glBindTexture(GL_TEXTURE_2D, attachmentManager.get(outputOption).getRecentID());
         // Render texture to screen
 
         glBindVertexArray(quad.getVaoID());
@@ -216,12 +207,12 @@ public class MasterRenderer {
 
     public void cleanUp() {
         renderShader.cleanUp();
-
-        worldBuffer.delete();
-        bitmaskBuffer.delete();
-
         attachmentManager.delete();
 
         glDeleteBuffers(displayBufferID);
+    }
+
+    public AttachmentManager getAttachmentManager() {
+        return attachmentManager;
     }
 }

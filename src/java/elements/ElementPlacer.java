@@ -1,7 +1,6 @@
 package elements;
 
 import game.Chunk;
-import game.World;
 import org.joml.Vector3f;
 import toolbox.Mouse;
 import toolbox.Points.Point3D;
@@ -25,7 +24,7 @@ public class ElementPlacer {
         }
 
         currentPosition = new Point3D((int) Math.floor(pos.x()), 0, (int) Math.floor(pos.z()));
-        final Chunk chunk = World.getChunkAtTile(currentPosition, false);
+        final Chunk chunk = chunkManager.getChunkWorldSpace(currentPosition.x, currentPosition.y, currentPosition.z, false);
 
         int currentHeight = 0;
         if (chunk != null) {
@@ -50,7 +49,7 @@ public class ElementPlacer {
             // return;
         }
 
-        final Chunk chunk = World.getChunkAtTile(currentPosition.x, 0, currentPosition.z, true);
+        final Chunk chunk = chunkManager.getChunkWorldSpace(currentPosition.x, 0, currentPosition.z, true);
         if (chunk == null) {
             return;
         }
@@ -77,7 +76,7 @@ public class ElementPlacer {
                 final Point3D tile = new Point3D(x + i, height, z + j);
                 final Element e = ElementRegistry.getElementByName(currentMat);
 
-                World.setElement(tile, e);
+                chunkManager.setElement(tile.x, tile.y, tile.z, e);
             }
         }
     }

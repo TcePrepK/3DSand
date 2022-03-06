@@ -2,7 +2,6 @@ package elements;
 
 import core.GlobalVariables;
 import game.Chunk;
-import game.World;
 import toolbox.Color;
 import toolbox.Keyboard;
 import toolbox.Points.Point3D;
@@ -12,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static core.GlobalVariables.chunkManager;
 import static elements.ElementRegistry.getElementByName;
 import static elements.ElementRegistry.lastId;
 
@@ -98,7 +98,7 @@ public abstract class Element {
             for (int i = 0; i < positions.size(); i++) {
                 final Point3D pos = startingPos.add(positions.get(i));
 
-                final Chunk chunk = World.getChunkAtTile(pos, true);
+                final Chunk chunk = chunkManager.getChunkWorldSpace(pos.x, pos.y, pos.z, true);
                 if (chunk == null) {
                     possiblePosition = false;
                     break;
@@ -146,7 +146,7 @@ public abstract class Element {
             for (int i = 0; i < positions.size(); i++) {
                 final Point3D pos = startingPos.add(positions.get(i));
 
-                final Chunk chunk = World.getChunkAtTile(pos, false);
+                final Chunk chunk = chunkManager.getChunkWorldSpace(pos.x, pos.y, pos.z, false);
                 final String outputId = outputsId.get(i);
 
                 if (outputId != null && outputId.equals(ANYID)) {
@@ -174,7 +174,7 @@ public abstract class Element {
         }
 
         if (outOfLuck) {
-            final Chunk chunk = World.getChunkAtTile(startingPos, false);
+            final Chunk chunk = chunkManager.getChunkWorldSpace(startingPos.x, startingPos.y, startingPos.z, false);
             chunk.awakeGrid(startingPos);
             return true;
         }

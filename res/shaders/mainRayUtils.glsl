@@ -6,7 +6,7 @@ struct Ray {
 
 struct HitRecord {
     vec3 position;
-    ivec3 hitVoxel;
+    uvec3 hitVoxel;
     vec3 normal;
     float distance;
     bool light;
@@ -63,6 +63,10 @@ vec2 rand2D() {
 //    return ivec3(texture(image, position) * 255);
 //}
 
+bool inBounds(vec3 v, vec3 s) {
+    return !(v.x < 0 || v.x >= s.x || v.y < 0 || v.y >= s.y || v.z < 0 || v.z >= s.z);
+}
+
 vec3 getSkyColor(vec3 dir) {
     float time = 0.5 * (dir.y + 1);
     return vec3(0.5, 0.7, 1) * time + (1 - time);
@@ -114,7 +118,7 @@ bool testForBorder(Ray ray, float distance, vec3 size) {
     return ((closeX && closeY) || (closeX && closeZ) || (closeY && closeZ));
 }
 
-void DDAStep(ivec3 stepDir, vec3 tS, inout ivec3 gridCoords, inout vec3 tV, out float dist, out int idx) {
+void DDAStep(ivec3 stepDir, vec3 tS, inout uvec3 gridCoords, inout vec3 tV, out float dist, out int idx) {
     dist = min(min(tV.x, tV.y), tV.z);
     idx = dist == tV.x ? 0 : dist == tV.y ? 1 : 2;
 
@@ -165,50 +169,79 @@ void DDA(inout Ray ray, inout HitRecord record) {
     world.firstHitTime = closestTime;
     world.secondHitTime = fartestTime;
 
-    ivec3 gridCoords = ivec3(floor(at(ray, record.distance)));
+    uvec3 gridCoords = uvec3(floor(at(ray, record.distance + off)));
 
     vec3 tV = rayInverse * (vec3(gridCoords + voxExit) - ray.pos);
     vec3 tS = rayInverse * vec3(stepDir);
 
     int hitId = 0;
     ray.color = vec3(1);
-    while (record.distance < world.secondHitTime) {
-        vec3 texturePos = gridCoords / textureScale;
-        int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
-        if (bitmask == 0) {
-            if (isRenderingBitmask) {
-                if (testForBorder(ray, record.distance, stepDir * 4)) {
-                    ray.color = vec3(0);
-                } else if (ray.color != vec3(0)) {
-                    ray.color = vec3(0.1, 2, 0.1);
-                }
+    while (record.distance < world.secondHitTime - off) {
+        //        vec3 texturePos = gridCoords / textureScale;
+        //        if (!inBounds(texturePos, vec3(1))) {
+        //            DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+        //            continue;
+        //        }
+
+        ivec3 chunkPos = ivec3(gridCoords / 32);
+        uint chunkIDX = chunkPos.x + chunkPos.y * 2 + chunkPos.z * 4;
+        vec3 chunkOffset = gridCoords % 32 / vec3(32);
+
+        for (int i = 0; i < 8; i++) {
+            if (i != chunkIDX) {
+                continue;
             }
 
-            vec3 currPos = at(ray, record.distance);
-            const vec3 distToBorder = rayInverse * (voxExit * 4 - (fract(currPos) + (gridCoords % 4)));
-            const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z);
-            idx = time == distToBorder.x ? 0 : time == distToBorder.y ? 1 : 2;
-
-            record.distance += time + off;
-            currPos = at(ray, record.distance);
-            gridCoords = ivec3(floor(currPos));
-            tV = record.distance + rayInverse * (voxExit - fract(currPos));
-        } else {
-            if (isRenderingBitmask && testForBorder(ray, record.distance, stepDir * 4)) {
-                ray.color = vec3(0);
-            }
-
-            hitId = int(texture(worldTexture, texturePos).r * 255);
-            if (hitId != 0) {
-                if (hitId == 1) {
-                    record.light = true;
-                }
-
-                break;
-            }
-
-            DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+            hitId = int(texture(chunkTextures[i], chunkOffset).r * 255);
+            break;
         }
+
+        if (hitId != 0) {
+            outLight = chunkOffset;
+            if (hitId == 1) {
+                record.light = true;
+            }
+
+            break;
+        }
+
+        DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+
+        //        int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
+        //        if (bitmask == 0) {
+        //            if (isRenderingBitmask) {
+        //                if (testForBorder(ray, record.distance, stepDir * 4)) {
+        //                    ray.color = vec3(0);
+        //                } else if (ray.color != vec3(0)) {
+        //                    ray.color = vec3(0.1, 2, 0.1);
+        //                }
+        //            }
+        //
+        //            vec3 currPos = at(ray, record.distance);
+        //            const vec3 distToBorder = rayInverse * (voxExit * 4 - (fract(currPos) + (gridCoords % 4)));
+        //            const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z);
+        //            idx = time == distToBorder.x ? 0 : time == distToBorder.y ? 1 : 2;
+        //
+        //            record.distance += time + off;
+        //            currPos = at(ray, record.distance);
+        //            gridCoords = ivec3(floor(currPos));
+        //            tV = record.distance + rayInverse * (voxExit - fract(currPos));
+        //        } else {
+        //            if (isRenderingBitmask && testForBorder(ray, record.distance, stepDir * 4)) {
+        //                ray.color = vec3(0);
+        //            }
+        //
+        //            hitId = int(texture(worldTexture, texturePos).r * 255);
+        //            if (hitId != 0) {
+        //                if (hitId == 1) {
+        //                    record.light = true;
+        //                }
+        //
+        //                break;
+        //            }
+        //
+        //            DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
+        //        }
     }
 
     if (hitId != 0) {

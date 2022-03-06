@@ -3,6 +3,7 @@ package shaders;
 import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
+import org.lwjgl.opengl.GL20;
 
 import static core.GlobalVariables.*;
 
@@ -54,6 +55,19 @@ public class RayTracerShader extends BaseShader {
         isRenderingBitmask = super.getUniformLocation("isRenderingBitmask");
     }
 
+    public void bindChunkTextures() {
+        final int[] positions = new int[8];
+        for (int i = 0; i < 8; i++) {
+            positions[i] = i;
+        }
+
+        GL20.glUniform1iv(super.getUniformLocation("chunkTextures"), positions);
+    }
+
+    public void bindTexture(final String id, final int pos) {
+        BaseShader.loadInt(super.getUniformLocation(id), pos);
+    }
+
     public void loadResolutions() {
         BaseShader.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
         BaseShader.load2DVector(viewportRes, camera.getViewportResolution());
@@ -63,7 +77,7 @@ public class RayTracerShader extends BaseShader {
         BaseShader.loadMatrix(viewMatrix, camera.getViewMatrix());
         BaseShader.load3DVector(lookFrom, camera.getPosition());
         BaseShader.load3DVector(lookTo, player.getPosition());
-        BaseShader.load3DVector(textureScale, world.getBufferScale().toVector3D());
+        BaseShader.load3DVector(textureScale, world.getWorldScale().toVector3D());
     }
 
     public void loadBitmaskSize(final int size) {

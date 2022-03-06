@@ -1,9 +1,10 @@
 package toolbox;
 
 import game.Camera;
-import game.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+
+import static core.GlobalVariables.chunkManager;
 
 public class MousePicker {
     private static final int RECURSION_COUNT = 200;
@@ -52,7 +53,7 @@ public class MousePicker {
         final float half = start + ((finish - start) / 2);
         if (count >= MousePicker.RECURSION_COUNT) {
             final Vector3f endPoint = getPointOnRay(ray, half);
-            if (!World.outBounds((int) Math.floor(endPoint.x()), 0, (int) Math.floor(endPoint.z()))) {
+            if (chunkManager.inBounds((int) Math.floor(endPoint.x()), 0, (int) Math.floor(endPoint.z()))) {
                 return endPoint;
             } else {
                 return null;

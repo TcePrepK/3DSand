@@ -17,15 +17,24 @@ uniform bool isPathTracing;
 uniform bool isRenderingBitmask;
 uniform int bitmaskSize;
 
-layout (binding = 0) uniform sampler3D worldTexture;
-layout (binding = 1) uniform sampler3D bitmaskTexture;
+//layout (binding = 0) uniform sampler3D worldTexture;
+//layout (binding = 1) uniform sampler3D bitmaskTexture;
 
-layout (binding = 2) uniform sampler2D oldColorAttachment;
-layout (binding = 3) uniform sampler2D oldDepthAttachment;
-layout (binding = 4) uniform sampler2D oldRayDirAttachment;
-layout (binding = 5) uniform sampler2D frameCountAttachment;
-layout (binding = 6) uniform sampler2D oldNormalAttachment;
-layout (binding = 7) uniform sampler2D oldLightAttachment;
+//uniform int chunkAmount;
+uniform sampler3D chunkTextures[8];
+
+//layout(std430, binding = 0) readonly buffer chunkBuffer
+//{
+//    uint textureCount;
+//    sampler3D textures[];
+//};
+
+uniform sampler2D colorAttachment;
+uniform sampler2D depthAttachment;
+uniform sampler2D rayDirAttachment;
+uniform sampler2D frameCountAttachment;
+uniform sampler2D normalAttachment;
+uniform sampler2D lightAttachment;
 
 const float maxDistance = 500;
 const int maxFrameCount = 255;
@@ -47,7 +56,8 @@ void pathTracing(void) {
     const vec2 pixelPosition = gl_FragCoord.xy / resolution;
     int frameCount = int(texture(frameCountAttachment, pixelPosition).r * (maxFrameCount + 1.0));
 
-    const vec2 offset = rand2D() / 20.0;
+    //    const vec2 offset = rand2D() / 20.0;
+    const vec2 offset = vec2(0);
     const vec2 targetPixel = gl_FragCoord.xy + offset;
     const vec3 rayDir = normalize(topLeftCorner + (targetPixel.x * xIncrement) + (targetPixel.y * yIncrement));
 
@@ -66,7 +76,7 @@ void pathTracing(void) {
     frameCount = calculatePixelFrame(ray, record, oldScreenPixelPos, frameCount);
     // Calculate frame count
 
-    const vec3 oldColor = texture(oldColorAttachment, oldScreenPixelPos).rgb;
+    const vec3 oldColor = texture(colorAttachment, oldScreenPixelPos).rgb;
     const vec2 colorWeight = vec2(frameCount / (frameCount + 1.0), 1 / (frameCount + 1.0));
     // Reprojection
 
@@ -102,7 +112,7 @@ void main(void) {
 }
 
 int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount) {
-    const vec3 oldNormal = texture(oldNormalAttachment, oldScreenPixelPos).rgb;
+    const vec3 oldNormal = texture(normalAttachment, oldScreenPixelPos).rgb;
     if (oldNormal == vec3(0)) {
         return 0;
     }
@@ -113,9 +123,9 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
         return 0;
     }
 
-    const vec3 oldRayDir = texture(oldRayDirAttachment, oldScreenPixelPos).rgb;
+    const vec3 oldRayDir = texture(rayDirAttachment, oldScreenPixelPos).rgb;
     Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0));
-    HitRecord oldRecord = FinderDDA(oldRay, texture(oldDepthAttachment, oldScreenPixelPos).r * maxDistance);
+    HitRecord oldRecord = FinderDDA(oldRay, texture(depthAttachment, oldScreenPixelPos).r * maxDistance);
 
     //    const float threshold = 0.1 * outDepth;
     const float threshold = length(2 / resolution * outDepth * maxDistance);

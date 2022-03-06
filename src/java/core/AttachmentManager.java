@@ -35,8 +35,8 @@ public class AttachmentManager {
         forEach(imageBuffer -> imageBuffer.updateResolution(width, height));
     }
 
-    public void add(final String id, final int location, final int offset, final int internalFormat, final int format, final int dataType) {
-        final ImageBuffer2D image = new ImageBuffer2D(width, height, location, offset, internalFormat, format, dataType);
+    public void add(final String id, final int offset, final int internalFormat, final int format, final int dataType) {
+        final ImageBuffer2D image = new ImageBuffer2D(width, height, imageBufferList.size(), offset, internalFormat, format, dataType);
         imageBufferList.put(id, image);
     }
 
@@ -58,5 +58,9 @@ public class AttachmentManager {
 
     public int size() {
         return imageBufferList.size();
+    }
+
+    public String[] keys() {
+        return imageBufferList.keySet().toArray(new String[0]);
     }
 }

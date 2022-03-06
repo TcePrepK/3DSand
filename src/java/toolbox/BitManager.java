@@ -20,31 +20,34 @@ public class BitManager {
         this.height = height / inputPerByte;
         this.depth = depth / inputPerByte;
 
-        bitWidth = (int) Math.ceil(Math.pow(inputPerByte, 1 / 3f));
-        bitHeight = (int) Math.ceil(Math.sqrt(inputPerByte / (float) bitWidth));
+        bitWidth = (int) Math.floor(Math.pow(inputPerByte, 1 / 3f));
+        bitHeight = (int) Math.floor(Math.sqrt(inputPerByte / (float) bitWidth));
         bitDepth = inputPerByte / (bitWidth * bitHeight);
 
         this.inputSize = inputSize;
         byteBuffer = ByteBuffer.allocate(this.width * this.height * this.depth);
 
-        System.out.println(byteBuffer.limit());
+        System.out.println(bitWidth);
+        System.out.println(bitHeight);
+        System.out.println(bitDepth);
     }
 
 //    public int readValue(final int index) {
 //        return readByte(getByteIndex(index));
 //    }
 
-//    public void writeValue(final Vector3D pos, final int num) {
-//        final int byteIndex = getByteIndex(getBytePos(pos));
+    public void writeValue(final Vector3D pos, final int num) {
+        final int byteIndex = getByteIndex(getBytePos(pos));
+//        System.out.println(byteIndex);
 //        int targetedByte = readByte(byteIndex);
 //        for (int i = 0; i < inputSize; i++) {
 //            final int pos = (index % inputPerByte) * inputSize + i;
 //            final int bit = (num & (1 << i)) >> i;
 //            targetedByte = targetedByte & ~(1 << pos) | (bit << pos);
 //        }
-//
+
 //        writeByte(byteIndex, (byte) targetedByte);
-//    }
+    }
 
     public byte readByte(final int byteIndex) {
         return byteBuffer.get(byteIndex);
