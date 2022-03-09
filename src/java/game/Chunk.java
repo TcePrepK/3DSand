@@ -238,7 +238,6 @@ public class Chunk {
         final int idx = getIDX(x - pos.x, y - pos.y, z - pos.z);
         grid[idx] = e;
         idGrid[idx] = (byte) (e == null ? 0 : e.getId());
-        world.setBufferElement(x, y, z, e);
 
         voxelBuffer.put(idx, (byte) (e == null ? 0 : e.getId()));
 
@@ -311,6 +310,10 @@ public class Chunk {
 
     public String getId() {
         return id;
+    }
+
+    public boolean shouldUpdateBuffer() {
+        return updateBuffer;
     }
 }
     

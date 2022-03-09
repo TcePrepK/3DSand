@@ -4,6 +4,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import toolbox.Color;
+import toolbox.Points.Point3D;
 import toolbox.Vector3D;
 
 import java.io.BufferedReader;
@@ -96,6 +97,10 @@ public abstract class BaseShader {
 
     protected static void load3DVector(final int location, final Vector3D vector) {
         glUniform3f(location, vector.x, vector.y, vector.z);
+    }
+
+    protected static void load3DVector(final int location, final Point3D vector) {
+        glUniform3i(location, vector.x, vector.y, vector.z);
     }
 
     protected static void load4DVector(final int location, final Vector4f vector) {

@@ -27,7 +27,6 @@ public class MasterRenderer {
     private final SSBO ssboTest = new SSBO(0, GL_DYNAMIC_READ);
 
     private boolean loadCameraVariables = false;
-    public boolean recreateWorldTexture = false;
     public boolean reloadResolutions = false;
 
     public MasterRenderer() {
@@ -41,22 +40,19 @@ public class MasterRenderer {
 
         renderShader.start();
         renderShader.loadResolutions();
-        renderShader.loadBitmaskSize(world.getBitmaskSize());
-        renderShader.bindChunkTextures();
+        renderShader.loadChunkScale();
 
-        attachmentManager.add("color", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-        attachmentManager.add("depth", chunkManager.CHUNK_AMOUNT, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-        attachmentManager.add("rayDir", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-        attachmentManager.add("frameCount", chunkManager.CHUNK_AMOUNT, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-        attachmentManager.add("normal", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
-        attachmentManager.add("light", chunkManager.CHUNK_AMOUNT, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("color", 0, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("depth", 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        attachmentManager.add("rayDir", 0, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("frameCount", 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        attachmentManager.add("normal", 0, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
+        attachmentManager.add("light", 0, GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE);
 
         for (final String key : attachmentManager.keys()) {
             final ImageBuffer2D imageBuffer = attachmentManager.get(key);
             renderShader.bindTexture(key + "Attachment", imageBuffer.getPosition());
         }
-
-        ssboTest.create(new int[]{0, 1, 2});
 
         BaseShader.stop();
 
@@ -122,10 +118,7 @@ public class MasterRenderer {
         // Create attachments
 
         // Binding attachments
-        for (int i = 0; i < 8; i++) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_3D, chunkManager.getChunkBufferIDArray()[i]);
-        }
+        ssboTest.create(chunkManager.getChunkBufferIDArray());
 
         attachmentManager.bind();
         ssboTest.bind();
@@ -208,6 +201,7 @@ public class MasterRenderer {
     public void cleanUp() {
         renderShader.cleanUp();
         attachmentManager.delete();
+        chunkManager.cleanUp();
 
         glDeleteBuffers(displayBufferID);
     }

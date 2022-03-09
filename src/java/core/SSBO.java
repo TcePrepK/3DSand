@@ -14,7 +14,7 @@ public class SSBO {
         this.usage = usage;
     }
 
-    public void create(final int[] data) {
+    public void create(final long[] data) {
         id = glGenBuffers();
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, id);
@@ -24,6 +24,6 @@ public class SSBO {
     }
 
     public void bind() {
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, id);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, id);
     }
 }

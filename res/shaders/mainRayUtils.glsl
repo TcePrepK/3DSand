@@ -177,27 +177,17 @@ void DDA(inout Ray ray, inout HitRecord record) {
     int hitId = 0;
     ray.color = vec3(1);
     while (record.distance < world.secondHitTime - off) {
-        //        vec3 texturePos = gridCoords / textureScale;
-        //        if (!inBounds(texturePos, vec3(1))) {
-        //            DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
-        //            continue;
-        //        }
-
-        ivec3 chunkPos = ivec3(gridCoords / 32);
-        uint chunkIDX = chunkPos.x + chunkPos.y * 2 + chunkPos.z * 4;
-        vec3 chunkOffset = gridCoords % 32 / vec3(32);
-
-        for (int i = 0; i < 8; i++) {
-            if (i != chunkIDX) {
-                continue;
-            }
-
-            hitId = int(texture(chunkTextures[i], chunkOffset).r * 255);
+        if (!inBounds(gridCoords, vec3(32 * chunkScale.x))) {
             break;
         }
 
+        ivec3 chunkPos = ivec3(gridCoords / 32);
+        uint chunkIDX = chunkPos.x + (chunkPos.y * chunkScale.x) + (chunkPos.z * chunkScale.x * chunkScale.y);
+        vec3 chunkOffset = gridCoords % 32 / 32.0;
+
+        hitId = int(texture(sampler3D(chunkBuffer.textures[chunkIDX]), chunkOffset).r * 255);
+
         if (hitId != 0) {
-            outLight = chunkOffset;
             if (hitId == 1) {
                 record.light = true;
             }
@@ -284,8 +274,8 @@ HitRecord PrimaryDDA(inout Ray ray) {
     return record;
 }
 
-HitRecord FinderDDA(inout Ray ray, float distance) {
-    HitRecord record = HitRecord(vec3(0), ivec3(0), vec3(0), distance, false, 0);
+HitRecord FinderDDA(inout Ray ray) {
+    HitRecord record = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
     DDA(ray, record);
 
     return record;

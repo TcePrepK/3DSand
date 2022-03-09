@@ -1,6 +1,7 @@
 package core;
 
 import display.DisplayManager;
+import game.ChunkGenerationSpeed;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
@@ -77,15 +78,41 @@ public class ImGuiManager {
         ImGui.spacing();
         // Output Control
 
-        // Ray Control
-        if (ImGui.checkbox("Path Tracing", GlobalVariables.pathTracing)) {
-            GlobalVariables.pathTracing = !GlobalVariables.pathTracing;
+        // World Generation
+        if (ImGui.treeNode("Speed Options")) {
+            final String[] options = ChunkGenerationSpeed.valueNames();
+            int selectedOption = 0;
+            for (int i = 0; i < options.length; i++) {
+                if (options[i].equals(generationSpeedOption)) {
+                    selectedOption = i;
+                    break;
+                }
+            }
+
+            final ImInt selected = new ImInt(selectedOption);
+            ImGui.listBox("##Options", selected, options, 3);
+            generationSpeedOption = options[selected.get()];
+
+            ImGui.treePop();
         }
 
-        if (ImGui.checkbox("Render Bitmask Borders", GlobalVariables.drawBitmaskBorders)) {
-            GlobalVariables.drawBitmaskBorders = !GlobalVariables.drawBitmaskBorders;
+        if (ImGui.checkbox("Generate World", generateWorld)) {
+            generateWorld = !generateWorld;
         }
-        
+
+        ImGui.spacing();
+        ImGui.spacing();
+        // World Generation
+
+        // Ray Control
+        if (ImGui.checkbox("Path Tracing", pathTracing)) {
+            pathTracing = !pathTracing;
+        }
+
+        if (ImGui.checkbox("Render Bitmask Borders", drawBitmaskBorders)) {
+            drawBitmaskBorders = !drawBitmaskBorders;
+        }
+
         ImGui.spacing();
         ImGui.spacing();
         // Ray Control

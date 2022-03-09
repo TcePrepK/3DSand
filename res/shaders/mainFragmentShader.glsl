@@ -1,4 +1,5 @@
 #version 450 core
+#extension GL_ARB_bindless_texture : require
 
 in vec2 resolution;
 in vec3 topLeftCorner;
@@ -17,17 +18,12 @@ uniform bool isPathTracing;
 uniform bool isRenderingBitmask;
 uniform int bitmaskSize;
 
-//layout (binding = 0) uniform sampler3D worldTexture;
-//layout (binding = 1) uniform sampler3D bitmaskTexture;
+uniform ivec3 chunkScale;
+int chunkAmount = chunkScale.x * chunkScale.y * chunkScale.z;
 
-//uniform int chunkAmount;
-uniform sampler3D chunkTextures[8];
-
-//layout(std430, binding = 0) readonly buffer chunkBuffer
-//{
-//    uint textureCount;
-//    sampler3D textures[];
-//};
+layout(std430, binding = 0) readonly buffer ChunkBuffer {
+    uvec2 textures[];
+}chunkBuffer;
 
 uniform sampler2D colorAttachment;
 uniform sampler2D depthAttachment;
@@ -125,7 +121,7 @@ int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int f
 
     const vec3 oldRayDir = texture(rayDirAttachment, oldScreenPixelPos).rgb;
     Ray oldRay = Ray(oldCameraPos, oldRayDir, vec3(0));
-    HitRecord oldRecord = FinderDDA(oldRay, texture(depthAttachment, oldScreenPixelPos).r * maxDistance);
+    HitRecord oldRecord = FinderDDA(oldRay);
 
     //    const float threshold = 0.1 * outDepth;
     const float threshold = length(2 / resolution * outDepth * maxDistance);

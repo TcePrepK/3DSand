@@ -3,7 +3,7 @@ package shaders;
 import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
-import org.lwjgl.opengl.GL20;
+import toolbox.Points.Point3D;
 
 import static core.GlobalVariables.*;
 
@@ -23,6 +23,7 @@ public class RayTracerShader extends BaseShader {
     private int randVector2D;
     private int oldCameraPos;
     private int bitmaskSize;
+    private int chunkScale;
 
     private int isPathTracing;
     private int isRenderingBitmask;
@@ -50,18 +51,10 @@ public class RayTracerShader extends BaseShader {
         randVector2D = super.getUniformLocation("randVector2D");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
         bitmaskSize = super.getUniformLocation("bitmaskSize");
+        chunkScale = super.getUniformLocation("chunkScale");
 
         isPathTracing = super.getUniformLocation("isPathTracing");
         isRenderingBitmask = super.getUniformLocation("isRenderingBitmask");
-    }
-
-    public void bindChunkTextures() {
-        final int[] positions = new int[8];
-        for (int i = 0; i < 8; i++) {
-            positions[i] = i;
-        }
-
-        GL20.glUniform1iv(super.getUniformLocation("chunkTextures"), positions);
     }
 
     public void bindTexture(final String id, final int pos) {
@@ -78,6 +71,10 @@ public class RayTracerShader extends BaseShader {
         BaseShader.load3DVector(lookFrom, camera.getPosition());
         BaseShader.load3DVector(lookTo, player.getPosition());
         BaseShader.load3DVector(textureScale, world.getWorldScale().toVector3D());
+    }
+
+    public void loadChunkScale() {
+        BaseShader.load3DVector(chunkScale, new Point3D(chunkViewDistance * 2));
     }
 
     public void loadBitmaskSize(final int size) {

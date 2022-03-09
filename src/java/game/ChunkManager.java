@@ -2,6 +2,7 @@ package game;
 
 import core.imageBuffers.ImageBuffer3D;
 import elements.Element;
+import org.lwjgl.opengl.ARBBindlessTexture;
 import toolbox.Points.Point3D;
 import toolbox.Vector3D;
 
@@ -23,7 +24,7 @@ public class ChunkManager {
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
     private final Chunk[] chunkArray;
-    private final int[] chunkBufferIDArray;
+    private final long[] chunkBufferIDArray;
 
     public ChunkManager(final int width, final int height, final int depth) {
         WIDTH = width;
@@ -32,7 +33,7 @@ public class ChunkManager {
         CHUNK_AMOUNT = WIDTH * HEIGHT * DEPTH;
 
         chunkArray = new Chunk[width * height * depth];
-        chunkBufferIDArray = new int[width * height * depth];
+        chunkBufferIDArray = new long[width * height * depth];
     }
 
     public void updateBuffers() {
@@ -45,10 +46,31 @@ public class ChunkManager {
                         continue;
                     }
 
-                    chunk.updateBuffer();
+                    if (!chunk.shouldUpdateBuffer()) {
+                        continue;
+                    }
 
+                    chunk.updateBuffer();
                     final ImageBuffer3D buffer = chunk.getChunkBuffer();
-                    chunkBufferIDArray[idx] = buffer.getRecentID();
+
+                    chunkBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(buffer.getRecentID());
+                    ARBBindlessTexture.glMakeTextureHandleResidentARB(chunkBufferIDArray[idx]);
+                }
+            }
+        }
+    }
+
+    public void cleanUp() {
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                for (int z = 0; z < DEPTH; z++) {
+                    final int idx = getIDX(x, y, z);
+                    final Chunk chunk = chunkArray[idx];
+                    if (chunk == null) {
+                        continue;
+                    }
+
+                    chunk.getChunkBuffer().delete();
                 }
             }
         }
@@ -138,11 +160,7 @@ public class ChunkManager {
         return getIDX(pos.x, pos.y, pos.z);
     }
 
-    public Chunk[] getChunkArray() {
-        return chunkArray;
-    }
-
-    public int[] getChunkBufferIDArray() {
+    public long[] getChunkBufferIDArray() {
         return chunkBufferIDArray;
     }
 }
