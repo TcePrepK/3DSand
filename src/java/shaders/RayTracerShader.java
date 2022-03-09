@@ -64,6 +64,7 @@ public class RayTracerShader extends BaseShader {
     public void loadResolutions() {
         BaseShader.load2DVector(displayRes, new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT));
         BaseShader.load2DVector(viewportRes, camera.getViewportResolution());
+        BaseShader.loadInt(bitmaskSize, mapBitmaskSize);
     }
 
     public void loadCameraVariables() {
@@ -75,10 +76,6 @@ public class RayTracerShader extends BaseShader {
 
     public void loadChunkScale() {
         BaseShader.load3DVector(chunkScale, new Point3D(chunkViewDistance * 2));
-    }
-
-    public void loadBitmaskSize(final int size) {
-        BaseShader.loadInt(bitmaskSize, size);
     }
 
     public void loadOldVariables() {

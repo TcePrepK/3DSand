@@ -22,14 +22,15 @@ public class GlobalVariables {
 
     public static String outputOption = "color";
     public static String generationSpeedOption = ChunkGenerationSpeed.SLOW_1.name();
-    public static float chunksPerUpdate = 0;
 
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
     public static String currentMat = "Sand";
 
     public final static int mapChunkSize = 32;
-    public final static int chunkViewDistance = 8;
+    public final static int mapBitmaskSize = 4;
+
+    public final static int chunkViewDistance = 4;
     public static float worldGenerationPercentage = 0;
     public static boolean generateWorld = true;
 

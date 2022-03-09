@@ -25,6 +25,10 @@ layout(std430, binding = 0) readonly buffer ChunkBuffer {
     uvec2 textures[];
 }chunkBuffer;
 
+layout(std430, binding = 1) readonly buffer BitmaskBuffer {
+    uvec2 textures[];
+}bitmaskBuffer;
+
 uniform sampler2D colorAttachment;
 uniform sampler2D depthAttachment;
 uniform sampler2D rayDirAttachment;

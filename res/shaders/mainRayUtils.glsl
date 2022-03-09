@@ -185,17 +185,42 @@ void DDA(inout Ray ray, inout HitRecord record) {
         uint chunkIDX = chunkPos.x + (chunkPos.y * chunkScale.x) + (chunkPos.z * chunkScale.x * chunkScale.y);
         vec3 chunkOffset = gridCoords % 32 / 32.0;
 
-        hitId = int(texture(sampler3D(chunkBuffer.textures[chunkIDX]), chunkOffset).r * 255);
+        bool jumpChunk = chunkBuffer.textures[chunkIDX] == uvec2(0);
 
-        if (hitId != 0) {
-            if (hitId == 1) {
-                record.light = true;
+        int jumpAmount = jumpChunk ? 32 : bitmaskSize;
+        int bitmask = int(texture(sampler3D(bitmaskBuffer.textures[chunkIDX]), chunkOffset).r * 255);
+        if (jumpChunk || bitmask == 0) {
+            if (isRenderingBitmask) {
+                if (testForBorder(ray, record.distance, stepDir * jumpAmount)) {
+                    ray.color = vec3(0);
+                } else if (ray.color != vec3(0)) {
+                    ray.color = vec3(0.1, 2, 0.1);
+                }
             }
 
-            break;
+            vec3 currPos = at(ray, record.distance);
+            const vec3 distToBorder = rayInverse * (voxExit * jumpAmount - (fract(currPos) + (gridCoords % jumpAmount)));
+            const float time = min(min(distToBorder.x, distToBorder.y), distToBorder.z);
+            idx = time == distToBorder.x ? 0 : time == distToBorder.y ? 1 : 2;
+
+            record.distance += time + off;
+            currPos = at(ray, record.distance);
+            gridCoords = ivec3(floor(currPos));
+            tV = record.distance + rayInverse * (voxExit - fract(currPos));
+        } else {
+            hitId = int(texture(sampler3D(chunkBuffer.textures[chunkIDX]), chunkOffset).r * 255);
+
+            if (hitId != 0) {
+                if (hitId == 1) {
+                    record.light = true;
+                }
+
+                break;
+            }
+
+            DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
         }
 
-        DDAStep(stepDir, tS, gridCoords, tV, record.distance, idx);
 
         //        int bitmask = int(texture(bitmaskTexture, texturePos).r * 255);
         //        if (bitmask == 0) {

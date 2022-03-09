@@ -1,6 +1,5 @@
 package game;
 
-import core.imageBuffers.ImageBuffer3D;
 import elements.Element;
 import org.lwjgl.opengl.ARBBindlessTexture;
 import toolbox.Points.Point3D;
@@ -24,7 +23,9 @@ public class ChunkManager {
     private final List<Chunk> chunkUpdateList = new ArrayList<>();
 
     private final Chunk[] chunkArray;
-    private final long[] chunkBufferIDArray;
+
+    private final long[] voxelBufferIDArray;
+    private final long[] bitmaskBufferIDArray;
 
     public ChunkManager(final int width, final int height, final int depth) {
         WIDTH = width;
@@ -33,7 +34,9 @@ public class ChunkManager {
         CHUNK_AMOUNT = WIDTH * HEIGHT * DEPTH;
 
         chunkArray = new Chunk[width * height * depth];
-        chunkBufferIDArray = new long[width * height * depth];
+
+        voxelBufferIDArray = new long[width * height * depth];
+        bitmaskBufferIDArray = new long[width * height * depth];
     }
 
     public void updateBuffers() {
@@ -50,11 +53,13 @@ public class ChunkManager {
                         continue;
                     }
 
-                    chunk.updateBuffer();
-                    final ImageBuffer3D buffer = chunk.getChunkBuffer();
+                    chunk.updateBuffers();
 
-                    chunkBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(buffer.getRecentID());
-                    ARBBindlessTexture.glMakeTextureHandleResidentARB(chunkBufferIDArray[idx]);
+                    voxelBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getVoxelBuffer().getRecentID());
+                    bitmaskBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getBitmaskBuffer().getRecentID());
+
+                    ARBBindlessTexture.glMakeTextureHandleResidentARB(voxelBufferIDArray[idx]);
+                    ARBBindlessTexture.glMakeTextureHandleResidentARB(bitmaskBufferIDArray[idx]);
                 }
             }
         }
@@ -70,7 +75,7 @@ public class ChunkManager {
                         continue;
                     }
 
-                    chunk.getChunkBuffer().delete();
+                    chunk.getVoxelBuffer().delete();
                 }
             }
         }
@@ -160,7 +165,11 @@ public class ChunkManager {
         return getIDX(pos.x, pos.y, pos.z);
     }
 
-    public long[] getChunkBufferIDArray() {
-        return chunkBufferIDArray;
+    public long[] getVoxelBufferIDArray() {
+        return voxelBufferIDArray;
+    }
+
+    public long[] getBitmaskBufferIDArray() {
+        return bitmaskBufferIDArray;
     }
 }

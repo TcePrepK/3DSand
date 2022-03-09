@@ -24,7 +24,8 @@ public class MasterRenderer {
     private final int displayBufferID;
 
     private final AttachmentManager attachmentManager = new AttachmentManager(WIDTH, HEIGHT);
-    private final SSBO ssboTest = new SSBO(0, GL_DYNAMIC_READ);
+    private final SSBO chunkBuffer = new SSBO(0, GL_DYNAMIC_READ);
+    private final SSBO bitmaskBuffer = new SSBO(1, GL_DYNAMIC_READ);
 
     private boolean loadCameraVariables = false;
     public boolean reloadResolutions = false;
@@ -118,10 +119,13 @@ public class MasterRenderer {
         // Create attachments
 
         // Binding attachments
-        ssboTest.create(chunkManager.getChunkBufferIDArray());
+        chunkBuffer.create(chunkManager.getVoxelBufferIDArray());
+        bitmaskBuffer.create(chunkManager.getBitmaskBufferIDArray());
 
         attachmentManager.bind();
-        ssboTest.bind();
+
+        chunkBuffer.bind();
+        bitmaskBuffer.bind();
         // Binding attachments
 
         // Drawing

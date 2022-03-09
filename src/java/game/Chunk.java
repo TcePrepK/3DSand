@@ -24,12 +24,16 @@ public class Chunk {
     private int minXw, maxXw, minYw, maxYw, minZw, maxZw;
 
     private final Point3D chunkScale = new Point3D(mapChunkSize);
+    private final Point3D bitmaskScale = new Point3D(mapChunkSize / mapBitmaskSize);
     private final Element[] grid = new Element[chunkScale.x * chunkScale.y * chunkScale.z];
     private final byte[] idGrid = new byte[chunkScale.x * chunkScale.y * chunkScale.z];
 
-    private final ByteBuffer voxelBuffer = BufferUtils.createByteBuffer(mapChunkSize * mapChunkSize * mapChunkSize);
-    private final ImageBuffer3D chunkBuffer = new ImageBuffer3D(chunkScale, 0, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    private boolean updateBuffer = true;
+    private final ByteBuffer voxelBuffer = BufferUtils.createByteBuffer(chunkScale.x * chunkScale.y * chunkScale.z);
+    private final ImageBuffer3D voxelImageBuffer = new ImageBuffer3D(chunkScale, 0, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+
+    private final ByteBuffer bitmaskBuffer = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
+    private final ImageBuffer3D bitmaskImageBuffer = new ImageBuffer3D(bitmaskScale, 0, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+    private boolean updateBuffers = true;
 
 //    private final int bitmaskSize = 4;
 //    private final Point3D bitmaskScale = chunkScale.div(bitmaskSize);
@@ -39,7 +43,8 @@ public class Chunk {
         pos = new Point3D(x, y, z).mult(mapChunkSize);
         this.id = id;
 
-        chunkBuffer.create(null);
+        voxelImageBuffer.create(null);
+        bitmaskImageBuffer.create(null);
 
         generateTerrain(100);
         generateCaves(100);
@@ -159,16 +164,20 @@ public class Chunk {
         }
     }
 
-    public void updateBuffer() {
-        if (!updateBuffer) {
+    public void updateBuffers() {
+        if (!updateBuffers) {
             return;
         }
 
         voxelBuffer.flip();
-        chunkBuffer.updatePixels(voxelBuffer);
+        voxelImageBuffer.updatePixels(voxelBuffer);
         voxelBuffer.clear();
 
-        updateBuffer = false;
+        bitmaskBuffer.flip();
+        bitmaskImageBuffer.updatePixels(bitmaskBuffer);
+        bitmaskBuffer.clear();
+
+        updateBuffers = false;
     }
 
     public void awakeGrid(final int x, final int y, final int z) {
@@ -238,10 +247,13 @@ public class Chunk {
         final int idx = getIDX(x - pos.x, y - pos.y, z - pos.z);
         grid[idx] = e;
         idGrid[idx] = (byte) (e == null ? 0 : e.getId());
-
         voxelBuffer.put(idx, (byte) (e == null ? 0 : e.getId()));
 
-        updateBuffer = true;
+        final int bitmaskIDX = getBitmaskIDX(x - pos.x, y - pos.y, z - pos.z);
+        final int previousData = bitmaskBuffer.get(bitmaskIDX);
+        bitmaskBuffer.put(bitmaskIDX, (byte) (previousData + ((e == null) ? -1 : 1)));
+
+        updateBuffers = true;
     }
 
     public void setElement(final Point3D pos, final Element e) {
@@ -268,8 +280,19 @@ public class Chunk {
         return x + (y * chunkScale.x) + (z * chunkScale.x * chunkScale.y);
     }
 
-    public ImageBuffer3D getChunkBuffer() {
-        return chunkBuffer;
+    public int getBitmaskIDX(final int x, final int y, final int z) {
+        final int bitX = x / mapBitmaskSize;
+        final int bitY = y / mapBitmaskSize;
+        final int bitZ = z / mapBitmaskSize;
+        return bitX + bitY * bitmaskScale.x + bitZ * bitmaskScale.x * bitmaskScale.y;
+    }
+
+    public ImageBuffer3D getVoxelBuffer() {
+        return voxelImageBuffer;
+    }
+
+    public ImageBuffer3D getBitmaskBuffer() {
+        return bitmaskImageBuffer;
     }
 
     public int getHeight() {
@@ -313,7 +336,7 @@ public class Chunk {
     }
 
     public boolean shouldUpdateBuffer() {
-        return updateBuffer;
+        return updateBuffers;
     }
 }
     

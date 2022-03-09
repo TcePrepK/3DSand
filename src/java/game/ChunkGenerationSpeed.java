@@ -8,13 +8,19 @@ public enum ChunkGenerationSpeed {
     ENOUGH_TO_NOT_CRASH_32;
 
     public static int enumToSpeed(final String value) {
-        final char[] chars = value.toCharArray();
-        final char lastChar = chars[chars.length - 1];
-
-        try {
-            return Integer.parseInt(String.valueOf(lastChar));
-        } catch (final NumberFormatException ex) {
-            return 0;
+        switch (value) {
+            case "SLOW_1":
+                return 1;
+            case "MEDIUM_4":
+                return 4;
+            case "FAST_8":
+                return 8;
+            case "SUPER_FAST_16":
+                return 16;
+            case "ENOUGH_TO_NOT_CRASH_32":
+                return 32;
+            default:
+                return 0;
         }
     }
 
