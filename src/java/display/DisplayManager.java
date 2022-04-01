@@ -1,13 +1,13 @@
 package display;
 
 import core.Signal;
+import core.Timer;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 import toolbox.Logger;
-import toolbox.Timer;
 
 import java.awt.*;
 

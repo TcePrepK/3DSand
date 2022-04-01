@@ -1,5 +1,6 @@
 package toolbox;
 
+import core.Mouse;
 import game.Camera;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

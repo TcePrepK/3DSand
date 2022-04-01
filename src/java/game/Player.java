@@ -1,10 +1,10 @@
 package game;
 
 import core.GlobalVariables;
+import core.Keyboard;
 import display.DisplayManager;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import toolbox.Keyboard;
 import toolbox.Vector3D;
 
 import static core.GlobalVariables.world;

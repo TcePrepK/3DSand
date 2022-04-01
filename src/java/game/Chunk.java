@@ -43,29 +43,32 @@ public class Chunk {
         pos = new Point3D(x, y, z).mult(mapChunkSize);
         this.id = id;
 
-        voxelImageBuffer.create(null);
-        bitmaskImageBuffer.create(null);
-
         generateTerrain(100);
         generateCaves(100);
 //        generateSponge();
 
 //        generateNoiseChunk();
+
+        updateRect(true);
     }
 
     public void generateTerrain(final float scale) {
         final float lightScale1 = 100;
         final float lightScale2 = 10;
+        final float maxChunkDepth = 3;
         for (int offX = 0; offX < chunkScale.x; offX++) {
             final int finalX = pos.x + offX;
             for (int offZ = 0; offZ < chunkScale.z; offZ++) {
                 final int finalZ = pos.z + offZ;
 
                 final float height;
-                if (pos.y < (2 * chunkViewDistance - 1) * mapChunkSize) {
+                if (pos.y < (2 * chunkViewDistance - maxChunkDepth) * mapChunkSize) {
                     height = mapChunkSize;
                 } else {
-                    height = (float) Math.abs(Noise.noise(finalX / scale, finalZ / scale)) * mapChunkSize;
+                    final float noise = (float) Math.abs(Noise.noise(finalX / scale, finalZ / scale)); // [0, 1]
+                    final float targetHeight = noise * mapChunkSize * maxChunkDepth; // [0, 64]
+                    final float chunkHeight = pos.y - (2 * chunkViewDistance - maxChunkDepth) * mapChunkSize;
+                    height = targetHeight - chunkHeight;
                 }
 
                 for (int finalY = pos.y; finalY < pos.y + height; finalY++) {
@@ -169,13 +172,16 @@ public class Chunk {
             return;
         }
 
-        voxelBuffer.flip();
-        voxelImageBuffer.updatePixels(voxelBuffer);
-        voxelBuffer.clear();
+//        voxelBuffer.flip();
+        voxelImageBuffer.create(voxelBuffer);
+//        voxelBuffer.clear();
 
-        bitmaskBuffer.flip();
-        bitmaskImageBuffer.updatePixels(bitmaskBuffer);
-        bitmaskBuffer.clear();
+//        bitmaskBuffer.flip();
+        bitmaskImageBuffer.create(bitmaskBuffer);
+//        bitmaskBuffer.clear();
+
+        voxelImageBuffer.update();
+        bitmaskImageBuffer.update();
 
         updateBuffers = false;
     }
@@ -202,18 +208,18 @@ public class Chunk {
 
     public void updateRect(final boolean updatedThisFrame) {
         minX = (int) Maths.clamp(minXw, pos.x, pos.x + chunkScale.x);
-        minY = (int) Maths.clamp(minYw, 0, chunkScale.y);
+        minY = (int) Maths.clamp(minYw, pos.y, pos.y + chunkScale.y);
         minZ = (int) Maths.clamp(minZw, pos.z, pos.z + chunkScale.z);
         maxX = (int) Maths.clamp(maxXw, pos.x, pos.x + chunkScale.x);
-        maxY = (int) Maths.clamp(maxYw, 0, chunkScale.y);
+        maxY = (int) Maths.clamp(maxYw, pos.x, pos.y + chunkScale.y);
         maxZ = (int) Maths.clamp(maxZw, pos.z, pos.z + chunkScale.z);
 
         if (updatedThisFrame) {
             minXw = pos.x + chunkScale.x;
-            minYw = chunkScale.y;
+            minYw = pos.y + chunkScale.y;
             minZw = pos.z + chunkScale.z;
             maxXw = pos.x;
-            maxYw = 0;
+            maxYw = pos.y;
             maxZw = pos.z;
         } else {
             minXw = 0;
@@ -225,24 +231,12 @@ public class Chunk {
         }
     }
 
-    public int getMinHeight(final int x, final int z) {
-        int currentHeight = 0;
-        while (currentHeight < chunkScale.y) {
-            final Element e = getElement(x, currentHeight, z);
-            if (e == null) {
-                return currentHeight;
-            }
-
-            currentHeight++;
-        }
-
-        return currentHeight;
-    }
-
     public void setElement(final int x, final int y, final int z, final Element e) {
         if (outBounds(x, y, z)) {
             return;
         }
+
+        awakeGrid(x, y, z);
 
         final int idx = getIDX(x - pos.x, y - pos.y, z - pos.z);
         grid[idx] = e;

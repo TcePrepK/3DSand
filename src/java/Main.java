@@ -1,13 +1,13 @@
-import core.ImGuiManager;
-import core.Loader;
+import core.Keyboard;
+import core.Mouse;
 import display.DisplayManager;
+import game.ChunkGenerationThread;
+import game.ChunkUpdateThread;
 import game.Player;
 import game.World;
 import org.lwjgl.glfw.GLFW;
 import renderers.MasterRenderer;
-import toolbox.Keyboard;
 import toolbox.Logger;
-import toolbox.Mouse;
 import toolbox.MousePicker;
 import toolbox.Points.Point3D;
 
@@ -16,10 +16,6 @@ import static core.GlobalVariables.*;
 public class Main {
     public static void main(final String[] args) {
         DisplayManager.createDisplay();
-
-        imGuiManager = new ImGuiManager();
-        loader = new Loader();
-        renderer = new MasterRenderer();
 
         // Init
         elementRegistery.init();
@@ -34,7 +30,6 @@ public class Main {
         // Camera
 
         // World Generation
-        Logger.out("~ World Generation Starting");
         for (int i = 0; i < chunkViewDistance * 2; i++) {
             for (int j = 0; j < chunkViewDistance * 2; j++) {
                 for (int k = 0; k < chunkViewDistance * 2; k++) {
@@ -42,8 +37,12 @@ public class Main {
                 }
             }
         }
-        final int totalChunks = (int) Math.pow(2 * chunkViewDistance, 3);
         // World Generation
+
+        // Thread
+        threadManager.addThread(new ChunkGenerationThread()).start();
+        threadManager.addThread(new ChunkUpdateThread());
+        // Thread
 
         // Test
 //        final BitManager manager = new BitManager(256, 256, 256, 4);
@@ -63,17 +62,18 @@ public class Main {
             player.update();
             elementPlacer.update();
             Mouse.update();
+            threadManager.update();
 
 //            world.update();
 
-            final double generationTime = world.updateChunkGenerationList();
-            worldGenerationPercentage = (totalChunks - world.getChunkGenerationList().size()) / (float) totalChunks * 100;
+//            final double generationTime = world.updateChunkGenerationList();
+//            worldGenerationPercentage = (totalChunks - world.getChunkGenerationList().size()) / (float) totalChunks * 100;
 
             World.updateBuffers();
 
             DisplayManager.startRenderTimer();
             renderer.render();
-            imGuiManager.update(generationTime, DisplayManager.getRenderTime());
+            imGuiManager.update(0, DisplayManager.getRenderTime());
             MasterRenderer.finishRendering();
 
             renderer.loadOldCameraVariables();

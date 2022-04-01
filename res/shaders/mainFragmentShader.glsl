@@ -17,6 +17,7 @@ uniform vec3 oldCameraPos;
 uniform bool isPathTracing;
 uniform bool isRenderingBitmask;
 uniform int bitmaskSize;
+uniform int lightBounceAmount;
 
 uniform ivec3 chunkScale;
 int chunkAmount = chunkScale.x * chunkScale.y * chunkScale.z;

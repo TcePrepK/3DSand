@@ -109,6 +109,7 @@ public class MasterRenderer {
         renderShader.loadRandomVector();
         renderShader.loadPathTracingSetting();
         renderShader.loadBitmaskBorderSetting();
+        renderShader.loadLightBounceAmount();
 
         // Bind texture buffer
         bindFrameBuffer();

@@ -1,6 +1,5 @@
-package toolbox;
+package core;
 
-import core.Signal;
 import display.DisplayManager;
 import org.lwjgl.glfw.GLFW;
 

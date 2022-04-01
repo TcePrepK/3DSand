@@ -1,4 +1,4 @@
-package toolbox;
+package core;
 
 public class Timer {
     private double startTime = 0;

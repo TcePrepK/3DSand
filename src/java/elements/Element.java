@@ -1,9 +1,9 @@
 package elements;
 
 import core.GlobalVariables;
+import core.Keyboard;
 import game.Chunk;
 import toolbox.Color;
-import toolbox.Keyboard;
 import toolbox.Points.Point3D;
 
 import java.awt.*;

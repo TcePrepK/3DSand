@@ -45,6 +45,10 @@ public abstract class ImageBuffer {
 
     abstract public void bind();
 
+    public boolean isEmpty() {
+        return id == 0 && oldID == 0;
+    }
+
     public int getRecentID() {
         return id;
     }

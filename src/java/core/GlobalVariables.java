@@ -11,6 +11,7 @@ import java.util.Random;
 public class GlobalVariables {
     public static int currentFrame = 0;
 
+    // Debugging
     public static boolean mouseLocked = false;
     public final static boolean creativeMode = true;
     public static boolean freePlayMode = true;
@@ -19,14 +20,21 @@ public class GlobalVariables {
     public static boolean noisyWorld = true;
     public static boolean pathTracing = true;
     public static boolean drawBitmaskBorders = false;
+    // Debugging
 
-    public static String outputOption = "color";
-    public static String generationSpeedOption = ChunkGenerationSpeed.SLOW_1.name();
+    // Core
+    public static ImGuiManager imGuiManager = new ImGuiManager();
+    public static Loader loader = new Loader();
+    public static ThreadManager threadManager = new ThreadManager();
+    // Core
 
+    // Elements
     public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
     public static String currentMat = "Sand";
+    // Elements
 
+    // World
     public final static int mapChunkSize = 32;
     public final static int mapBitmaskSize = 4;
 
@@ -36,14 +44,19 @@ public class GlobalVariables {
 
     public final static World world = new World();
     public final static ChunkManager chunkManager = new ChunkManager(2 * GlobalVariables.chunkViewDistance, 2 * GlobalVariables.chunkViewDistance, 2 * GlobalVariables.chunkViewDistance);
+    // World
 
+    // User
     public static MousePicker mousePicker;
     public final static Random rand = new Random();
     public static Camera camera = new Camera();
     public static Player player;
+    // User
 
-
-    public static ImGuiManager imGuiManager;
-    public static Loader loader;
-    public static MasterRenderer renderer;
+    // Output
+    public static MasterRenderer renderer = new MasterRenderer();
+    public static String outputOption = "color";
+    public static String generationSpeedOption = ChunkGenerationSpeed.SLOW_FAST_128.name();
+    public static int lightBounceAmount = 1;
+    // Output
 }

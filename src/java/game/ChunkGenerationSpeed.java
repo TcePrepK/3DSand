@@ -1,24 +1,36 @@
 package game;
 
 public enum ChunkGenerationSpeed {
-    SLOW_1,
-    MEDIUM_4,
-    FAST_8,
-    SUPER_FAST_16,
-    ENOUGH_TO_NOT_CRASH_32;
+    SLOW_SLOW_2,
+    MEDIUM_SLOW_4,
+    FAST_SLOW_8,
+    SLOW_MEDIUM_16,
+    MEDIUM_MEDIUM_32,
+    FAST_MEDIUM_64,
+    SLOW_FAST_128,
+    MEDIUM_FAST_256,
+    FAST_FAST_512;
 
     public static int enumToSpeed(final String value) {
         switch (value) {
-            case "SLOW_1":
-                return 1;
-            case "MEDIUM_4":
+            case "SLOW_SLOW_2":
+                return 2;
+            case "MEDIUM_SLOW_4":
                 return 4;
-            case "FAST_8":
+            case "FAST_SLOW_8":
                 return 8;
-            case "SUPER_FAST_16":
+            case "SLOW_MEDIUM_16":
                 return 16;
-            case "ENOUGH_TO_NOT_CRASH_32":
+            case "MEDIUM_MEDIUM_32":
                 return 32;
+            case "FAST_MEDIUM_64":
+                return 64;
+            case "SLOW_FAST_128":
+                return 128;
+            case "MEDIUM_FAST_256":
+                return 256;
+            case "FAST_FAST_512":
+                return 512;
             default:
                 return 0;
         }

@@ -68,8 +68,17 @@ bool inBounds(vec3 v, vec3 s) {
 }
 
 vec3 getSkyColor(vec3 dir) {
-    float time = 0.5 * (dir.y + 1);
-    return vec3(0.5, 0.7, 1) * time + (1 - time);
+    const vec3 skyColor = vec3(0.5, 0.7, 1);
+    const vec3 lightDir = normalize(vec3(1, 0.5, 0));
+
+    const float dist = (dot(dir, lightDir) + 1) / 2;
+    const float result = exp(-dist);
+
+    return skyColor * result;
+    //    return vec3((dot(dir, normalize(vec3(1, 1, 1))) + 1) * 0.5);
+
+    //    const float time = 1 * (dir.x + 1);
+    //    return skyColor * time + (1 - time);
 }
 
 vec3 randomizeNormal(vec3 normal) {
@@ -322,23 +331,49 @@ HitRecord ColorDDA(inout Ray ray) {
         return record;
     }
 
-    vec3 offHitPoint = record.position + record.normal / 100;
-
-    vec3 randDir = getNewDirection();
-    float product = dot(randDir, record.normal);
+    // Light Bounces
+    vec3 bouncePosition = record.position + record.normal / 1000;
+    vec3 bounceDirection = getNewDirection();
+    float product = dot(bounceDirection, record.normal);
     if (product < 0) {
-        randDir = normalize(-randDir);
+        bounceDirection *= -1;
         product *= -1;
     }
 
-    HitRecord lightRecord = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
-    Ray lightRay = Ray(offHitPoint, randDir, vec3(0));
-    if (LightDDA(lightRay, lightRecord)) {
-        ray.color *= getSkyColor(randDir);
+    vec3 lightColour = vec3(0);
+    for (int bounces = 0; bounces < lightBounceAmount; bounces++) {
 
-        return record;
+        HitRecord bounceRecord = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
+        Ray bounceRay = Ray(bouncePosition, bounceDirection, vec3(0));
+        DDA(bounceRay, bounceRecord);
+
+        if (bounceRecord.light) {
+            //            outLight = bounceRay.color;
+            //            lightColour = getSkyColor(bounceDirection) / (bounces + 1);
+            lightColour = bounceRay.color / (bounces + 1);
+            break;
+        }
+
+        bouncePosition = bounceRecord.position + bounceRecord.normal / 1000;
+        product = dot(bounceDirection, bounceRecord.normal);
+        if (product < 0) {
+            bounceDirection *= -1;
+            product *= -1;
+        }
     }
 
-    ray.color = vec3(0);
+    ray.color *= lightColour;
     return record;
+    // Light Bounces
+
+    //    HitRecord lightRecord = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
+    //    Ray lightRay = Ray(offHitPoint, randDir, vec3(0));
+    //    if (LightDDA(lightRay, lightRecord)) {
+    //        ray.color *= getSkyColor(randDir);
+    //
+    //        return record;
+    //    }
+    //
+    //    ray.color = vec3(0);
+    //    return record;
 }

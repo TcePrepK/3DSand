@@ -1,8 +1,8 @@
 package elements;
 
+import core.Mouse;
 import game.Chunk;
 import org.joml.Vector3f;
-import toolbox.Mouse;
 import toolbox.Points.Point3D;
 
 import static core.GlobalVariables.*;

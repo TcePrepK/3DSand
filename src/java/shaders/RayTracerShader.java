@@ -1,5 +1,6 @@
 package shaders;
 
+import core.GlobalVariables;
 import display.DisplayManager;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -24,6 +25,7 @@ public class RayTracerShader extends BaseShader {
     private int oldCameraPos;
     private int bitmaskSize;
     private int chunkScale;
+    private int lightBounceAmount;
 
     private int isPathTracing;
     private int isRenderingBitmask;
@@ -52,6 +54,7 @@ public class RayTracerShader extends BaseShader {
         oldCameraPos = super.getUniformLocation("oldCameraPos");
         bitmaskSize = super.getUniformLocation("bitmaskSize");
         chunkScale = super.getUniformLocation("chunkScale");
+        lightBounceAmount = super.getUniformLocation("lightBounceAmount");
 
         isPathTracing = super.getUniformLocation("isPathTracing");
         isRenderingBitmask = super.getUniformLocation("isRenderingBitmask");
@@ -90,6 +93,10 @@ public class RayTracerShader extends BaseShader {
 
     public void loadBitmaskBorderSetting() {
         BaseShader.loadBoolean(isRenderingBitmask, drawBitmaskBorders);
+    }
+
+    public void loadLightBounceAmount() {
+        BaseShader.loadInt(lightBounceAmount, GlobalVariables.lightBounceAmount);
     }
 
     public void loadRandomVector() {

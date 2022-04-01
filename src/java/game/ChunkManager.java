@@ -172,4 +172,8 @@ public class ChunkManager {
     public long[] getBitmaskBufferIDArray() {
         return bitmaskBufferIDArray;
     }
+
+    public List<Chunk> getChunkUpdateList() {
+        return chunkUpdateList;
+    }
 }

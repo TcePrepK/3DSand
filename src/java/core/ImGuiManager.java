@@ -113,6 +113,12 @@ public class ImGuiManager {
             drawBitmaskBorders = !drawBitmaskBorders;
         }
 
+        final int[] bounceInt = new int[]{lightBounceAmount};
+        if (ImGui.sliderInt("Bounce Amount", bounceInt, 0, 25)) {
+            lightBounceAmount = bounceInt[0];
+        }
+//        ImGui.sliderInt
+
         ImGui.spacing();
         ImGui.spacing();
         // Ray Control
