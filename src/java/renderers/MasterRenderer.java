@@ -3,8 +3,10 @@ package renderers;
 import core.AttachmentManager;
 import core.RawModel;
 import core.SSBO;
+import core.Timer;
 import core.imageBuffers.ImageBuffer2D;
 import display.DisplayManager;
+import game.World;
 import shaders.BaseShader;
 import shaders.DisplayShader;
 import shaders.RayTracerShader;
@@ -26,6 +28,11 @@ public class MasterRenderer {
     private final AttachmentManager attachmentManager = new AttachmentManager(WIDTH, HEIGHT);
     private final SSBO chunkBuffer = new SSBO(0, GL_DYNAMIC_READ);
     private final SSBO bitmaskBuffer = new SSBO(1, GL_DYNAMIC_READ);
+
+    private final Timer mainTimer = new Timer();
+    private float bindTime;
+    private float traceTime;
+    private float otherTime;
 
     private boolean loadCameraVariables = false;
     public boolean reloadResolutions = false;
@@ -73,15 +80,19 @@ public class MasterRenderer {
     }
 
     public void render() {
-//        // Simulation
-//        if (currentFrame % 2 == 0 && Keyboard.isKeyDown("Q")) {
-//            updateSimulation();
-//        }
-//        // Simulation
+        // Binding Timer
+        mainTimer.startTimer();
+        // Binding Timer
 
-        // Start renderer
+        // Update Buffers
+        World.updateBuffers();
+        // Update Buffers
+
+        // Start Renderer
         renderShader.start();
+        // Start Renderer
 
+        // Load Variables
         if (reloadResolutions) {
             renderShader.loadResolutions();
             reloadResolutions = false;
@@ -92,34 +103,19 @@ public class MasterRenderer {
             loadCameraVariables = false;
         }
 
-//        if (recreateWorldTexture) {
-//            final ByteBuffer worldByteBuffer = world.getWorldBuffer();
-//            worldByteBuffer.flip();
-//            worldBuffer.updatePixels(worldByteBuffer);
-//            worldByteBuffer.clear();
-//
-//            final ByteBuffer bitmaskByteBuffer = world.getBitmaskGrid();
-//            bitmaskByteBuffer.flip();
-//            bitmaskBuffer.updatePixels(bitmaskByteBuffer);
-//            bitmaskByteBuffer.clear();
-//
-//            recreateWorldTexture = false;
-//        }
-
         renderShader.loadRandomVector();
         renderShader.loadPathTracingSetting();
         renderShader.loadBitmaskBorderSetting();
         renderShader.loadLightBounceAmount();
+        // Load Variables
 
-        // Bind texture buffer
+        // Bind Texture Buffer
         bindFrameBuffer();
-        // Bind texture buffer
+        // Bind Texture Buffer
 
-        // Create attachments
+        // Attachments
         attachmentManager.createAttachments();
-        // Create attachments
 
-        // Binding attachments
         chunkBuffer.create(chunkManager.getVoxelBufferIDArray());
         bitmaskBuffer.create(chunkManager.getBitmaskBufferIDArray());
 
@@ -127,29 +123,37 @@ public class MasterRenderer {
 
         chunkBuffer.bind();
         bitmaskBuffer.bind();
-        // Binding attachments
+        // Attachments
 
-        // Drawing
+        // Binding Timer
+        bindTime = (float) mainTimer.stopTimer() * 1000;
+        // Binding Timer
+
+        // Timer For Others
+        mainTimer.startTimer();
+        // Timer For Others
+
+        // Rendering
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
         glDisableVertexAttribArray(0);
         glBindVertexArray(0);
-        // Drawing
+        // Rendering
 
-        // Unbind texture buffer
+        // Unbind Texture Buffer
         MasterRenderer.unbindFrameBuffer();
         BaseShader.stop();
-        // Unbind texture buffer
+        // Unbind Texture Buffer
 
-        // Start display
+        // Start Display
         displayShader.start();
-        // Start display
+        // Start Display
 
-        // Render texture to screen
+        // Render Texture To Screen
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, attachmentManager.get(outputOption).getID());
-        // Render texture to screen
+        // Render Texture To Screen
 
         glBindVertexArray(quad.getVaoID());
         glEnableVertexAttribArray(0);
@@ -160,11 +164,19 @@ public class MasterRenderer {
         BaseShader.stop();
 
         attachmentManager.update();
+
+        // Timer For Others
+        otherTime = (float) mainTimer.stopTimer() * 1000;
+        // Timer For Others
     }
 
-    public static void finishRendering() {
+    public void finishRendering() {
+        mainTimer.startTimer();
+
         glfwSwapBuffers(DisplayManager.getWindow());
         glfwPollEvents();
+
+        traceTime = (float) mainTimer.stopTimer() * 1000;
     }
 
     public void loadCameraVariablesNextFrame() {
@@ -213,5 +225,17 @@ public class MasterRenderer {
 
     public AttachmentManager getAttachmentManager() {
         return attachmentManager;
+    }
+
+    public float getBindTime() {
+        return bindTime;
+    }
+
+    public float getTraceTime() {
+        return traceTime;
+    }
+
+    public float getOtherTime() {
+        return otherTime;
     }
 }

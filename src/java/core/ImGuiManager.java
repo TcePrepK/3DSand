@@ -45,14 +45,20 @@ public class ImGuiManager {
         }
     }
 
-    public void update(final double renderTime) {
+    public void update(final float updateTime) {
         imGuiGlfw.newFrame();
         ImGui.newFrame();
         ImGui.begin("Cool Window");
 
         // FPS
         ImGui.text("FPS: " + DisplayManager.getFPS());
-        ImGui.text("Rendering time: " + renderTime + "ms");
+        ImGui.text("Average FPS: " + DisplayManager.getAverageFPS());
+        ImGui.spacing();
+        ImGui.text("Update time: " + updateTime + "ms");
+        ImGui.text("Binding time: " + renderer.getBindTime() + "ms");
+        ImGui.text("Tracing time: " + renderer.getTraceTime() + "ms");
+        ImGui.text("Other time: " + renderer.getOtherTime() + "ms");
+        ImGui.text("Total time: " + DisplayManager.getDelta() * 1000 + "ms");
         ImGui.spacing();
         ImGui.spacing();
         // FPS

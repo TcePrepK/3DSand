@@ -11,18 +11,17 @@ import toolbox.Logger;
 
 import java.awt.*;
 
+import static core.GlobalVariables.currentFrame;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class DisplayManager {
     public static int WIDTH = 1280;
     public static int HEIGHT = 720;
-    private static final int FPS_CAP = 120;
 
     private static final Timer fpsTimer = new Timer();
-    private static final Timer renderTimer = new Timer();
     private static float delta;
     private static float FPS;
-    private static float renderTime;
+    private static float AverageFPS;
 
     private static long windowID;
 
@@ -57,10 +56,10 @@ public class DisplayManager {
         DisplayManager.fpsTimer.startTimer();
     }
 
-    public static void updateDisplay() {
+    public static void updateDisplayTimer() {
         DisplayManager.delta = (float) DisplayManager.fpsTimer.stopTimer();
         DisplayManager.FPS = 1 / DisplayManager.delta;
-        DisplayManager.renderTime = (float) Math.floor(DisplayManager.renderTimer.stopTimer() * 1000 * 100) / 100;
+        DisplayManager.AverageFPS = ((DisplayManager.AverageFPS * (currentFrame - 1)) + DisplayManager.FPS) / currentFrame;
 
         DisplayManager.fpsTimer.startTimer();
     }
@@ -69,10 +68,6 @@ public class DisplayManager {
         Callbacks.glfwFreeCallbacks(DisplayManager.windowID);
         glfwDestroyWindow(DisplayManager.windowID);
         glfwTerminate();
-    }
-
-    public static void startRenderTimer() {
-        DisplayManager.renderTimer.startTimer();
     }
 
     private static void screenResize(final long window, final int width, final int height) {
@@ -89,11 +84,15 @@ public class DisplayManager {
         return DisplayManager.FPS;
     }
 
-    public static long getWindow() {
-        return DisplayManager.windowID;
+    public static float getAverageFPS() {
+        return DisplayManager.AverageFPS;
     }
 
-    public static float getRenderTime() {
-        return DisplayManager.renderTime;
+    public static float getDelta() {
+        return DisplayManager.delta;
+    }
+
+    public static long getWindow() {
+        return DisplayManager.windowID;
     }
 }

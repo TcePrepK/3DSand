@@ -1,13 +1,12 @@
 import core.Keyboard;
 import core.Mouse;
+import core.Timer;
 import display.DisplayManager;
 import elements.ElementRegistry;
 import game.Player;
-import game.World;
 import game.threads.ChunkGenerationThread;
 import game.threads.ChunkUpdateThread;
 import org.lwjgl.glfw.GLFW;
-import renderers.MasterRenderer;
 import toolbox.Logger;
 import toolbox.MousePicker;
 import toolbox.Points.Point3D;
@@ -55,25 +54,28 @@ public class Main {
 //        System.out.println(manager.readByte(0));
         // Test
 
+        // Timer Setup
+        final Timer mainTimer = new Timer();
+        // Timer Setup
+
         // Game Loop
         Logger.out("~ First Frame Starting");
         while (!GLFW.glfwWindowShouldClose(DisplayManager.getWindow())) {
             currentFrame++;
 
+            mainTimer.startTimer();
             player.update();
             elementPlacer.update();
             Mouse.update();
             threadManager.update();
+            final float updateTime = (float) mainTimer.stopTimer() * 1000;
 
-            World.updateBuffers();
-
-            DisplayManager.startRenderTimer();
             renderer.render();
-            imGuiManager.update(DisplayManager.getRenderTime());
-            MasterRenderer.finishRendering();
+            imGuiManager.update(updateTime);
+            renderer.finishRendering();
 
             renderer.loadOldCameraVariables();
-            DisplayManager.updateDisplay();
+            DisplayManager.updateDisplayTimer();
         }
 
         threadManager.cleanUp();
