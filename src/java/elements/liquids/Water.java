@@ -9,6 +9,6 @@ public class Water extends Element {
         KEY("3");
         COLOR(new Color(0.1f, 0.5f, 1, 0.5f));
 
-        WATER();
+//        WATER();
     }
 }

@@ -9,6 +9,7 @@ public class Dirt extends Element {
         KEY("2");
         COLOR(new Color(0.65f, 0.4f, 0.3f, 1));
 
+//        GRAVITY();
         // SAND();
     }
 }

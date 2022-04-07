@@ -55,8 +55,8 @@ public class ChunkManager {
 
                     chunk.updateBuffers();
 
-                    voxelBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getVoxelBuffer().getRecentID());
-                    bitmaskBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getBitmaskBuffer().getRecentID());
+                    voxelBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getVoxelBuffer().getID());
+                    bitmaskBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getBitmaskBuffer().getID());
 
                     ARBBindlessTexture.glMakeTextureHandleResidentARB(voxelBufferIDArray[idx]);
                     ARBBindlessTexture.glMakeTextureHandleResidentARB(bitmaskBufferIDArray[idx]);
@@ -102,6 +102,10 @@ public class ChunkManager {
 
     public Chunk getChunkWithId(final String id) {
         return chunksById.get(id);
+    }
+
+    public Chunk getChunkWorldSpace(final Point3D pos, final boolean createIfNull) {
+        return getChunkWorldSpace(pos.x, pos.y, pos.z, createIfNull);
     }
 
     public Chunk getChunkWorldSpace(final int x, final int y, final int z, final boolean createIfNull) {

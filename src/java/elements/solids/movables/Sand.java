@@ -9,6 +9,7 @@ public class Sand extends Element {
         KEY("1");
         COLOR(new Color(1, 0.6f, 0.25f, 1));
 
-        SAND();
+//        GRAVITY();
+//        SAND();
     }
 }

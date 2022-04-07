@@ -49,8 +49,12 @@ public abstract class ImageBuffer {
         return id == 0 && oldID == 0;
     }
 
-    public int getRecentID() {
+    public int getID() {
         return id;
+    }
+
+    public int getOldID() {
+        return oldID;
     }
 
     public int getPosition() {

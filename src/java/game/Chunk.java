@@ -1,10 +1,11 @@
 package game;
 
+import com.sun.istack.internal.NotNull;
 import core.imageBuffers.ImageBuffer3D;
 import elements.Element;
 import elements.ElementRegistry;
 import org.lwjgl.BufferUtils;
-import toolbox.Maths;
+import toolbox.Cube;
 import toolbox.Noise;
 import toolbox.Points.Point3D;
 import toolbox.Vector3D;
@@ -12,16 +13,15 @@ import toolbox.Vector3D;
 import java.nio.ByteBuffer;
 
 import static core.GlobalVariables.*;
-import static org.lwjgl.opengl.GL11.GL_RED;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.GL_R8;
 
 public class Chunk {
     private final Point3D pos;
     private final String id;
 
-    private int minX, maxX, minY, maxY, minZ, maxZ;
-    private int minXw, maxXw, minYw, maxYw, minZw, maxZw;
+    private Cube dirtyCube;
+    private Cube nextDirtyCube;
 
     private final Point3D chunkScale = new Point3D(mapChunkSize);
     private final Point3D bitmaskScale = new Point3D(mapChunkSize / mapBitmaskSize);
@@ -43,13 +43,29 @@ public class Chunk {
         pos = new Point3D(x, y, z).mult(mapChunkSize);
         this.id = id;
 
+        dirtyCube = new Cube(pos.x, pos.y, pos.z, mapChunkSize, mapChunkSize, mapChunkSize);
+        nextDirtyCube = new Cube(pos.x, pos.y, pos.z, mapChunkSize, mapChunkSize, mapChunkSize);
+
+//        generateUpdateTester();
         generateTerrain(100);
         generateCaves(100);
 //        generateSponge();
 
 //        generateNoiseChunk();
 
-        updateRect(true);
+        updateRect();
+    }
+
+    public void generateUpdateTester() {
+        final int finalY = pos.y + chunkScale.y - 1;
+        for (int offX = 0; offX < chunkScale.x; offX++) {
+            final int finalX = pos.x + offX;
+            for (int offZ = 0; offZ < chunkScale.z; offZ++) {
+                final int finalZ = pos.z + offZ;
+
+                setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Light"));
+            }
+        }
     }
 
     public void generateTerrain(final float scale) {
@@ -75,7 +91,7 @@ public class Chunk {
                     final double noise1 = Noise.noise(finalX / lightScale1, finalY / lightScale1, finalZ / lightScale1) * 0.85;
                     final double noise2 = Noise.noise(finalX / lightScale2, finalY / lightScale2, finalZ / lightScale2) * 0.15;
                     if (noise1 + noise2 < 0.05) {
-                        setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Sand"));
+                        setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Light"));
                     } else {
                         setElement(finalX, finalY, finalZ, ElementRegistry.getElementByName("Dirt"));
                     }
@@ -102,7 +118,7 @@ public class Chunk {
                         continue;
                     }
 
-                    setElement(finalX, finalY, finalZ, null);
+                    setElement(finalX, finalY, finalZ, ElementRegistry.emptyElement);
                 }
             }
         }
@@ -172,63 +188,34 @@ public class Chunk {
             return;
         }
 
-//        voxelBuffer.flip();
+        glDeleteTextures(voxelImageBuffer.getID());
+        glDeleteTextures(bitmaskImageBuffer.getID());
+
         voxelImageBuffer.create(voxelBuffer);
-//        voxelBuffer.clear();
-
-//        bitmaskBuffer.flip();
         bitmaskImageBuffer.create(bitmaskBuffer);
-//        bitmaskBuffer.clear();
 
-        voxelImageBuffer.update();
-        bitmaskImageBuffer.update();
+//        if (voxelImageBuffer.isEmpty()) {
+//            voxelImageBuffer.create(null);
+//        }
+//
+//        if (bitmaskImageBuffer.isEmpty()) {
+//            bitmaskImageBuffer.create(null);
+//        }
+//
+//        voxelImageBuffer.updatePixels(voxelBuffer);
+//        bitmaskImageBuffer.updatePixels(bitmaskBuffer);
 
         updateBuffers = false;
     }
 
     public void awakeGrid(final int x, final int y, final int z) {
-        minXw = Math.min(minXw, x - 1);
-        minYw = Math.min(minYw, y - 1);
-        minZw = Math.min(minZw, z - 1);
-
-        maxXw = Math.max(maxXw, x + 2);
-        maxYw = Math.max(maxYw, y + 2);
-        maxZw = Math.max(maxZw, z + 2);
-
-//        if (world.getChunkUpdateList().contains(this)) {
-//            return;
-//        }
-//
-//        world.getChunkUpdateList().add(this);
+        nextDirtyCube = nextDirtyCube.includeCube(new Cube(x, y, z, 1, 1, 1).extend(1));
     }
 
-    public void awakeGrid(final Point3D pos) {
-        awakeGrid(pos.x, pos.y, pos.z);
-    }
-
-    public void updateRect(final boolean updatedThisFrame) {
-        minX = (int) Maths.clamp(minXw, pos.x, pos.x + chunkScale.x);
-        minY = (int) Maths.clamp(minYw, pos.y, pos.y + chunkScale.y);
-        minZ = (int) Maths.clamp(minZw, pos.z, pos.z + chunkScale.z);
-        maxX = (int) Maths.clamp(maxXw, pos.x, pos.x + chunkScale.x);
-        maxY = (int) Maths.clamp(maxYw, pos.x, pos.y + chunkScale.y);
-        maxZ = (int) Maths.clamp(maxZw, pos.z, pos.z + chunkScale.z);
-
-        if (updatedThisFrame) {
-            minXw = pos.x + chunkScale.x;
-            minYw = pos.y + chunkScale.y;
-            minZw = pos.z + chunkScale.z;
-            maxXw = pos.x;
-            maxYw = pos.y;
-            maxZw = pos.z;
-        } else {
-            minXw = 0;
-            minYw = 0;
-            minZw = 0;
-            maxXw = 0;
-            maxYw = 0;
-            maxZw = 0;
-        }
+    public void updateRect() {
+        System.out.println(nextDirtyCube.sub(pos.x, pos.y, pos.z).div(mapChunkSize).ceil());
+        dirtyCube = nextDirtyCube.clamp(new Cube(pos.x, pos.y, pos.z, mapChunkSize, mapChunkSize, mapChunkSize));
+        nextDirtyCube = new Cube();
     }
 
     public void setElement(final int x, final int y, final int z, final Element e) {
@@ -240,12 +227,12 @@ public class Chunk {
 
         final int idx = getIDX(x - pos.x, y - pos.y, z - pos.z);
         grid[idx] = e;
-        idGrid[idx] = (byte) (e == null ? 0 : e.getId());
-        voxelBuffer.put(idx, (byte) (e == null ? 0 : e.getId()));
+        idGrid[idx] = (byte) e.getId();
+        voxelBuffer.put(idx, (byte) e.getId());
 
         final int bitmaskIDX = getBitmaskIDX(x - pos.x, y - pos.y, z - pos.z);
         final int previousData = bitmaskBuffer.get(bitmaskIDX);
-        bitmaskBuffer.put(bitmaskIDX, (byte) (previousData + ((e == null) ? -1 : 1)));
+        bitmaskBuffer.put(bitmaskIDX, (byte) (previousData + ((e.getName() == null) ? -1 : 1)));
 
         updateBuffers = true;
     }
@@ -254,14 +241,17 @@ public class Chunk {
         setElement(pos.x, pos.y, pos.z, e);
     }
 
+    @NotNull
     public Element getElement(final int x, final int y, final int z) {
         if (outBounds(x, y, z)) {
-            return null;
+            return ElementRegistry.emptyElement;
         }
 
-        return grid[getIDX(x - pos.x, y - pos.y, z - pos.z)];
+        final byte id = idGrid[getIDX(x - pos.x, y - pos.y, z - pos.z)];
+        return ElementRegistry.getElementByID(id);
     }
 
+    @NotNull
     public Element getElement(final Point3D pos) {
         return getElement(pos.x, pos.y, pos.z);
     }
@@ -297,32 +287,12 @@ public class Chunk {
         return pos.x;
     }
 
+    public int getY() {
+        return pos.y;
+    }
+
     public int getZ() {
         return pos.z;
-    }
-
-    public int getMinX() {
-        return minX;
-    }
-
-    public int getMaxX() {
-        return maxX;
-    }
-
-    public int getMinY() {
-        return minY;
-    }
-
-    public int getMaxY() {
-        return maxY;
-    }
-
-    public int getMinZ() {
-        return minZ;
-    }
-
-    public int getMaxZ() {
-        return maxZ;
     }
 
     public String getId() {

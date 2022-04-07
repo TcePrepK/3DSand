@@ -2,7 +2,6 @@ package elements;
 
 import core.GlobalVariables;
 import core.Keyboard;
-import game.Chunk;
 import toolbox.Color;
 import toolbox.Points.Point3D;
 
@@ -11,20 +10,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static core.GlobalVariables.chunkManager;
-import static elements.ElementRegistry.getElementByName;
+import static core.GlobalVariables.rand;
 import static elements.ElementRegistry.lastId;
 
 public abstract class Element {
-    private final HashMap<String, List<String>> elementNameRegistery = new HashMap<>();
-    private final List<ElementMovement> movementRegistery = new ArrayList<>();
+    private final HashMap<String, List<String>> elementNameRegistry = new HashMap<>();
+    private final List<ElementMovement> movementRegistry = new ArrayList<>();
+
+    private final List<MovementSet> movementList = new ArrayList<>();
+    private final FillerRegistry fillerRegistry = new FillerRegistry();
 
     private String name = null;
     private int id = 0;
     private Color color;
     private boolean transparent;
-
-    private final String ANYID = "any_id";
 
     private final int NEGATIVE = -1;
     private final int POSITIVE = 1;
@@ -34,9 +33,9 @@ public abstract class Element {
         this.name = name;
         id = lastId++;
 
-        registerElement("T", name);
-        registerElement("*", ANYID);
-        registerElement("_", null);
+        addFiller("T", name);
+        addFiller("*", "Any");
+        addFiller("_", null);
     }
 
     protected void KEY(final String keys) {
@@ -74,140 +73,163 @@ public abstract class Element {
         return transparent;
     }
 
-    // Moves
     public boolean update(final Point3D startingPos) {
-        if (movementRegistery.size() == 0) {
+        if (movementList.isEmpty()) {
             return false;
         }
 
-        boolean outOfLuck = false;
-        final List<ElementMovement> clonedMovements = new ArrayList<>(movementRegistery);
-        while (clonedMovements.size() > 0) {
-            final int idx = GlobalVariables.rand.nextInt(clonedMovements.size());
-            final ElementMovement movement = clonedMovements.get(idx);
-            clonedMovements.remove(idx);
+        final List<MovementSet> clonedMovements = new ArrayList<>(movementList);
+        while (!clonedMovements.isEmpty()) {
+            final int randomIndex = rand.nextInt(clonedMovements.size());
+            final MovementSet movementSet = clonedMovements.get(randomIndex);
+            clonedMovements.remove(randomIndex);
 
-            final List<Point3D> positions = movement.getPositions();
-            if (positions.size() == 0) {
+            if (!movementSet.checkPosition(startingPos)) {
                 continue;
             }
 
-            final List<List<String>> inputsId = movement.getInputsId();
-            final List<String> outputsId = movement.getOutputsId();
-            boolean possiblePosition = true;
-            for (int i = 0; i < positions.size(); i++) {
-                final Point3D pos = startingPos.add(positions.get(i));
-
-                final Chunk chunk = chunkManager.getChunkWorldSpace(pos.x, pos.y, pos.z, true);
-                if (chunk == null) {
-                    possiblePosition = false;
-                    break;
-                }
-
-                final List<String> inputIds = inputsId.get(i);
-                final Element element = chunk.getElement(pos);
-                final String elementId = element == null ? null : element.getName();
-
-                boolean possibleInput = false;
-                for (int j = 1; j < inputIds.size(); j++) {
-                    final String inputId = inputIds.get(j);
-                    if (inputId != null && inputId.equals(ANYID)) {
-                        possibleInput = true;
-                        break;
-                    }
-
-                    if (inputId == null && elementId == null) {
-                        possibleInput = true;
-                        break;
-                    }
-
-                    if (inputId != null && inputId.equals(elementId)) {
-                        possibleInput = true;
-                        break;
-                    }
-                }
-
-                if (!possibleInput) {
-                    possiblePosition = false;
-                    break;
-                }
-            }
-
-            if (!possiblePosition) {
-                continue;
-            }
-
-            if (GlobalVariables.rand.nextFloat() > movement.getProbability()) {
-                outOfLuck = true;
-                continue;
-            }
-
-            boolean changedAnything = false;
-            for (int i = 0; i < positions.size(); i++) {
-                final Point3D pos = startingPos.add(positions.get(i));
-
-                final Chunk chunk = chunkManager.getChunkWorldSpace(pos.x, pos.y, pos.z, false);
-                final String outputId = outputsId.get(i);
-
-                if (outputId != null && outputId.equals(ANYID)) {
-                    continue;
-                }
-
-                changedAnything = true;
-                final Element oldElement = chunk.getElement(pos);
-                if (outputId == null) {
-                    if (oldElement != null) {
-                        chunk.setElement(pos, null);
-                    }
-                } else {
-                    if (oldElement != null && outputId.equals(oldElement.getName())) {
-                        continue;
-                    }
-                    chunk.setElement(pos, getElementByName(outputId));
-                    chunk.awakeGrid(pos);
-                }
-            }
-
-            if (changedAnything) {
-                return true;
-            }
-        }
-
-        if (outOfLuck) {
-            final Chunk chunk = chunkManager.getChunkWorldSpace(startingPos.x, startingPos.y, startingPos.z, false);
-            chunk.awakeGrid(startingPos);
+            movementSet.setPosition(startingPos);
             return true;
         }
 
         return false;
     }
+//        boolean outOfLuck = false;
+//        final List<ElementMovement> clonedMovements = new ArrayList<>(movementRegistry);
+//        while (!clonedMovements.isEmpty()) {
+//            final int idx = rand.nextInt(clonedMovements.size());
+//            final ElementMovement movement = clonedMovements.get(idx);
+//            clonedMovements.remove(idx);
+//
+//            final List<Point3D> positions = movement.getPositions();
+//            if (positions.size() == 0) {
+//                continue;
+//            }
+//
+//            final List<List<String>> inputsId = movement.getInputsId();
+//            final List<String> outputsId = movement.getOutputsId();
+//            boolean possiblePosition = true;
+//            for (int i = 0; i < positions.size(); i++) {
+//                final Point3D pos = startingPos.add(positions.get(i));
+//
+//                final Chunk chunk = chunkManager.getChunkWorldSpace(pos.x, pos.y, pos.z, true);
+//                if (chunk == null) {
+//                    possiblePosition = false;
+//                    break;
+//                }
+//
+//                final List<String> inputIds = inputsId.get(i);
+//                final Element element = chunk.getElement(pos);
+//                final String elementId = element == null ? null : element.getName();
+//
+//                boolean possibleInput = false;
+//                for (int j = 1; j < inputIds.size(); j++) {
+//                    final String inputId = inputIds.get(j);
+//                    if (inputId != null && inputId.equals(AnyID)) {
+//                        possibleInput = true;
+//                        break;
+//                    }
+//
+//                    if (inputId == null && elementId == null) {
+//                        possibleInput = true;
+//                        break;
+//                    }
+//
+//                    if (inputId != null && inputId.equals(elementId)) {
+//                        possibleInput = true;
+//                        break;
+//                    }
+//                }
+//
+//                if (!possibleInput) {
+//                    possiblePosition = false;
+//                    break;
+//                }
+//            }
+//
+//            if (!possiblePosition) {
+//                continue;
+//            }
+//
+//            if (GlobalVariables.rand.nextFloat() > movement.getProbability()) {
+//                outOfLuck = true;
+//                continue;
+//            }
+//
+//            boolean changedAnything = false;
+//            for (int i = 0; i < positions.size(); i++) {
+//                final Point3D pos = startingPos.add(positions.get(i));
+//
+//                final Chunk chunk = chunkManager.getChunkWorldSpace(pos.x, pos.y, pos.z, false);
+//                final String outputId = outputsId.get(i);
+//
+//                if (outputId != null && outputId.equals(AnyID)) {
+//                    continue;
+//                }
+//
+//                changedAnything = true;
+//                final Element oldElement = chunk.getElement(pos);
+//                if (outputId == null) {
+//                    if (oldElement != null) {
+//                        chunk.setElement(pos, null);
+//                    }
+//                } else {
+//                    if (oldElement != null && outputId.equals(oldElement.getName())) {
+//                        continue;
+//                    }
+//                    chunk.setElement(pos, getElementByName(outputId));
+//                    chunk.awakeGrid(pos);
+//                }
+//            }
+//
+//            if (changedAnything) {
+//                return true;
+//            }
+//        }
+//
+//        if (outOfLuck) {
+//            final Chunk chunk = chunkManager.getChunkWorldSpace(startingPos.x, startingPos.y, startingPos.z, false);
+//            chunk.awakeGrid(startingPos);
+//            return true;
+//        }
+//
+//        return false;
+//    }
+//
+//    protected void registerElement(final String code, final String name) {
+//        registerElement(code, name, name);
+//    }
+//
+//    protected void registerElement(final String name, final String output, final String inputs) {
+//        if (inputs == null) {
+//            return;
+//        }
+//
+//        final List<String> idList = new ArrayList<>();
+//        idList.add(output);
+//
+//        for (final String id : inputs) {
+//            if (id != null && id.equals(AnyID)) {
+//                idList.clear();
+//                idList.add(AnyID);
+//                idList.add(AnyID);
+//                break;
+//            }
+//
+//            idList.add(id);
+//        }
+//
+//        if (elementNameRegistry.replace(name, idList) == null) {
+//            elementNameRegistry.put(name, idList);
+//        }
+//    }
 
-    protected void registerElement(final String code, final String name) {
-        registerElement(code, name, name);
+    protected void addFiller(final String filler, final String element) {
+        fillerRegistry.addFiller(filler, element);
     }
 
-    protected void registerElement(final String name, final String output, final String... inputs) {
-        if (inputs == null) {
-            return;
-        }
-
-        final List<String> idList = new ArrayList<>();
-        idList.add(output);
-
-        for (final String id : inputs) {
-            if (id != null && id.equals(ANYID)) {
-                idList.clear();
-                idList.add(ANYID);
-                idList.add(ANYID);
-                break;
-            }
-
-            idList.add(id);
-        }
-
-        if (elementNameRegistery.replace(name, idList) == null) {
-            elementNameRegistery.put(name, idList);
-        }
+    protected List<String> getFiller(final String filler) {
+        return fillerRegistry.getFiller(filler);
     }
 
     private void registerMove(final Point dir, final String a, final String b, final boolean invert, final float probability) {
@@ -240,33 +262,28 @@ public abstract class Element {
             return;
         }
 
-        final ElementMovement movement = new ElementMovement(probability);
-        ElementMovement invertedMovement = null;
-        if (invert) {
-            invertedMovement = new ElementMovement(probability);
-        }
+        final MovementSet movementSet = new MovementSet(fillerRegistry);
+        final MovementSet invertedMovementSet = new MovementSet(fillerRegistry);
         for (int i = 0; i < inputLayers.length; i++) {
             final String[] inputLayer = inputLayers[i].split("(?!^)");
             final String[] outputLayer = outputLayers[i].split("(?!^)");
             for (int j = 0; j < inputLayer.length; j++) {
-                final String inputName = inputLayer[j];
-                final String outputName = outputLayer[j];
+                final String input = inputLayer[j];
+                final String output = getFiller(outputLayer[j]).get(0);
 
-                final List<String> inputId = elementNameRegistery.get(inputName);
-                final String outputId = elementNameRegistery.get(outputName).get(0);
-                final Point3D pos = new Point3D(dir.x * j, -i + offY0, dir.y * j);
-                movement.addMovement(pos, inputId, outputId);
-
+                movementSet.addMovement(new Point3D(dir.x * j, offY0 - i, dir.y * j), input, output);
                 if (invert) {
-                    invertedMovement.addMovement(new Point3D(dir.x * -j, -i + offY0, dir.y * -j), inputId, outputId);
+                    invertedMovementSet.addMovement(new Point3D(dir.x * -j, offY0 - i, dir.y * -j), input, output);
                 }
             }
         }
 
-        movementRegistery.add(movement);
+        if (!movementSet.isEmpty()) {
+            movementList.add(movementSet);
+        }
 
-        if (invert && invertedMovement.getPositions().size() != 0) {
-            movementRegistery.add(invertedMovement);
+        if (!invertedMovementSet.isEmpty()) {
+            movementList.add(invertedMovementSet);
         }
     }
 
@@ -317,17 +334,18 @@ public abstract class Element {
     }
 
     protected void SAND() {
-        registerElement("_", null, null, "Water");
+//        addFiller("e", EmptyID);
+//        addFiller("e", "Water");
 
         // Air
 
-        X("T/_", "_/T", POSITIVE, 1);
-
-        X("T_/T_", "__/TT", BOTH, 0.25f);
-        Z("T_/T_", "__/TT", BOTH, 0.25f);
-
-        X("T_/T_", "__/TT", BOTH, 0.25f);
-        Z("T_/T_", "__/TT", BOTH, 0.25f);
+//        X("T/e", "_/T", POSITIVE, 1);
+//
+//        X("Te/Te", "__/TT", BOTH, 0.25f);
+//        Z("Te/Te", "__/TT", BOTH, 0.25f);
+//
+//        X("Te/Te", "__/TT", BOTH, 0.25f);
+//        Z("Te/Te", "__/TT", BOTH, 0.25f);
     }
 
     protected void WATER() {
@@ -341,5 +359,9 @@ public abstract class Element {
         X("T_/**", "_T/**", BOTH, probability);
         Z("T_/**", "_T/**", BOTH, probability);
         XZ("T_/**", "_T/**", BOTH, probability);
+    }
+
+    public List<MovementSet> getMovementList() {
+        return movementList;
     }
 }

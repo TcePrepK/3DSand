@@ -2,7 +2,10 @@ package core;
 
 import elements.ElementPlacer;
 import elements.ElementRegistry;
-import game.*;
+import game.Camera;
+import game.ChunkManager;
+import game.Player;
+import game.World;
 import renderers.MasterRenderer;
 import toolbox.MousePicker;
 
@@ -39,8 +42,8 @@ public class GlobalVariables {
     public final static int mapBitmaskSize = 4;
 
     public final static int chunkViewDistance = 4;
-    public static float worldGenerationPercentage = 0;
     public static boolean generateWorld = true;
+    public static boolean updateWorld = false;
 
     public final static World world = new World();
     public final static ChunkManager chunkManager = new ChunkManager(2 * GlobalVariables.chunkViewDistance, 2 * GlobalVariables.chunkViewDistance, 2 * GlobalVariables.chunkViewDistance);
@@ -56,7 +59,6 @@ public class GlobalVariables {
     // Output
     public static MasterRenderer renderer = new MasterRenderer();
     public static String outputOption = "color";
-    public static String generationSpeedOption = ChunkGenerationSpeed.SLOW_FAST_128.name();
     public static int lightBounceAmount = 1;
     // Output
 }

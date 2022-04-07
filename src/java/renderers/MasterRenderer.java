@@ -148,7 +148,7 @@ public class MasterRenderer {
 
         // Render texture to screen
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, attachmentManager.get(outputOption).getRecentID());
+        glBindTexture(GL_TEXTURE_2D, attachmentManager.get(outputOption).getID());
         // Render texture to screen
 
         glBindVertexArray(quad.getVaoID());

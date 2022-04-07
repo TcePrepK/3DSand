@@ -113,6 +113,10 @@ void main(void) {
 }
 
 int calculatePixelFrame(Ray ray, HitRecord record, vec2 oldScreenPixelPos, int frameCount) {
+    if (record.normal == vec3(0)) {
+        return 0;
+    }
+
     const vec3 oldNormal = texture(normalAttachment, oldScreenPixelPos).rgb;
     if (oldNormal == vec3(0)) {
         return 0;

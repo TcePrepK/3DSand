@@ -1,10 +1,11 @@
 import core.Keyboard;
 import core.Mouse;
 import display.DisplayManager;
-import game.ChunkGenerationThread;
-import game.ChunkUpdateThread;
+import elements.ElementRegistry;
 import game.Player;
 import game.World;
+import game.threads.ChunkGenerationThread;
+import game.threads.ChunkUpdateThread;
 import org.lwjgl.glfw.GLFW;
 import renderers.MasterRenderer;
 import toolbox.Logger;
@@ -18,7 +19,7 @@ public class Main {
         DisplayManager.createDisplay();
 
         // Init
-        elementRegistery.init();
+        ElementRegistry.init();
         elementPlacer.init();
         Keyboard.init();
         Mouse.init();
@@ -64,22 +65,18 @@ public class Main {
             Mouse.update();
             threadManager.update();
 
-//            world.update();
-
-//            final double generationTime = world.updateChunkGenerationList();
-//            worldGenerationPercentage = (totalChunks - world.getChunkGenerationList().size()) / (float) totalChunks * 100;
-
             World.updateBuffers();
 
             DisplayManager.startRenderTimer();
             renderer.render();
-            imGuiManager.update(0, DisplayManager.getRenderTime());
+            imGuiManager.update(DisplayManager.getRenderTime());
             MasterRenderer.finishRendering();
 
             renderer.loadOldCameraVariables();
             DisplayManager.updateDisplay();
         }
 
+        threadManager.cleanUp();
         renderer.cleanUp();
         loader.cleanUp();
         imGuiManager.cleanUp();

@@ -23,8 +23,8 @@ public class Cube {
         return new Cube(x, y, z, w, h, d);
     }
 
-    public Cube makeBigger(final float a) {
-        return new Cube(x, y, z, w + a, h + a, d + a);
+    public Cube extend(final float s) {
+        return new Cube(x - s, y - s, z - s, w + s * 2, h + s * 2, d + s * 2);
     }
 
     public Cube setSize(final float w, final float h, final float d) {
@@ -37,6 +37,55 @@ public class Cube {
 
     public Cube moveAdd(final float x, final float y, final float z) {
         return new Cube(this.x + x, this.y + y, this.z + z, w, h, d);
+    }
+
+    public Cube sub(final float v) {
+        return new Cube(x - v, y - v, z - v, w, h, d);
+    }
+
+    public Cube sub(final float a, final float b, final float c) {
+        return new Cube(x - a, y - b, z - c, w, h, d);
+    }
+
+    public Cube mult(final float v) {
+        return new Cube(x * v, y * v, z * v, w * v, h * v, d * v);
+    }
+
+    public Cube div(final float v) {
+        return new Cube(x / v, y / v, z / v, w / v, h / v, d / v);
+    }
+
+    public Cube ceil() {
+        final float nextX = (float) Math.floor(x);
+        final float nextY = (float) Math.floor(y);
+        final float nextZ = (float) Math.floor(z);
+        final float nextW = (float) (Math.ceil(x + w) - nextX);
+        final float nextH = (float) (Math.ceil(y + h) - nextY);
+        final float nextD = (float) (Math.ceil(z + d) - nextZ);
+
+        return new Cube(nextX, nextY, nextZ, nextW, nextH, nextD);
+    }
+
+    public Cube clamp(final Cube other) {
+        final float nextX = Math.max(x, other.x);
+        final float nextY = Math.max(y, other.y);
+        final float nextZ = Math.max(z, other.z);
+        final float nextW = Math.min(x + w, other.x + other.w) - nextX;
+        final float nextH = Math.min(y + h, other.y + other.h) - nextY;
+        final float nextD = Math.min(z + d, other.z + other.d) - nextZ;
+
+        return new Cube(nextX, nextY, nextZ, nextW, nextH, nextD);
+    }
+
+    public Cube includeCube(final Cube other) {
+        final float nextX = Math.min(x, other.x);
+        final float nextY = Math.min(y, other.y);
+        final float nextZ = Math.min(z, other.z);
+        final float nextW = Math.max(x + w, other.x + other.w) - nextX;
+        final float nextH = Math.max(y + h, other.y + other.h) - nextY;
+        final float nextD = Math.max(z + d, other.z + other.d) - nextZ;
+
+        return new Cube(nextX, nextY, nextZ, nextW, nextH, nextD);
     }
 
     public void includePoint(final float x, final float y, final float z) {

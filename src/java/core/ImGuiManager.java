@@ -1,7 +1,7 @@
 package core;
 
 import display.DisplayManager;
-import game.ChunkGenerationSpeed;
+import game.threads.ChunkGenerationThread;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
@@ -45,7 +45,7 @@ public class ImGuiManager {
         }
     }
 
-    public void update(final double generationTime, final double renderTime) {
+    public void update(final double renderTime) {
         imGuiGlfw.newFrame();
         ImGui.newFrame();
         ImGui.begin("Cool Window");
@@ -78,32 +78,6 @@ public class ImGuiManager {
         ImGui.spacing();
         // Output Control
 
-        // World Generation
-        if (ImGui.treeNode("Speed Options")) {
-            final String[] options = ChunkGenerationSpeed.valueNames();
-            int selectedOption = 0;
-            for (int i = 0; i < options.length; i++) {
-                if (options[i].equals(generationSpeedOption)) {
-                    selectedOption = i;
-                    break;
-                }
-            }
-
-            final ImInt selected = new ImInt(selectedOption);
-            ImGui.listBox("##Options", selected, options, 3);
-            generationSpeedOption = options[selected.get()];
-
-            ImGui.treePop();
-        }
-
-        if (ImGui.checkbox("Generate World", generateWorld)) {
-            generateWorld = !generateWorld;
-        }
-
-        ImGui.spacing();
-        ImGui.spacing();
-        // World Generation
-
         // Ray Control
         if (ImGui.checkbox("Path Tracing", pathTracing)) {
             pathTracing = !pathTracing;
@@ -123,20 +97,35 @@ public class ImGuiManager {
         ImGui.spacing();
         // Ray Control
 
+        // World Generation
+        if (ImGui.checkbox("Generate World", generateWorld)) {
+            generateWorld = !generateWorld;
+        }
+
+        ImGui.spacing();
+        ImGui.spacing();
+        // World Generation
+
         // World
         final Point3D worldScale = world.getWorldScale();
+        final ChunkGenerationThread generationThread = (ChunkGenerationThread) threadManager.getThread("chunkGenerationThread");
+
         ImGui.text("World: " + worldScale.x + "x" + worldScale.y + "x" + worldScale.z);
-        ImGui.text("World generation percentage: " + worldGenerationPercentage + "%");
-        ImGui.text("World generation time: " + generationTime + "sec");
+        ImGui.text("World generation percentage: " + generationThread.getGeneratePercentage() + "%");
+        ImGui.text("World generation time: " + generationThread.getThreadAliveTime() + "sec");
+
+        ImGui.spacing();
+        ImGui.spacing();
         // World
 
-        // World Branch
-//        for (int i = 0; i < world.getChunkList().size(); i++) {
-//            final Chunk chunk = world.getChunkList().get(i);
-//            final Octatree octatree = chunk.getOctaTree();
-//            ImGuiManager.renderBranch(octatree, "Chunk " + chunk.getId() + " " + octatree.getPointAmount(), i);
-//        }
-        // World Branch
+        // World Update
+        if (ImGui.checkbox("Update World", updateWorld)) {
+            updateWorld = !updateWorld;
+        }
+
+        ImGui.text("Amount of chunks to update: " + chunkManager.getChunkUpdateList().size());
+        ImGui.text("Chunk update time: " + threadManager.getThread("chunkUpdateThread").getLoopTime() + "ms");
+        // World Update
 
         ImGui.end();
         ImGui.render();

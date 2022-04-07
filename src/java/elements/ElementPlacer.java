@@ -59,7 +59,7 @@ public class ElementPlacer {
         int height = mapChunkSize - 1;
         while (height > 0) {
             final Element e = chunk.getElement(currentPosition.x, height, currentPosition.z);
-            if (e == null) {
+            if (e.getName() == null) {
                 break;
             }
 

@@ -41,4 +41,9 @@ public class ElementMovement {
     public float getProbability() {
         return probability;
     }
+
+    @Override
+    public String toString() {
+        return positions + " " + inputsId + " " + outputsId;
+    }
 }

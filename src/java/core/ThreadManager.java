@@ -13,9 +13,9 @@ public class ThreadManager {
 
     public void update() {
         for (final BasicThread thread : threadList) {
-            if (thread.isAlive() && !aliveThreadList.contains(thread)) {
+            if (!thread.isDead() && !aliveThreadList.contains(thread)) {
                 aliveThreadList.add(thread);
-            } else if (!thread.isAlive() && aliveThreadList.contains(thread)) {
+            } else if (thread.isDead() && aliveThreadList.contains(thread)) {
                 aliveThreadList.remove(thread);
                 thread.threadDied.dispatch();
             }
@@ -33,7 +33,18 @@ public class ThreadManager {
         final BasicThread thread = threadMap.get(name);
         if (thread == null) {
             Logger.error("Wasn't able to find thread named " + name);
+            return new BasicThread("basicThread") {
+                @Override
+                protected void loop() {
+                }
+            };
         }
         return thread;
+    }
+
+    public void cleanUp() {
+        for (final BasicThread thread : threadList) {
+            thread.kill();
+        }
     }
 }
