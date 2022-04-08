@@ -331,6 +331,10 @@ HitRecord ColorDDA(inout Ray ray) {
         return record;
     }
 
+    if (lightBounceAmount == 0) {
+        return record;
+    }
+
     // Light Bounces
     vec3 bouncePosition = record.position + record.normal / 1000;
     vec3 bounceDirection = getNewDirection();

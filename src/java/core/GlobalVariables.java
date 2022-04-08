@@ -1,7 +1,6 @@
 package core;
 
 import elements.ElementPlacer;
-import elements.ElementRegistry;
 import game.Camera;
 import game.ChunkManager;
 import game.Player;
@@ -32,16 +31,18 @@ public class GlobalVariables {
     // Core
 
     // Elements
-    public final static ElementRegistry elementRegistery = new ElementRegistry();
+//    public final static ElementRegistry elementRegistery = new ElementRegistry();
     public static ElementPlacer elementPlacer = new ElementPlacer();
     public static String currentMat = "Sand";
     // Elements
 
     // World
+    public final static double mapSeed = new Random().nextGaussian() * 65536;
+
     public final static int mapChunkSize = 32;
     public final static int mapBitmaskSize = 4;
 
-    public final static int chunkViewDistance = 4;
+    public final static int chunkViewDistance = 2;
     public static boolean generateWorld = true;
     public static boolean updateWorld = false;
 
@@ -51,7 +52,7 @@ public class GlobalVariables {
 
     // User
     public static MousePicker mousePicker;
-    public final static Random rand = new Random();
+    public final static Random rand = new Random((long) GlobalVariables.mapSeed);
     public static Camera camera = new Camera();
     public static Player player;
     // User

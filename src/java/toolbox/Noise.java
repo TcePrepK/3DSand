@@ -1,6 +1,8 @@
 package toolbox;
 
 public class Noise {
+    private static double seed = 0;
+
     private static final Grad[] grad3 = {
             new Grad(1, 1, 0), new Grad(-1, 1, 0), new Grad(1, -1, 0), new Grad(-1, -1, 0),
             new Grad(1, 0, 1), new Grad(-1, 0, 1), new Grad(1, 0, -1), new Grad(-1, 0, -1),
@@ -36,7 +38,9 @@ public class Noise {
     private static final short[] perm = new short[512];
     private static final short[] permMod12 = new short[512];
 
-    static {
+    public static void init(final double seed) {
+        Noise.seed = seed;
+
         for (int i = 0; i < 512; i++) {
             Noise.perm[i] = Noise.p[i & 255];
             Noise.permMod12[i] = (short) (Noise.perm[i] % 12);
@@ -67,8 +71,11 @@ public class Noise {
         return g.x * x + g.y * y + g.z * z + g.w * w;
     }
 
-    public static double noise(final double xin, final double yin) {
+    public static double noise(double xin, double yin) {
         final double n0, n1, n2;
+
+        xin += Noise.seed;
+        yin += Noise.seed;
 
         final double s = (xin + yin) * Noise.F2;
         final int i = Noise.fastFloor(xin + s);
@@ -126,8 +133,12 @@ public class Noise {
 
 
     // 3D simplex noise
-    public static double noise(final double xin, final double yin, final double zin) {
+    public static double noise(double xin, double yin, double zin) {
         final double n0, n1, n2, n3;
+
+        xin += Noise.seed;
+        yin += Noise.seed;
+        zin += Noise.seed;
 
         final double s = (xin + yin + zin) * Noise.F3;
         final int i = Noise.fastFloor(xin + s);
@@ -242,13 +253,18 @@ public class Noise {
 
 
     // 4D simplex noise, better simplex rank ordering method 2012-03-09
-    public static double noise(final double x, final double y, final double z, final double w) {
-
+    public static double noise(double x, double y, double z, double w) {
         final double n0;  // Noise contributions from the five corners
         final double n1;
         final double n2;
         final double n3;
         final double n4;
+
+        x += Noise.seed;
+        y += Noise.seed;
+        z += Noise.seed;
+        w += Noise.seed;
+
         // Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
         final double s = (x + y + z + w) * Noise.F4; // Factor for 4D skewing
         final int i = Noise.fastFloor(x + s);

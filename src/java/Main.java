@@ -9,6 +9,7 @@ import game.threads.ChunkUpdateThread;
 import org.lwjgl.glfw.GLFW;
 import toolbox.Logger;
 import toolbox.MousePicker;
+import toolbox.Noise;
 import toolbox.Points.Point3D;
 
 import static core.GlobalVariables.*;
@@ -18,6 +19,7 @@ public class Main {
         DisplayManager.createDisplay();
 
         // Init
+        Noise.init(mapSeed);
         ElementRegistry.init();
         elementPlacer.init();
         Keyboard.init();
