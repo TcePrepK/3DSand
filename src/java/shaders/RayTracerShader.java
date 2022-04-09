@@ -106,7 +106,7 @@ public class RayTracerShader extends BaseShader {
     }
 
     public void loadRandomVector() {
-        BaseShader.load2DVector(randVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
+        BaseShader.load2DVector(randVector2D, new Vector2f(rand.nextFloat() * 2 - 1, rand.nextFloat() * 2 - 1));
     }
 
     public void loadSunPosition() {

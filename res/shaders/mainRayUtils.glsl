@@ -13,13 +13,6 @@ struct HitRecord {
     int id;
 };
 
-struct WorldBox {
-    float firstHitTime;
-    float secondHitTime;
-    float timeDistance;
-};
-WorldBox world = WorldBox(0, 0, 0);
-
 float map(float n, float start1, float stop1, float start2, float stop2) {
     const float newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
     if (start2 < stop2) {
@@ -75,7 +68,7 @@ vec3 getSkyColor(vec3 dir) {
         return mix(skyColor, sunColor, factor);
     }
 
-    float factor = max(0, -product / 3);
+    float factor = max(0, -product / 2);
     factor = min(0.9999, factor) + 0.0001;
     factor = pow(factor, 1);
 
@@ -177,9 +170,6 @@ void DDA(inout Ray ray, inout HitRecord record) {
 
     record.distance = closestTime;
 
-    world.firstHitTime = closestTime;
-    world.secondHitTime = fartestTime;
-
     uvec3 gridCoords = uvec3(floor(at(ray, record.distance + off)));
 
     vec3 tV = rayInverse * (vec3(gridCoords + voxExit) - ray.pos);
@@ -187,7 +177,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
 
     int hitId = 0;
     ray.color = vec3(1);
-    while (record.distance < world.secondHitTime - off) {
+    while (record.distance < fartestTime - off) {
         if (!inBounds(gridCoords, vec3(32 * chunkScale.x))) {
             break;
         }
@@ -322,9 +312,33 @@ bool LightDDA(inout Ray ray, inout HitRecord record) {
     return record.light;
 }
 
+vec3 calculateHitColor(Ray ray, int depth) {
+    float mult = 1;
+    while (depth-- > 0) {
+        HitRecord record = HitRecord(ray.pos, uvec3(0), vec3(0), 0, false, 0);
+        DDA(ray, record);
+
+        if (!record.light) {
+            vec3 newDir = getNewDirection();
+            if (dot(newDir + record.normal * 0.0001, record.normal) < 0) {
+                newDir *= -1;
+            }
+
+            ray = Ray(record.position, newDir, vec3(0));
+            mult *= 0.5;
+            continue;
+        }
+
+        return ray.color * mult;
+    }
+
+    return vec3(0);
+}
+
 HitRecord ColorDDA(inout Ray ray) {
     HitRecord record = PrimaryDDA(ray);
     if (record.light) {
+        outLight = ray.color;
         return record;
     }
 
@@ -338,36 +352,18 @@ HitRecord ColorDDA(inout Ray ray) {
     }
 
     // Light Bounces
-    vec3 bouncePosition = record.position + record.normal / 1000;
-    vec3 bounceDirection = getNewDirection();
-    float product = dot(bounceDirection, record.normal);
-    if (product < 0) {
-        bounceDirection *= -1;
-        product *= -1;
-    }
+    //    vec3 bouncePosition = record.position + record.normal * 0.001;
+    //    vec3 bounceDirection = getNewDirection();
+    //    float product = dot(bounceDirection, record.normal);
+    //    if (product < 0) {
+    //        bounceDirection *= -1;
+    //        product *= -1;
+    //    }
 
-    vec3 lightColour = vec3(0);
-    for (int bounces = 0; bounces < lightBounceAmount; bounces++) {
+    vec3 bounceDir = normalize(record.normal + getNewDirection());
+    vec3 lightColour = calculateHitColor(Ray(record.position, bounceDir, vec3(0)), lightBounceAmount);
 
-        HitRecord bounceRecord = HitRecord(vec3(0), ivec3(0), vec3(0), 0, false, 0);
-        Ray bounceRay = Ray(bouncePosition, bounceDirection, vec3(0));
-        DDA(bounceRay, bounceRecord);
-
-        if (bounceRecord.light) {
-            //            outLight = bounceRay.color;
-            //            lightColour = getSkyColor(bounceDirection) / (bounces + 1);
-            lightColour = bounceRay.color / (bounces + 1);
-            break;
-        }
-
-        bouncePosition = bounceRecord.position;
-        product = dot(bounceDirection, bounceRecord.normal);
-        if (product < 0) {
-            bounceDirection *= -1;
-            product *= -1;
-        }
-    }
-
+    outLight = lightColour;
     ray.color *= lightColour;
     return record;
     // Light Bounces

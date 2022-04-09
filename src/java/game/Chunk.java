@@ -13,8 +13,7 @@ import toolbox.Vector3D;
 import java.nio.ByteBuffer;
 
 import static core.GlobalVariables.*;
-import static elements.ElementRegistry.emptyElement;
-import static elements.ElementRegistry.getElementByID;
+import static elements.ElementRegistry.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.GL_R8;
 
@@ -49,7 +48,8 @@ public class Chunk {
 //        generateTerrain(100);
 //        generateCaves(100);
 //        generateSponge();
-        generateSpongeOnPlatform();
+//        generateSpongeOnPlatform();
+        generateFloatingSpongeInCube();
 
 //        generateNoiseChunk();
 
@@ -207,6 +207,83 @@ public class Chunk {
         final Vector3D worldScale = world.getWorldScale().toVector3D();
         final Vector3D newSize = worldScale.mult(scale);
         final Vector3D center = worldScale.div(2).sub(newSize.div(2)).mult(1, 0, 1).add(0, 2, 0);
+
+        for (int offX = 0; offX < mapChunkSize; offX++) {
+            for (int offY = 0; offY < mapChunkSize; offY++) {
+                for (int offZ = 0; offZ < mapChunkSize; offZ++) {
+                    final Vector3D offset = new Vector3D(offX, offY, offZ).add(pos);
+
+                    final Vector3D scaledOffset = offset.sub(center).div(scale);
+                    final Vector3D normPos = scaledOffset.div(worldScale);
+
+                    Point3D voxel = normPos.mult(3).sub(1).toPoint3D();
+                    Point3D absVoxel = voxel.abs();
+                    if (absVoxel.x > 1 || absVoxel.y > 1 || absVoxel.z > 1) {
+                        continue;
+                    }
+
+                    int iter = 0;
+                    boolean hit = true;
+                    while (iter <= 5) {
+                        absVoxel = voxel.abs();
+                        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
+                            hit = false;
+                            break;
+                        }
+
+                        iter++;
+
+                        final float power = (float) Math.pow(3, iter);
+                        final Vector3D location = normPos.mult(power);
+                        voxel = location.mod(3).sub(1).toPoint3D();
+                    }
+
+                    if (hit) {
+                        setElement(pos.x + offX, pos.y + offY, pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
+                    }
+                }
+            }
+        }
+    }
+
+    public void generateCube() {
+        final Point3D worldScale = world.getWorldScale();
+        final float lastChunkPosition = worldScale.x - mapChunkSize;
+        if (pos.x != 0 && pos.y != 0 && pos.z != 0 && pos.x != lastChunkPosition && pos.y != lastChunkPosition && pos.z != lastChunkPosition) {
+            return;
+        }
+
+        for (int i = 0; i < mapChunkSize; i++) {
+            for (int j = 0; j < mapChunkSize; j++) {
+                final Element element = rand.nextFloat() < 1 ? getElementByName("Light") : getElementByName("Dirt");
+                if (pos.x == 0) {
+                    setElement(pos.x, pos.y + i, pos.z + j, element);
+                } else if (pos.x == lastChunkPosition) {
+                    setElement(worldScale.x - 1, pos.y + i, pos.z + j, element);
+                }
+
+                if (pos.y == 0) {
+                    setElement(pos.x + i, pos.y, pos.z + j, element);
+                } else if (pos.y == lastChunkPosition) {
+                    setElement(pos.x + i, worldScale.y - 1, pos.z + j, element);
+                }
+
+                if (pos.z == 0) {
+                    setElement(pos.x + i, pos.y + j, pos.z, element);
+                } else if (pos.z == lastChunkPosition) {
+                    setElement(pos.x + i, pos.y + j, worldScale.z - 1, element);
+                }
+            }
+        }
+    }
+
+    public void generateFloatingSpongeInCube() {
+        generateCube();
+
+        final float scale = 0.25f;
+        final Vector3D worldScale = world.getWorldScale().toVector3D();
+        final Vector3D newSize = worldScale.mult(scale);
+        final Vector3D center = worldScale.div(2).sub(newSize.div(2));
 
         for (int offX = 0; offX < mapChunkSize; offX++) {
             for (int offY = 0; offY < mapChunkSize; offY++) {
