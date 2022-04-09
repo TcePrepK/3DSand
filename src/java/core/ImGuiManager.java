@@ -97,7 +97,12 @@ public class ImGuiManager {
         if (ImGui.sliderInt("Bounce Amount", bounceInt, 0, 25)) {
             lightBounceAmount = bounceInt[0];
         }
-//        ImGui.sliderInt
+
+        ImGui.spacing();
+        
+        if (ImGui.checkbox("Update Sun", updateSun)) {
+            updateSun = !updateSun;
+        }
 
         ImGui.spacing();
         ImGui.spacing();

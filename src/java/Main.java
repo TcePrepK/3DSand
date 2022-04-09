@@ -66,9 +66,10 @@ public class Main {
             currentFrame++;
 
             mainTimer.startTimer();
-            player.update();
-            elementPlacer.update();
             Mouse.update();
+            player.update();
+            sun.update();
+            elementPlacer.update();
             threadManager.update();
             final float updateTime = (float) mainTimer.stopTimer() * 1000;
 

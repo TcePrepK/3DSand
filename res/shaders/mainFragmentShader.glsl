@@ -9,10 +9,11 @@ in vec3 cameraPos;
 
 uniform mat4 oldMVPMatrix;
 uniform mat4 oldViewMatrix;
+uniform vec3 oldCameraPos;
 
 uniform vec2 randVector2D;
+uniform vec3 sunPosition;
 uniform vec3 textureScale;
-uniform vec3 oldCameraPos;
 
 uniform bool isPathTracing;
 uniform bool isRenderingBitmask;

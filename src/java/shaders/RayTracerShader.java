@@ -13,22 +13,25 @@ public class RayTracerShader extends BaseShader {
     private static final String FRAGMENT_FILE = "/shaders/mainFragmentShader.glsl";
 
     private int viewMatrix;
-    private int oldMVPMatrix;
-    private int oldViewMatrix;
     private int displayRes;
     private int viewportRes;
     private int lookFrom;
     private int lookTo;
 
-    private int textureScale;
-    private int randVector2D;
+    private int oldMVPMatrix;
+    private int oldViewMatrix;
     private int oldCameraPos;
-    private int bitmaskSize;
-    private int chunkScale;
-    private int lightBounceAmount;
+
+    private int randVector2D;
+    private int sunPosition;
+    private int textureScale;
 
     private int isPathTracing;
     private int isRenderingBitmask;
+    private int bitmaskSize;
+    private int lightBounceAmount;
+
+    private int chunkScale;
 
     public RayTracerShader() {
         super(RayTracerShader.VERTEX_FILE, RayTracerShader.FRAGMENT_FILE);
@@ -42,22 +45,25 @@ public class RayTracerShader extends BaseShader {
     @Override
     protected void getAllUniformLocations() {
         viewMatrix = super.getUniformLocation("viewMatrix");
-        oldMVPMatrix = super.getUniformLocation("oldMVPMatrix");
-        oldViewMatrix = super.getUniformLocation("oldViewMatrix");
         displayRes = super.getUniformLocation("displayRes");
         viewportRes = super.getUniformLocation("viewportRes");
         lookFrom = super.getUniformLocation("lookFrom");
         lookTo = super.getUniformLocation("lookTo");
 
-        textureScale = super.getUniformLocation("textureScale");
-        randVector2D = super.getUniformLocation("randVector2D");
+        oldMVPMatrix = super.getUniformLocation("oldMVPMatrix");
+        oldViewMatrix = super.getUniformLocation("oldViewMatrix");
         oldCameraPos = super.getUniformLocation("oldCameraPos");
-        bitmaskSize = super.getUniformLocation("bitmaskSize");
-        chunkScale = super.getUniformLocation("chunkScale");
-        lightBounceAmount = super.getUniformLocation("lightBounceAmount");
+
+        randVector2D = super.getUniformLocation("randVector2D");
+        sunPosition = super.getUniformLocation("sunPosition");
+        textureScale = super.getUniformLocation("textureScale");
 
         isPathTracing = super.getUniformLocation("isPathTracing");
         isRenderingBitmask = super.getUniformLocation("isRenderingBitmask");
+        bitmaskSize = super.getUniformLocation("bitmaskSize");
+        lightBounceAmount = super.getUniformLocation("lightBounceAmount");
+
+        chunkScale = super.getUniformLocation("chunkScale");
     }
 
     public void bindTexture(final String id, final int pos) {
@@ -101,5 +107,9 @@ public class RayTracerShader extends BaseShader {
 
     public void loadRandomVector() {
         BaseShader.load2DVector(randVector2D, new Vector2f(rand.nextFloat(), rand.nextFloat()));
+    }
+
+    public void loadSunPosition() {
+        BaseShader.load3DVector(sunPosition, sun.getPosition());
     }
 }

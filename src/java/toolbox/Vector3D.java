@@ -49,6 +49,21 @@ public class Vector3D {
         return new Vector3D(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
     }
 
+    public Vector3D rotateX(final float a) {
+        return new Vector3D(x, y, z);
+    }
+
+    public Vector3D rotateY(final float a) {
+        return new Vector3D(x, y, z);
+    }
+
+    public Vector3D rotateZ(final float a) {
+        final float sin = (float) Math.sin(a);
+        final float cos = (float) Math.cos(a);
+
+        return new Vector3D(x * cos - y * sin, x * sin + y * cos, z);
+    }
+
     public Vector3D floor() {
         return new Vector3D((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
@@ -58,6 +73,10 @@ public class Vector3D {
     }
 
     public Vector3D add(final Vector3D v) {
+        return new Vector3D(x + v.x, y + v.y, z + v.z);
+    }
+
+    public Vector3D add(final Point3D v) {
         return new Vector3D(x + v.x, y + v.y, z + v.z);
     }
 
@@ -73,6 +92,10 @@ public class Vector3D {
         return new Vector3D(x - v.x, y - v.y, z - v.z);
     }
 
+    public Vector3D sub(final Point3D v) {
+        return new Vector3D(x - v.x, y - v.y, z - v.z);
+    }
+
     public Vector3D sub(final float v) {
         return new Vector3D(x - v, y - v, z - v);
     }
@@ -83,6 +106,10 @@ public class Vector3D {
 
     public Vector3D mult(final float v) {
         return new Vector3D(x * v, y * v, z * v);
+    }
+
+    public Vector3D mult(final float x, final float y, final float z) {
+        return new Vector3D(this.x * x, this.y * y, this.z * z);
     }
 
     public Vector3D mult(final Vector3D v) {

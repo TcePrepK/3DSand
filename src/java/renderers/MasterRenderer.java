@@ -104,6 +104,7 @@ public class MasterRenderer {
         }
 
         renderShader.loadRandomVector();
+        renderShader.loadSunPosition();
         renderShader.loadPathTracingSetting();
         renderShader.loadBitmaskBorderSetting();
         renderShader.loadLightBounceAmount();

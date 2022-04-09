@@ -13,6 +13,8 @@ import toolbox.Vector3D;
 import java.nio.ByteBuffer;
 
 import static core.GlobalVariables.*;
+import static elements.ElementRegistry.emptyElement;
+import static elements.ElementRegistry.getElementByID;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.GL_R8;
 
@@ -27,6 +29,7 @@ public class Chunk {
     private final Point3D bitmaskScale = new Point3D(mapChunkSize / mapBitmaskSize);
     private final Element[] grid = new Element[chunkScale.x * chunkScale.y * chunkScale.z];
     private final byte[] idGrid = new byte[chunkScale.x * chunkScale.y * chunkScale.z];
+    private int totalElementAmount = 0;
 
     private final ByteBuffer voxelBuffer = BufferUtils.createByteBuffer(chunkScale.x * chunkScale.y * chunkScale.z);
     private final ImageBuffer3D voxelImageBuffer = new ImageBuffer3D(chunkScale, 0, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
@@ -34,10 +37,6 @@ public class Chunk {
     private final ByteBuffer bitmaskBuffer = BufferUtils.createByteBuffer(bitmaskScale.x * bitmaskScale.y * bitmaskScale.z);
     private final ImageBuffer3D bitmaskImageBuffer = new ImageBuffer3D(bitmaskScale, 0, 0, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
     private boolean updateBuffers = true;
-
-//    private final int bitmaskSize = 4;
-//    private final Point3D bitmaskScale = chunkScale.div(bitmaskSize);
-//    private final int[] bitmaskGrid = new int[bitmaskScale.x * bitmaskScale.y * bitmaskScale.z];
 
     public Chunk(final int x, final int y, final int z, final String id) {
         pos = new Point3D(x, y, z).mult(mapChunkSize);
@@ -47,11 +46,14 @@ public class Chunk {
         nextDirtyCube = new Cube(pos.x, pos.y, pos.z, mapChunkSize, mapChunkSize, mapChunkSize);
 
 //        generateUpdateTester();
-        generateTerrain(100);
-        generateCaves(100);
+//        generateTerrain(100);
+//        generateCaves(100);
 //        generateSponge();
+        generateSpongeOnPlatform();
 
 //        generateNoiseChunk();
+
+        System.out.println(totalElementAmount);
 
         updateRect();
     }
@@ -118,7 +120,7 @@ public class Chunk {
                         continue;
                     }
 
-                    setElement(finalX, finalY, finalZ, ElementRegistry.emptyElement);
+                    setElement(finalX, finalY, finalZ, emptyElement);
                 }
             }
         }
@@ -171,7 +173,70 @@ public class Chunk {
                         iter++;
 
                         final float power = (float) Math.pow(3, iter);
-                        final Vector3D location = normPos.mult(power).floor();
+                        final Vector3D location = normPos.mult(power);
+                        voxel = location.mod(3).sub(1).toPoint3D();
+                    }
+
+                    if (hit) {
+                        setElement(pos.x + offX, pos.y + offY, pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
+                    }
+                }
+            }
+        }
+    }
+
+    public void generatePlatform() {
+        if (pos.y > 0) {
+            return;
+        }
+
+        for (int offX = 0; offX < mapChunkSize; offX++) {
+            for (int offZ = 0; offZ < mapChunkSize; offZ++) {
+                if (rand.nextFloat() < 0.01) {
+                    setElement(pos.x + offX, pos.y, pos.z + offZ, ElementRegistry.getElementByName("Light"));
+                    continue;
+                }
+
+                setElement(pos.x + offX, pos.y, pos.z + offZ, ElementRegistry.getElementByName("Dirt"));
+            }
+        }
+    }
+
+    public void generateSpongeOnPlatform() {
+        generatePlatform();
+
+        final float scale = 0.5f;
+        final Vector3D worldScale = world.getWorldScale().toVector3D();
+        final Vector3D newSize = worldScale.mult(scale);
+        final Vector3D center = worldScale.div(2).sub(newSize.div(2)).mult(1, 0, 1).add(0, 2, 0);
+
+        for (int offX = 0; offX < mapChunkSize; offX++) {
+            for (int offY = 0; offY < mapChunkSize; offY++) {
+                for (int offZ = 0; offZ < mapChunkSize; offZ++) {
+                    final Vector3D offset = new Vector3D(offX, offY, offZ).add(pos);
+
+                    final Vector3D scaledOffset = offset.sub(center).div(scale);
+                    final Vector3D normPos = scaledOffset.div(worldScale);
+
+                    Point3D voxel = normPos.mult(3).sub(1).toPoint3D();
+                    Point3D absVoxel = voxel.abs();
+                    if (absVoxel.x > 1 || absVoxel.y > 1 || absVoxel.z > 1) {
+                        continue;
+                    }
+
+                    int iter = 0;
+                    boolean hit = true;
+                    while (iter <= 4) {
+                        absVoxel = voxel.abs();
+                        if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
+                            hit = false;
+                            break;
+                        }
+
+                        iter++;
+
+                        final float power = (float) Math.pow(3, iter);
+                        final Vector3D location = normPos.mult(power);
                         voxel = location.mod(3).sub(1).toPoint3D();
                     }
 
@@ -188,8 +253,14 @@ public class Chunk {
             return;
         }
 
+        updateBuffers = false;
+
         glDeleteTextures(voxelImageBuffer.getID());
         glDeleteTextures(bitmaskImageBuffer.getID());
+
+        if (isEmpty()) {
+            return;
+        }
 
         voxelImageBuffer.create(voxelBuffer);
         bitmaskImageBuffer.create(bitmaskBuffer);
@@ -204,8 +275,6 @@ public class Chunk {
 //
 //        voxelImageBuffer.updatePixels(voxelBuffer);
 //        bitmaskImageBuffer.updatePixels(bitmaskBuffer);
-
-        updateBuffers = false;
     }
 
     public void awakeGrid(final int x, final int y, final int z) {
@@ -213,12 +282,12 @@ public class Chunk {
     }
 
     public void updateRect() {
-        System.out.println(nextDirtyCube.sub(pos.x, pos.y, pos.z).div(mapChunkSize).ceil());
+//        System.out.println(nextDirtyCube.sub(pos.x, pos.y, pos.z).div(mapChunkSize).ceil());
         dirtyCube = nextDirtyCube.clamp(new Cube(pos.x, pos.y, pos.z, mapChunkSize, mapChunkSize, mapChunkSize));
         nextDirtyCube = new Cube();
     }
 
-    public void setElement(final int x, final int y, final int z, final Element e) {
+    public void setElement(final int x, final int y, final int z, final Element element) {
         if (outBounds(x, y, z)) {
             return;
         }
@@ -226,15 +295,26 @@ public class Chunk {
         awakeGrid(x, y, z);
 
         final int idx = getIDX(x - pos.x, y - pos.y, z - pos.z);
-        grid[idx] = e;
-        idGrid[idx] = (byte) e.getId();
-        voxelBuffer.put(idx, (byte) e.getId());
+        final Element previousElement = getElementByID(idGrid[idx]);
+        if (element.equals(previousElement)) {
+            return;
+        }
 
-        final int bitmaskIDX = getBitmaskIDX(x - pos.x, y - pos.y, z - pos.z);
-        final int previousData = bitmaskBuffer.get(bitmaskIDX);
-        bitmaskBuffer.put(bitmaskIDX, (byte) (previousData + ((e.getName() == null) ? -1 : 1)));
-
+        grid[idx] = element;
+        idGrid[idx] = (byte) element.getId();
+        voxelBuffer.put(idx, (byte) element.getId());
         updateBuffers = true;
+
+        if (!element.equals(emptyElement) && !previousElement.equals(emptyElement)) {
+            return;
+        }
+
+        final int counterDelta = element.equals(emptyElement) ? -1 : 1;
+        final int bitmaskIDX = getBitmaskIDX(x - pos.x, y - pos.y, z - pos.z);
+
+        totalElementAmount += counterDelta;
+        bitmaskBuffer.put(bitmaskIDX, (byte) (bitmaskBuffer.get(bitmaskIDX) + counterDelta));
+
     }
 
     public void setElement(final Point3D pos, final Element e) {
@@ -244,7 +324,7 @@ public class Chunk {
     @NotNull
     public Element getElement(final int x, final int y, final int z) {
         if (outBounds(x, y, z)) {
-            return ElementRegistry.emptyElement;
+            return emptyElement;
         }
 
         final byte id = idGrid[getIDX(x - pos.x, y - pos.y, z - pos.z)];
@@ -256,8 +336,8 @@ public class Chunk {
         return getElement(pos.x, pos.y, pos.z);
     }
 
-    public boolean outBounds(final int x, final int y, final int z) {
-        return (x < pos.x || x >= pos.x + chunkScale.x || y < pos.y || y >= pos.y + chunkScale.y || z < pos.z || z >= pos.z + chunkScale.z);
+    public boolean isEmpty() {
+        return totalElementAmount == 0;
     }
 
     public int getIDX(final int x, final int y, final int z) {
@@ -269,6 +349,10 @@ public class Chunk {
         final int bitY = y / mapBitmaskSize;
         final int bitZ = z / mapBitmaskSize;
         return bitX + bitY * bitmaskScale.x + bitZ * bitmaskScale.x * bitmaskScale.y;
+    }
+
+    public boolean outBounds(final int x, final int y, final int z) {
+        return (x < pos.x || x >= pos.x + chunkScale.x || y < pos.y || y >= pos.y + chunkScale.y || z < pos.z || z >= pos.z + chunkScale.z);
     }
 
     public ImageBuffer3D getVoxelBuffer() {

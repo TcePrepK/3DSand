@@ -22,15 +22,19 @@ public class ChunkUpdateThread extends BasicThread {
         if (!updateWorld) {
             return;
         }
-        
+
         final List<Chunk> chunkUpdateList = chunkManager.getChunkUpdateList();
         if (chunkUpdateList.isEmpty()) {
             return;
         }
 
-        boolean updatedThisChunk = false;
         final int randomIndex = rand.nextInt(chunkUpdateList.size());
         final Chunk chunk = chunkUpdateList.get(randomIndex);
+        if (chunk.isEmpty()) {
+            return;
+        }
+
+        boolean updatedThisChunk = false;
 //        for (int x = chunk.getMinX(); x < chunk.getMaxX(); x++) {
 //            for (int y = chunk.getMinY(); y < chunk.getMaxY(); y++) {
 //                for (int z = chunk.getMinZ(); z < chunk.getMaxZ(); z++) {

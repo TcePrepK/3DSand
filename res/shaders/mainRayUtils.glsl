@@ -20,12 +20,6 @@ struct WorldBox {
 };
 WorldBox world = WorldBox(0, 0, 0);
 
-float clamp(float v, float min, float max) {
-    if (v < min) return min;
-    if (v > max) return max;
-    return v;
-}
-
 float map(float n, float start1, float stop1, float start2, float stop2) {
     const float newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
     if (start2 < stop2) {
@@ -69,16 +63,24 @@ bool inBounds(vec3 v, vec3 s) {
 
 vec3 getSkyColor(vec3 dir) {
     const vec3 skyColor = vec3(0.5, 0.7, 1);
-    const vec3 lightDir = normalize(vec3(1, 0.5, 0));
+    const vec3 sunColor = vec3(1);
+    const vec3 moonColor = vec3(0);
 
-    const float dist = (dot(dir, lightDir) + 1) / 2;
-    const float result = exp(-dist);
+    float product = dot(dir, sunPosition) * 2 - 1;
+    if (product > 0) {
+        float factor = max(0, product);
+        factor = min(0.99, factor) + 0.01;
+        factor = pow(factor, 100);
 
-    return skyColor * result;
-    //    return vec3((dot(dir, normalize(vec3(1, 1, 1))) + 1) * 0.5);
+        return mix(skyColor, sunColor, factor);
+    }
 
-    //    const float time = 1 * (dir.x + 1);
-    //    return skyColor * time + (1 - time);
+    float factor = max(0, -product / 3);
+    factor = min(0.9999, factor) + 0.0001;
+    factor = pow(factor, 1);
+
+    return mix(skyColor, moonColor, factor);
+
 }
 
 vec3 randomizeNormal(vec3 normal) {
@@ -201,8 +203,8 @@ void DDA(inout Ray ray, inout HitRecord record) {
         if (jumpChunk || bitmask == 0) {
             if (isRenderingBitmask) {
                 if (testForBorder(ray, record.distance, stepDir * jumpAmount)) {
-                    ray.color = vec3(0);
-                } else if (ray.color != vec3(0)) {
+                    ray.color *= vec3(0.6);
+                } else if (ray.color == vec3(1)) {
                     ray.color = vec3(0.1, 2, 0.1);
                 }
             }
@@ -283,7 +285,7 @@ void DDA(inout Ray ray, inout HitRecord record) {
 
     const vec3 skyColor = getSkyColor(ray.dir);
     if (hitId == 0) {
-        ray.color = skyColor;
+        ray.color *= skyColor;
         record.light = true;
     } else {
         vec3 cubeColor = vec3(0);
@@ -358,7 +360,7 @@ HitRecord ColorDDA(inout Ray ray) {
             break;
         }
 
-        bouncePosition = bounceRecord.position + bounceRecord.normal / 1000;
+        bouncePosition = bounceRecord.position;
         product = dot(bounceDirection, bounceRecord.normal);
         if (product < 0) {
             bounceDirection *= -1;

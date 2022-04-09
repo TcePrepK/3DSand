@@ -52,7 +52,7 @@ public class ChunkManager {
                     if (!chunk.shouldUpdateBuffer()) {
                         continue;
                     }
-
+                    
                     chunk.updateBuffers();
 
                     voxelBufferIDArray[idx] = ARBBindlessTexture.glGetTextureHandleARB(chunk.getVoxelBuffer().getID());
