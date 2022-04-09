@@ -36,6 +36,7 @@ public class MasterRenderer {
 
     private boolean loadCameraVariables = false;
     public boolean reloadResolutions = false;
+    public boolean resetFrameCounter = false;
 
     public MasterRenderer() {
         final float[] positions = {-1, 1, -1, -1, 1, 1, 1, -1};
@@ -101,6 +102,12 @@ public class MasterRenderer {
         if (loadCameraVariables) {
             renderShader.loadCameraVariables();
             loadCameraVariables = false;
+        }
+
+        if (resetFrameCounter) {
+            attachmentManager.get("frameCount").create(null);
+            attachmentManager.get("frameCount").update();
+            resetFrameCounter = false;
         }
 
         renderShader.loadRandomVector();

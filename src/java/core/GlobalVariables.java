@@ -40,7 +40,7 @@ public class GlobalVariables {
     public final static int mapChunkSize = 32;
     public final static int mapBitmaskSize = 4;
 
-    public final static int chunkViewDistance = 4;
+    public final static int chunkViewDistance = 8;
     public static boolean generateWorld = true;
     public static boolean updateWorld = false;
 

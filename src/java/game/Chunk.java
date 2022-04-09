@@ -53,8 +53,6 @@ public class Chunk {
 
 //        generateNoiseChunk();
 
-        System.out.println(totalElementAmount);
-
         updateRect();
     }
 
@@ -226,7 +224,7 @@ public class Chunk {
 
                     int iter = 0;
                     boolean hit = true;
-                    while (iter <= 4) {
+                    while (iter <= 5) {
                         absVoxel = voxel.abs();
                         if (absVoxel.x + absVoxel.y + absVoxel.z <= 1) {
                             hit = false;

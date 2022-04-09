@@ -93,13 +93,17 @@ public class ImGuiManager {
             drawBitmaskBorders = !drawBitmaskBorders;
         }
 
+        if (ImGui.button("Reset Frame Counter")) {
+            renderer.resetFrameCounter = true;
+        }
+
         final int[] bounceInt = new int[]{lightBounceAmount};
         if (ImGui.sliderInt("Bounce Amount", bounceInt, 0, 25)) {
             lightBounceAmount = bounceInt[0];
         }
 
         ImGui.spacing();
-        
+
         if (ImGui.checkbox("Update Sun", updateSun)) {
             updateSun = !updateSun;
         }

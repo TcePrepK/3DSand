@@ -171,9 +171,9 @@ void DDA(inout Ray ray, inout HitRecord record) {
         fartestTime = closestTime = maxDistance;
     }
 
-    if (fartestTime - closestTime > maxDistance) {
-        fartestTime = closestTime + maxDistance;
-    }
+    //    if (fartestTime - closestTime > maxDistance) {
+    //        fartestTime = closestTime + maxDistance;
+    //    }
 
     record.distance = closestTime;
 
