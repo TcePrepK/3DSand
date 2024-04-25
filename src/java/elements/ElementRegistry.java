@@ -1,6 +1,5 @@
 package elements;
 
-import com.sun.istack.internal.NotNull;
 import elements.liquids.Water;
 import elements.solids.movables.Dirt;
 import elements.solids.movables.Light;
@@ -41,13 +40,11 @@ public class ElementRegistry {
         ElementRegistry.nameToElement.put(name, entry);
     }
 
-    @NotNull
     public static Element getElementByName(final String name) {
         final Element element = ElementRegistry.nameToElement.get(name);
         return element != null ? element : ElementRegistry.emptyElement;
     }
 
-    @NotNull
     public static Element getElementByID(final byte id) {
         final String name = ElementRegistry.idToName.get((int) id);
         return ElementRegistry.getElementByName(name);

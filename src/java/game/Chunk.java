@@ -1,6 +1,5 @@
 package game;
 
-import com.sun.istack.internal.NotNull;
 import core.imageBuffers.ImageBuffer3D;
 import elements.Element;
 import elements.ElementRegistry;
@@ -46,10 +45,10 @@ public class Chunk {
 
 //        generateUpdateTester();
 //        generateTerrain(100);
-//        generateCaves(100);
+        generateCaves(100);
 //        generateSponge();
 //        generateSpongeOnPlatform();
-        generateFloatingSpongeInCube();
+//        generateFloatingSpongeInCube();
 
 //        generateNoiseChunk();
 
@@ -396,7 +395,6 @@ public class Chunk {
         setElement(pos.x, pos.y, pos.z, e);
     }
 
-    @NotNull
     public Element getElement(final int x, final int y, final int z) {
         if (outBounds(x, y, z)) {
             return emptyElement;
@@ -406,7 +404,6 @@ public class Chunk {
         return ElementRegistry.getElementByID(id);
     }
 
-    @NotNull
     public Element getElement(final Point3D pos) {
         return getElement(pos.x, pos.y, pos.z);
     }
